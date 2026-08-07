@@ -291,10 +291,10 @@ export default function OnboardingScreen() {
       {!language ? (
         <View style={styles.languageContent}>
           <Image
-            source={require('../assets/images/icon.png')}
-            accessibilityLabel="DRCS DATA logo"
+            source={require('../assets/images/Learning_languages-pana.png')}
+            accessibilityLabel="Language learning illustration"
             resizeMode="contain"
-            style={styles.languageLogo}
+            style={styles.languageIllustration}
           />
           <Text style={[styles.eyebrow, { color: colors.primary }]}>
             DRCS DATA
@@ -585,10 +585,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
   },
-  languageLogo: {
-    height: 130,
+  languageIllustration: {
+    height: 190,
     marginBottom: 18,
-    width: 130,
+    maxWidth: 320,
+    width: '78%',
   },
   languageOptions: {
     gap: 12,
