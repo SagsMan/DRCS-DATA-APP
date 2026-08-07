@@ -116,7 +116,9 @@ export default function OnboardingScreen() {
             style={styles.logoIcon}
             resizeMode="contain"
           />
-          <Text style={styles.logoText}>DRCS DATA</Text>
+          <Text style={[styles.logoText, { color: colors.foreground }]}>
+            DRCS DATA
+          </Text>
         </View>
 
         {activeSlide < LAST_SLIDE ? (
@@ -280,7 +282,6 @@ const styles = StyleSheet.create({
     width: 16,
   },
   logoText: {
-    color: '#0B0A0A',
     fontFamily: 'Poppins_700Bold',
     fontSize: 18,
     letterSpacing: -0.3,
