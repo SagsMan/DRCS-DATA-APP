@@ -1,0 +1,1 @@
+- [Expo startup rendering](expo-startup.md) — keep a bounded font-loading fallback so a healthy Metro bundle cannot leave the app white indefinitely.
