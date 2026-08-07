@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -40,6 +40,7 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
+  const [startupReady, setStartupReady] = useState(false);
   const [interLoaded, interError] = useInterFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -59,10 +60,21 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
+      setStartupReady(true);
+      return;
     }
+
+    // Do not leave the app on a blank screen if a non-critical font
+    // download hangs on a device or in the web preview.
+    const fallbackTimer = setTimeout(() => {
+      SplashScreen.hideAsync();
+      setStartupReady(true);
+    }, 4000);
+
+    return () => clearTimeout(fallbackTimer);
   }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded && !fontError) return null;
+  if (!startupReady) return null;
 
   return (
     <SafeAreaProvider>
