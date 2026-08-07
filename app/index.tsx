@@ -29,27 +29,27 @@ type OnboardingSlide = {
 const slideCopy: Record<Language, OnboardingSlide[]> = {
   en: [
     {
-      title: 'Stay connected everywhere',
+      title: 'Pay bills without stress',
       description:
-        'Buy airtime and data bundles for every network, wherever you are.',
+        'Take care of bills, airtime and data in a few simple taps.',
       image: require('../assets/images/onboarding-online-world.png'),
     },
     {
-      title: 'Power your digital life',
+      title: 'Get more value',
       description:
-        'Get reliable VTU services that keep your calls, data and devices running.',
+        'Enjoy reliable VTU services made to give you more every day.',
       image: require('../assets/images/onboarding-programming.png'),
     },
     {
-      title: 'Fast, secure and reliable',
+      title: 'Safe, instant transactions',
       description:
-        'Every transaction is designed to be simple, protected and completed in seconds.',
+        'Your payments are protected and completed in seconds.',
       image: require('../assets/images/onboarding-progress.png'),
     },
     {
-      title: 'Everything you need, always available',
+      title: 'Refer friends anywhere',
       description:
-        'Enjoy convenient VTU services and responsive support from DRCS DATA.',
+        'Share DRCS DATA with friends and enjoy more value together.',
       image: require('../assets/images/onboarding-wallet.png'),
     },
   ],
