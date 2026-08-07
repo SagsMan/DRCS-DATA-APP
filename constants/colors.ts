@@ -13,14 +13,14 @@ const colors = {
     tint: '#2557D6',
 
     // Core surfaces
-    background: '#F5F8FF',
+    background: '#EAF4FF',
     foreground: '#172033',
 
     // Brand
-    brandPrimaryLight: '#E8F0FF',
+    brandPrimaryLight: '#DFF0FF',
     brandPrimary: '#2557D6',
     brandPrimaryDark: '#12358F',
-    brandPrimaryLightest: '#F5F8FF',
+    brandPrimaryLightest: '#EAF4FF',
     grayBlack: '#172033',
     grayGray1: '#5E6B82',
     grayGray4: '#D8E1F0',
@@ -34,11 +34,11 @@ const colors = {
     primaryForeground: '#FFFFFF',
 
     // Secondary
-    secondary: '#EDF3FF',
+    secondary: '#D9EDFF',
     secondaryForeground: '#12358F',
 
     // Muted
-    muted: '#F1F5FB',
+    muted: '#EEF7FF',
     mutedForeground: '#5E6B82',
 
     // Accent

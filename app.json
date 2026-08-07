@@ -4,7 +4,7 @@
     "slug": "drcs-data-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/drcs-logo-icon.png",
     "scheme": "drcs-data-mobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -18,7 +18,7 @@
     },
     "android": {},
     "web": {
-      "favicon": "./assets/images/icon.png"
+      "favicon": "./assets/images/drcs-logo-icon.png"
     },
     "plugins": [
       [

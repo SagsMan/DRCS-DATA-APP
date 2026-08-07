@@ -1,6 +1,8 @@
 import { useColorScheme } from 'react-native';
 import colors from '@/constants/colors';
 
+type ColorScheme = 'light' | 'dark';
+
 /**
  * Returns the design tokens for the current color scheme.
  *
@@ -13,8 +15,9 @@ import colors from '@/constants/colors';
  * key, this hook will automatically switch palettes based on the
  * device's appearance setting.
  */
-export function useColors() {
-  const scheme = useColorScheme();
+export function useColors(preferredScheme?: ColorScheme) {
+  const systemScheme = useColorScheme();
+  const scheme = preferredScheme ?? systemScheme;
   const palette =
     scheme === 'dark'
       ? colors.dark
