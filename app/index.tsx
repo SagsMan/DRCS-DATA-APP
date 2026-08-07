@@ -1,36 +1,93 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  TouchableOpacity,
   Dimensions,
+  Image,
+  ImageSourcePropType,
   Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 
-const { width: SW, height: SH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Proportions from Figma (295 × 640 design)
-const TOP_RATIO = 364 / 640; // ~57% — warm cream section
+type OnboardingSlide = {
+  title: string;
+  description: string;
+  images: [ImageSourcePropType, ImageSourcePropType];
+};
+
+const slides: OnboardingSlide[] = [
+  {
+    title: 'Stay connected everywhere',
+    description:
+      'Buy airtime and data bundles for every network, wherever you are.',
+    images: [
+      require('../assets/images/onboarding-online-world.png'),
+      require('../assets/images/onboarding-globalization.png'),
+    ],
+  },
+  {
+    title: 'Power your digital life',
+    description:
+      'Get reliable VTU services that keep your calls, data and devices running.',
+    images: [
+      require('../assets/images/onboarding-programming.png'),
+      require('../assets/images/onboarding-server.png'),
+    ],
+  },
+  {
+    title: 'Fast, secure and reliable',
+    description:
+      'Every transaction is designed to be simple, protected and completed in seconds.',
+    images: [
+      require('../assets/images/onboarding-progress.png'),
+      require('../assets/images/onboarding-security.png'),
+    ],
+  },
+  {
+    title: 'Everything you need, always available',
+    description:
+      'Enjoy convenient VTU services and responsive support from DRCS DATA.',
+    images: [
+      require('../assets/images/onboarding-wallet.png'),
+      require('../assets/images/onboarding-service.png'),
+    ],
+  },
+];
+
+const LAST_SLIDE = slides.length - 1;
 
 export default function OnboardingScreen() {
   const [activeSlide, setActiveSlide] = useState(0);
   const insets = useSafeAreaInsets();
   const colors = useColors();
+  const slide = slides[activeSlide];
 
-  // Web platform insets
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
   const webBottomInset = Platform.OS === 'web' ? 34 : 0;
+  const imageSize = useMemo(
+    () => Math.min(SCREEN_WIDTH * 0.42, SCREEN_HEIGHT * 0.25),
+    [],
+  );
 
-  const topHeight = SH * TOP_RATIO;
-
-  const handleDot = (index: number) => {
-    setActiveSlide(index);
+  const goToSlide = (index: number) => {
+    setActiveSlide(Math.max(0, Math.min(index, LAST_SLIDE)));
     Haptics.selectionAsync();
+  };
+
+  const handleNext = () => {
+    if (activeSlide < LAST_SLIDE) {
+      goToSlide(activeSlide + 1);
+    }
+  };
+
+  const handleSkip = () => {
+    goToSlide(LAST_SLIDE);
   };
 
   const handleLogin = () => {
@@ -42,119 +99,161 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-
-      {/* ── TOP SECTION: warm cream ── */}
-      <View
-        style={[
-          styles.topSection,
-          {
-            height: topHeight,
-            paddingTop: insets.top + webTopInset,
-            backgroundColor: colors.brandPrimaryLight,
-          },
-        ]}
-      >
-        {/* Logo row */}
-        <View style={styles.logoRow}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.background,
+          paddingTop: insets.top + webTopInset,
+          paddingBottom: Math.max(insets.bottom, 18) + webBottomInset,
+        },
+      ]}
+    >
+      <View style={styles.header}>
+        <View style={styles.brand}>
           <Image
             source={require('../assets/images/logo-icon.png')}
             style={styles.logoIcon}
             resizeMode="contain"
           />
-          <Text style={styles.logoText}>DRCS-DATA</Text>
+          <Text style={styles.logoText}>DRCS DATA</Text>
         </View>
 
-        {/* Illustration layer */}
-        <View style={styles.illustrationContainer}>
-          {/* Left figure — person sitting */}
-          <Image
-            source={require('../assets/images/illustration-left.png')}
-            style={[
-              styles.illustrationLeft,
-              { width: SW * 0.39, height: SW * 0.32 },
+        {activeSlide < LAST_SLIDE ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Skip onboarding"
+            hitSlop={12}
+            onPress={handleSkip}
+            style={({ pressed }) => [
+              styles.skipButton,
+              pressed && styles.pressed,
             ]}
-            resizeMode="contain"
-          />
-          {/* Right figure — person with phone */}
-          <Image
-            source={require('../assets/images/illustration-right.png')}
-            style={[
-              styles.illustrationRight,
-              { width: SW * 0.14, height: SW * 0.49 },
-            ]}
-            resizeMode="contain"
-          />
-          {/* Main bottom scene */}
-          <Image
-            source={require('../assets/images/illustration-main.png')}
-            style={[
-              styles.illustrationMain,
-              { width: SW, height: SW * 0.57 },
-            ]}
-            resizeMode="contain"
-          />
-        </View>
+          >
+            <Text style={[styles.skipText, { color: colors.grayGray1 }]}>
+              Skip
+            </Text>
+          </Pressable>
+        ) : (
+          <View style={styles.headerSpacer} />
+        )}
       </View>
 
-      {/* ── BOTTOM SECTION ── */}
-      <View
-        style={[
-          styles.bottomSection,
-          {
-            paddingBottom: Math.max(insets.bottom, 20) + webBottomInset,
-          },
-        ]}
-      >
-        {/* Slide dots */}
+      <View style={styles.content}>
+        <View style={styles.illustrationRow}>
+          {slide.images.map((image, index) => (
+            <View
+              key={index}
+              style={[
+                styles.imageCard,
+                {
+                  backgroundColor: colors.brandPrimaryLight,
+                  width: imageSize,
+                  height: imageSize,
+                },
+              ]}
+            >
+              <Image
+                source={image}
+                accessibilityLabel={`DRCS DATA illustration ${index + 1}`}
+                resizeMode="contain"
+                style={styles.illustration}
+              />
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.copy}>
+          <Text style={[styles.eyebrow, { color: colors.primary }]}>
+            DRCS DATA VTU SERVICES
+          </Text>
+          <Text style={[styles.title, { color: colors.grayBlack }]}>
+            {slide.title}
+          </Text>
+          <Text style={[styles.description, { color: colors.grayGray1 }]}>
+            {slide.description}
+          </Text>
+        </View>
+
         <View style={styles.dotsRow}>
-          {[0, 1, 2].map((i) => (
-            <TouchableOpacity
-              key={i}
-              onPress={() => handleDot(i)}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          {slides.map((item, index) => (
+            <Pressable
+              key={item.title}
+              accessibilityRole="button"
+              accessibilityLabel={`Go to onboarding slide ${index + 1}`}
+              hitSlop={10}
+              onPress={() => goToSlide(index)}
               style={[
                 styles.dot,
-                activeSlide === i
-                  ? [styles.dotActive, { borderColor: colors.grayBlack }]
-                  : [styles.dotInactive, { backgroundColor: colors.grayGray4 }],
+                index === activeSlide
+                  ? [styles.dotActive, { backgroundColor: colors.primary }]
+                  : [
+                      styles.dotInactive,
+                      { backgroundColor: colors.grayGray4 },
+                    ],
               ]}
             />
           ))}
         </View>
+      </View>
 
-        {/* Title */}
-        <Text style={[styles.title, { color: colors.grayBlack }]}>
-          Easy Online Payment
-        </Text>
-
-        {/* Subtitle */}
-        <Text style={[styles.subtitle, { color: colors.grayGray1 }]}>
-          Make your payment experience more better today.{'\n'}No additional admin fee
-        </Text>
-
-        {/* Buttons */}
-        <View style={styles.buttonsContainer}>
-          <TouchableOpacity
-            style={[styles.loginButton, { backgroundColor: colors.primary }]}
-            activeOpacity={0.85}
-            onPress={handleLogin}
+      <View style={styles.actions}>
+        {activeSlide < LAST_SLIDE ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Next onboarding slide"
+            onPress={handleNext}
+            style={({ pressed }) => [
+              styles.primaryButton,
+              { backgroundColor: colors.primary },
+              pressed && styles.pressed,
+            ]}
           >
-            <Text style={[styles.loginButtonText, { color: colors.primaryForeground }]}>
-              Login
+            <Text
+              style={[styles.primaryButtonText, { color: colors.primaryForeground }]}
+            >
+              Next
             </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.signUpButton, { borderColor: colors.primary }]}
-            activeOpacity={0.85}
-            onPress={handleSignUp}
-          >
-            <Text style={[styles.signUpButtonText, { color: colors.primary }]}>
-              Sign Up
-            </Text>
-          </TouchableOpacity>
-        </View>
+          </Pressable>
+        ) : (
+          <>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Sign up"
+              onPress={handleSignUp}
+              style={({ pressed }) => [
+                styles.primaryButton,
+                { backgroundColor: colors.primary },
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.primaryButtonText,
+                  { color: colors.primaryForeground },
+                ]}
+              >
+                Sign Up
+              </Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Log in"
+              onPress={handleLogin}
+              style={({ pressed }) => [
+                styles.secondaryButton,
+                { borderColor: colors.primary },
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text
+                style={[styles.secondaryButtonText, { color: colors.primary }]}
+              >
+                Login
+              </Text>
+            </Pressable>
+          </>
+        )}
       </View>
     </View>
   );
@@ -163,115 +262,133 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingHorizontal: 24,
   },
-
-  // ── Top section ──
-  topSection: {
-    overflow: 'hidden',
-  },
-  logoRow: {
-    flexDirection: 'row',
+  header: {
     alignItems: 'center',
-    alignSelf: 'center',
-    gap: 9,
-    marginTop: 4,
-    marginBottom: 4,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    minHeight: 36,
+  },
+  brand: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
   },
   logoIcon: {
-    width: 14,
-    height: 20,
+    height: 22,
+    width: 16,
   },
   logoText: {
-    fontFamily: 'Poppins_700Bold',
-    fontSize: 19,
     color: '#0B0A0A',
+    fontFamily: 'Poppins_700Bold',
+    fontSize: 18,
     letterSpacing: -0.3,
   },
-  illustrationContainer: {
-    flex: 1,
-    position: 'relative',
+  headerSpacer: {
+    width: 36,
   },
-  illustrationLeft: {
-    position: 'absolute',
-    left: SW * 0.13,
-    top: '8%',
+  skipButton: {
+    minHeight: 36,
+    justifyContent: 'center',
+    paddingHorizontal: 4,
   },
-  illustrationRight: {
-    position: 'absolute',
-    right: SW * 0.04,
-    top: '0%',
+  skipText: {
+    fontFamily: 'Roboto_600SemiBold',
+    fontSize: 14,
   },
-  illustrationMain: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-  },
-
-  // ── Bottom section ──
-  bottomSection: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 20,
+  content: {
     alignItems: 'center',
-    justifyContent: 'space-between',
+    flex: 1,
+    justifyContent: 'center',
   },
-  dotsRow: {
+  illustrationRow: {
+    alignItems: 'center',
     flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'center',
+  },
+  imageCard: {
     alignItems: 'center',
-    gap: 5,
+    borderRadius: 24,
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
-  dot: {
-    borderRadius: 2,
+  illustration: {
+    height: '100%',
+    width: '100%',
   },
-  dotActive: {
-    width: 10,
-    height: 10,
-    borderWidth: 1.6,
-    backgroundColor: '#D0D3D8',
+  copy: {
+    alignItems: 'center',
+    marginTop: 34,
+    maxWidth: 360,
   },
-  dotInactive: {
-    width: 7,
-    height: 7,
+  eyebrow: {
+    fontFamily: 'Roboto_600SemiBold',
+    fontSize: 11,
+    letterSpacing: 1.2,
+    marginBottom: 11,
   },
   title: {
     fontFamily: 'IBMPlexSans_600SemiBold',
-    fontSize: 26,
+    fontSize: 29,
+    lineHeight: 35,
     textAlign: 'center',
-    lineHeight: 32,
-    marginTop: 4,
   },
-  subtitle: {
+  description: {
     fontFamily: 'Roboto_400Regular',
-    fontSize: 13,
+    fontSize: 15,
+    lineHeight: 22,
+    marginTop: 12,
+    maxWidth: 320,
     textAlign: 'center',
-    lineHeight: 20,
-    marginTop: 6,
   },
-  buttonsContainer: {
-    width: '100%',
+  dotsRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
     gap: 8,
-    marginTop: 8,
+    marginTop: 28,
   },
-  loginButton: {
-    borderRadius: 4,
-    paddingVertical: 13,
+  dot: {
+    borderRadius: 5,
+    height: 8,
+  },
+  dotActive: {
+    borderRadius: 5,
+    width: 25,
+  },
+  dotInactive: {
+    width: 8,
+  },
+  actions: {
+    gap: 10,
+    width: '100%',
+  },
+  primaryButton: {
     alignItems: 'center',
+    borderRadius: 12,
+    minHeight: 54,
+    justifyContent: 'center',
+    width: '100%',
   },
-  loginButtonText: {
+  primaryButtonText: {
     fontFamily: 'Roboto_600SemiBold',
-    fontSize: 13,
-    fontWeight: '600' as const,
+    fontSize: 16,
   },
-  signUpButton: {
+  secondaryButton: {
+    alignItems: 'center',
     backgroundColor: 'transparent',
-    borderRadius: 4,
-    borderWidth: 1,
-    paddingVertical: 13,
-    alignItems: 'center',
+    borderRadius: 12,
+    borderWidth: 1.5,
+    minHeight: 54,
+    justifyContent: 'center',
+    width: '100%',
   },
-  signUpButtonText: {
+  secondaryButtonText: {
     fontFamily: 'Roboto_600SemiBold',
-    fontSize: 13,
-    fontWeight: '600' as const,
+    fontSize: 16,
+  },
+  pressed: {
+    opacity: 0.78,
   },
 });
