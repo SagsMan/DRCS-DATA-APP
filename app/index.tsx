@@ -336,7 +336,7 @@ function AuthScreen({
               </Pressable>
             </View>
             <Image
-              accessibilityLabel="Login security accent"
+              accessibilityLabel="Login with thumbprint"
               source={loginThumbImage}
               style={styles.loginThumb}
             />
