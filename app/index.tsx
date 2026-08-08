@@ -7,6 +7,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
   useColorScheme,
 } from 'react-native';
@@ -14,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
+import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -25,6 +27,312 @@ type OnboardingSlide = {
   description: string;
   image: ImageSourcePropType;
 };
+
+type AuthScreenName = 'signup' | 'login' | 'forgot' | 'pin';
+
+type AuthScreenProps = {
+  screen: AuthScreenName;
+  onBack: () => void;
+  onNavigate: (screen: AuthScreenName) => void;
+};
+
+const authImages: Record<AuthScreenName, ImageSourcePropType> = {
+  signup: require('../assets/images/auth/sign-up.png'),
+  login: require('../assets/images/auth/sign-in.png'),
+  forgot: require('../assets/images/auth/forgot-password.png'),
+  pin: require('../assets/images/auth/otp-bro.png'),
+};
+
+const verifiedPinImage = require('../assets/images/auth/otp-cuate.png');
+
+function AuthScreen({ screen, onBack, onNavigate }: AuthScreenProps) {
+  const insets = useSafeAreaInsets();
+  const colors = useColors();
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [pin, setPin] = useState('');
+  const [notice, setNotice] = useState('');
+
+  const isPinScreen = screen === 'pin';
+  const title =
+    screen === 'signup'
+      ? 'Create your account'
+      : screen === 'login'
+        ? 'Welcome back'
+        : screen === 'forgot'
+          ? 'Reset your password'
+          : 'Verify your PIN';
+  const description =
+    screen === 'signup'
+      ? 'Join DRCS DATA for easier, safer everyday payments.'
+      : screen === 'login'
+        ? 'Sign in to keep your bills, airtime and data in one place.'
+        : screen === 'forgot'
+          ? 'Enter your email and we will help you get back in.'
+          : 'Enter the six-digit PIN sent to your phone to continue.';
+
+  const handleSubmit = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (isPinScreen) {
+      setNotice('PIN accepted for this test flow.');
+      return;
+    }
+    setNotice('');
+    onNavigate('pin');
+  };
+
+  return (
+    <View
+      style={[
+        styles.authContainer,
+        {
+          backgroundColor: colors.background,
+          paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 12),
+          paddingBottom: Math.max(insets.bottom, 18) + (Platform.OS === 'web' ? 34 : 0),
+        },
+      ]}
+    >
+      <View style={styles.authHeader}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+          hitSlop={12}
+          onPress={onBack}
+          style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
+        >
+          <Ionicons name="arrow-back" size={22} color={colors.grayBlack} />
+        </Pressable>
+        <View style={styles.authBrand}>
+          <Image
+            source={require('../assets/images/logo-icon.png')}
+            style={styles.authLogoIcon}
+            resizeMode="contain"
+          />
+          <Text style={[styles.authBrandText, { color: colors.grayBlack }]}>
+            DRCS DATA
+          </Text>
+        </View>
+        <View style={styles.headerActionSpacer} />
+      </View>
+
+      <KeyboardAwareScrollViewCompat
+        bottomOffset={24}
+        contentContainerStyle={styles.authContent}
+        keyboardDismissMode="on-drag"
+        showsVerticalScrollIndicator={false}
+      >
+        <Image
+          source={isPinScreen && notice ? verifiedPinImage : authImages[screen]}
+          accessibilityLabel={`${title} illustration`}
+          resizeMode="contain"
+          style={[styles.authIllustration, isPinScreen && styles.pinIllustration]}
+        />
+        <Text style={[styles.eyebrow, { color: colors.primary }]}>DRCS DATA</Text>
+        <Text style={[styles.authTitle, { color: colors.grayBlack }]}>{title}</Text>
+        <Text style={[styles.authDescription, { color: colors.grayGray1 }]}>
+          {description}
+        </Text>
+
+        <View style={styles.authForm}>
+          {screen === 'signup' ? (
+            <>
+              <TextInput
+                accessibilityLabel="Full name"
+                autoCapitalize="words"
+                onChangeText={setFullName}
+                placeholder="Full name"
+                placeholderTextColor={colors.grayGray1}
+                style={[
+                  styles.authInput,
+                  { backgroundColor: colors.card, borderColor: colors.input, color: colors.grayBlack },
+                ]}
+                value={fullName}
+              />
+              <TextInput
+                accessibilityLabel="Email address"
+                autoCapitalize="none"
+                keyboardType="email-address"
+                onChangeText={setEmail}
+                placeholder="Email address"
+                placeholderTextColor={colors.grayGray1}
+                style={[
+                  styles.authInput,
+                  { backgroundColor: colors.card, borderColor: colors.input, color: colors.grayBlack },
+                ]}
+                value={email}
+              />
+              <TextInput
+                accessibilityLabel="Password"
+                onChangeText={setPassword}
+                placeholder="Password"
+                placeholderTextColor={colors.grayGray1}
+                secureTextEntry
+                style={[
+                  styles.authInput,
+                  { backgroundColor: colors.card, borderColor: colors.input, color: colors.grayBlack },
+                ]}
+                value={password}
+              />
+              <TextInput
+                accessibilityLabel="Confirm password"
+                onChangeText={setConfirmPassword}
+                placeholder="Confirm password"
+                placeholderTextColor={colors.grayGray1}
+                secureTextEntry
+                style={[
+                  styles.authInput,
+                  { backgroundColor: colors.card, borderColor: colors.input, color: colors.grayBlack },
+                ]}
+                value={confirmPassword}
+              />
+            </>
+          ) : screen === 'login' ? (
+            <>
+              <TextInput
+                accessibilityLabel="Email address"
+                autoCapitalize="none"
+                keyboardType="email-address"
+                onChangeText={setEmail}
+                placeholder="Email address"
+                placeholderTextColor={colors.grayGray1}
+                style={[
+                  styles.authInput,
+                  { backgroundColor: colors.card, borderColor: colors.input, color: colors.grayBlack },
+                ]}
+                value={email}
+              />
+              <TextInput
+                accessibilityLabel="Password"
+                onChangeText={setPassword}
+                placeholder="Password"
+                placeholderTextColor={colors.grayGray1}
+                secureTextEntry
+                style={[
+                  styles.authInput,
+                  { backgroundColor: colors.card, borderColor: colors.input, color: colors.grayBlack },
+                ]}
+                value={password}
+              />
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Forgot password"
+                onPress={() => onNavigate('forgot')}
+                style={({ pressed }) => [styles.inlineLinkButton, pressed && styles.pressed]}
+              >
+                <Text style={[styles.inlineLink, { color: colors.primary }]}>
+                  Forgot password?
+                </Text>
+              </Pressable>
+            </>
+          ) : screen === 'forgot' ? (
+            <TextInput
+              accessibilityLabel="Email address"
+              autoCapitalize="none"
+              keyboardType="email-address"
+              onChangeText={setEmail}
+              placeholder="Email address"
+              placeholderTextColor={colors.grayGray1}
+              style={[
+                styles.authInput,
+                { backgroundColor: colors.card, borderColor: colors.input, color: colors.grayBlack },
+              ]}
+              value={email}
+            />
+          ) : (
+            <TextInput
+              accessibilityLabel="Six digit PIN"
+              autoCapitalize="none"
+              keyboardType="number-pad"
+              maxLength={6}
+              onChangeText={(value) => setPin(value.replace(/[^0-9]/g, ''))}
+              placeholder="000000"
+              placeholderTextColor={colors.grayGray1}
+              style={[
+                styles.pinInput,
+                { backgroundColor: colors.card, borderColor: colors.input, color: colors.grayBlack },
+              ]}
+              textAlign="center"
+              value={pin}
+            />
+          )}
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={isPinScreen ? 'Verify PIN' : 'Continue'}
+            onPress={handleSubmit}
+            style={({ pressed }) => [
+              styles.authPrimaryButton,
+              { backgroundColor: colors.primary },
+              pressed && styles.pressed,
+            ]}
+          >
+            <Text style={[styles.primaryButtonText, { color: colors.primaryForeground }]}>
+              {isPinScreen ? 'Verify PIN' : 'Continue'}
+            </Text>
+            <Ionicons name="arrow-forward" size={18} color={colors.primaryForeground} />
+          </Pressable>
+
+          {notice ? (
+            <View style={[styles.notice, { backgroundColor: colors.successLight }]}>
+              <Ionicons name="checkmark-circle" size={18} color={colors.success} />
+              <Text style={[styles.noticeText, { color: colors.success }]}>{notice}</Text>
+            </View>
+          ) : null}
+        </View>
+
+        {screen === 'signup' ? (
+          <View style={styles.authFooter}>
+            <Text style={[styles.footerText, { color: colors.grayGray1 }]}>
+              Already have an account?
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Log in"
+              onPress={() => onNavigate('login')}
+              style={({ pressed }) => [styles.inlineLinkButton, pressed && styles.pressed]}
+            >
+              <Text style={[styles.inlineLink, { color: colors.primary }]}>Log in</Text>
+            </Pressable>
+          </View>
+        ) : screen === 'login' ? (
+          <View style={styles.authFooter}>
+            <Text style={[styles.footerText, { color: colors.grayGray1 }]}>
+              New to DRCS DATA?
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Sign up"
+              onPress={() => onNavigate('signup')}
+              style={({ pressed }) => [styles.inlineLinkButton, pressed && styles.pressed]}
+            >
+              <Text style={[styles.inlineLink, { color: colors.primary }]}>Sign up</Text>
+            </Pressable>
+          </View>
+        ) : screen === 'forgot' ? (
+          <View style={styles.authFooter}>
+            <Text style={[styles.footerText, { color: colors.grayGray1 }]}>
+              Remembered your password?
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Log in"
+              onPress={() => onNavigate('login')}
+              style={({ pressed }) => [styles.inlineLinkButton, pressed && styles.pressed]}
+            >
+              <Text style={[styles.inlineLink, { color: colors.primary }]}>Log in</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <Text style={[styles.pinHint, { color: colors.grayGray1 }]}>
+            Use the six-digit PIN sent to your registered phone number.
+          </Text>
+        )}
+      </KeyboardAwareScrollViewCompat>
+    </View>
+  );
+}
 
 const slideCopy: Record<Language, OnboardingSlide[]> = {
   en: [
@@ -166,6 +474,7 @@ export default function OnboardingScreen() {
   const systemScheme = useColorScheme();
   const [language, setLanguage] = useState<Language | null>(null);
   const [activeSlide, setActiveSlide] = useState(0);
+  const [authScreen, setAuthScreen] = useState<AuthScreenName | null>(null);
   const [theme, setTheme] = useState<Theme>(
     systemScheme === 'dark' ? 'dark' : 'light',
   );
@@ -221,11 +530,23 @@ export default function OnboardingScreen() {
 
   const handleLogin = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setAuthScreen('login');
   };
 
   const handleSignUp = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setAuthScreen('signup');
   };
+
+  if (authScreen) {
+    return (
+      <AuthScreen
+        onBack={() => setAuthScreen(null)}
+        onNavigate={setAuthScreen}
+        screen={authScreen}
+      />
+    );
+  }
 
   return (
     <View
@@ -429,41 +750,41 @@ export default function OnboardingScreen() {
               </Pressable>
             ) : (
               <>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={copy.signUpLabel}
-              onPress={handleSignUp}
-              style={({ pressed }) => [
-                styles.primaryButton,
-                { backgroundColor: colors.primary },
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.primaryButtonText,
-                  { color: colors.primaryForeground },
-                ]}
-              >
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={copy.signUpLabel}
+                  onPress={handleSignUp}
+                  style={({ pressed }) => [
+                    styles.primaryButton,
+                    { backgroundColor: colors.primary },
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.primaryButtonText,
+                      { color: colors.primaryForeground },
+                    ]}
+                  >
                   {copy.signUpLabel}
-              </Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
+                  </Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
                 accessibilityLabel={copy.loginLabel}
-              onPress={handleLogin}
-              style={({ pressed }) => [
-                styles.secondaryButton,
-                { borderColor: colors.primary },
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text
-                style={[styles.secondaryButtonText, { color: colors.primary }]}
-              >
+                  onPress={handleLogin}
+                  style={({ pressed }) => [
+                    styles.secondaryButton,
+                    { borderColor: colors.primary },
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Text
+                    style={[styles.secondaryButtonText, { color: colors.primary }]}
+                  >
                   {copy.loginLabel}
-              </Text>
-            </Pressable>
+                  </Text>
+                </Pressable>
               </>
             )}
           </View>
@@ -651,5 +972,146 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.78,
+  },
+  authContainer: {
+    flex: 1,
+    paddingHorizontal: 24,
+  },
+  authHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    minHeight: 40,
+  },
+  iconButton: {
+    alignItems: 'center',
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
+  },
+  authBrand: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  authLogoIcon: {
+    height: 24,
+    width: 18,
+  },
+  authBrandText: {
+    fontFamily: 'Poppins_700Bold',
+    fontSize: 17,
+    letterSpacing: -0.3,
+  },
+  headerActionSpacer: {
+    height: 40,
+    width: 40,
+  },
+  authContent: {
+    alignItems: 'center',
+    flexGrow: 1,
+    paddingBottom: 16,
+    paddingTop: 12,
+  },
+  authIllustration: {
+    height: Math.min(SCREEN_HEIGHT * 0.28, 230),
+    marginBottom: 8,
+    maxWidth: 360,
+    width: '100%',
+  },
+  pinIllustration: {
+    height: Math.min(SCREEN_HEIGHT * 0.25, 210),
+  },
+  authTitle: {
+    fontFamily: 'IBMPlexSans_600SemiBold',
+    fontSize: 28,
+    lineHeight: 34,
+    textAlign: 'center',
+  },
+  authDescription: {
+    fontFamily: 'Roboto_400Regular',
+    fontSize: 15,
+    lineHeight: 21,
+    marginTop: 8,
+    maxWidth: 340,
+    textAlign: 'center',
+  },
+  authForm: {
+    gap: 12,
+    marginTop: 22,
+    maxWidth: 420,
+    width: '100%',
+  },
+  authInput: {
+    borderRadius: 14,
+    borderWidth: 1,
+    fontFamily: 'Roboto_400Regular',
+    fontSize: 16,
+    minHeight: 54,
+    paddingHorizontal: 16,
+  },
+  pinInput: {
+    alignSelf: 'center',
+    borderRadius: 14,
+    borderWidth: 1,
+    fontFamily: 'IBMPlexSans_600SemiBold',
+    fontSize: 28,
+    letterSpacing: 8,
+    minHeight: 64,
+    paddingHorizontal: 16,
+    width: '72%',
+  },
+  authPrimaryButton: {
+    alignItems: 'center',
+    borderRadius: 14,
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'center',
+    minHeight: 56,
+    marginTop: 4,
+    width: '100%',
+  },
+  inlineLinkButton: {
+    alignSelf: 'flex-start',
+    minHeight: 28,
+    justifyContent: 'center',
+  },
+  inlineLink: {
+    fontFamily: 'Roboto_600SemiBold',
+    fontSize: 14,
+  },
+  notice: {
+    alignItems: 'center',
+    borderRadius: 12,
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    width: '100%',
+  },
+  noticeText: {
+    flex: 1,
+    fontFamily: 'Roboto_600SemiBold',
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  authFooter: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 5,
+    justifyContent: 'center',
+    marginTop: 22,
+  },
+  footerText: {
+    fontFamily: 'Roboto_400Regular',
+    fontSize: 14,
+  },
+  pinHint: {
+    fontFamily: 'Roboto_400Regular',
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 20,
+    maxWidth: 290,
+    textAlign: 'center',
   },
 });
