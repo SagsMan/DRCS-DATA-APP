@@ -1,1 +1,2 @@
 - [Expo startup rendering](expo-startup.md) — keep a bounded font-loading fallback so a healthy Metro bundle cannot leave the app white indefinitely.
+- [GitHub push credentials](github-push-credentials.md) — managed GitHub source-control auth may be unavailable; use a temporary askpass with the stored secret, never persistent Git config.

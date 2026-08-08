@@ -32,8 +32,10 @@ type AuthScreenName = 'signup' | 'login' | 'forgot' | 'pin';
 
 type AuthScreenProps = {
   screen: AuthScreenName;
+  theme: Theme;
   onBack: () => void;
   onNavigate: (screen: AuthScreenName) => void;
+  onToggleTheme: () => void;
 };
 
 const authImages: Record<AuthScreenName, ImageSourcePropType> = {
@@ -45,9 +47,15 @@ const authImages: Record<AuthScreenName, ImageSourcePropType> = {
 
 const verifiedPinImage = require('../assets/images/auth/otp-cuate.png');
 
-function AuthScreen({ screen, onBack, onNavigate }: AuthScreenProps) {
+function AuthScreen({
+  screen,
+  theme,
+  onBack,
+  onNavigate,
+  onToggleTheme,
+}: AuthScreenProps) {
   const insets = useSafeAreaInsets();
-  const colors = useColors();
+  const colors = useColors(theme);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -63,7 +71,7 @@ function AuthScreen({ screen, onBack, onNavigate }: AuthScreenProps) {
         ? 'Welcome back'
         : screen === 'forgot'
           ? 'Reset your password'
-          : 'Verify your PIN';
+          : 'Set your six-digit PIN';
   const description =
     screen === 'signup'
       ? 'Join DRCS DATA for easier, safer everyday payments.'
@@ -71,12 +79,12 @@ function AuthScreen({ screen, onBack, onNavigate }: AuthScreenProps) {
         ? 'Sign in to keep your bills, airtime and data in one place.'
         : screen === 'forgot'
           ? 'Enter your email and we will help you get back in.'
-          : 'Enter the six-digit PIN sent to your phone to continue.';
+          : 'Create a six-digit PIN to keep your DRCS DATA account secure.';
 
   const handleSubmit = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (isPinScreen) {
-      setNotice('PIN accepted for this test flow.');
+      setNotice('Your six-digit PIN has been set.');
       return;
     }
     setNotice('');
@@ -114,7 +122,23 @@ function AuthScreen({ screen, onBack, onNavigate }: AuthScreenProps) {
             DRCS DATA
           </Text>
         </View>
-        <View style={styles.headerActionSpacer} />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Toggle light and dark mode"
+          hitSlop={10}
+          onPress={onToggleTheme}
+          style={({ pressed }) => [
+            styles.themeButton,
+            { backgroundColor: colors.secondary },
+            pressed && styles.pressed,
+          ]}
+        >
+          <Ionicons
+            name={theme === 'light' ? 'moon-outline' : 'sunny-outline'}
+            size={18}
+            color={colors.primary}
+          />
+        </Pressable>
       </View>
 
       <KeyboardAwareScrollViewCompat
@@ -260,7 +284,7 @@ function AuthScreen({ screen, onBack, onNavigate }: AuthScreenProps) {
 
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={isPinScreen ? 'Verify PIN' : 'Continue'}
+            accessibilityLabel={isPinScreen ? 'Set PIN' : 'Continue'}
             onPress={handleSubmit}
             style={({ pressed }) => [
               styles.authPrimaryButton,
@@ -269,7 +293,7 @@ function AuthScreen({ screen, onBack, onNavigate }: AuthScreenProps) {
             ]}
           >
             <Text style={[styles.primaryButtonText, { color: colors.primaryForeground }]}>
-              {isPinScreen ? 'Verify PIN' : 'Continue'}
+              {isPinScreen ? 'Set PIN' : 'Continue'}
             </Text>
             <Ionicons name="arrow-forward" size={18} color={colors.primaryForeground} />
           </Pressable>
@@ -326,7 +350,7 @@ function AuthScreen({ screen, onBack, onNavigate }: AuthScreenProps) {
           </View>
         ) : (
           <Text style={[styles.pinHint, { color: colors.grayGray1 }]}>
-            Use the six-digit PIN sent to your registered phone number.
+            Choose a six-digit PIN you can remember. You will use it to secure your account.
           </Text>
         )}
       </KeyboardAwareScrollViewCompat>
@@ -543,7 +567,9 @@ export default function OnboardingScreen() {
       <AuthScreen
         onBack={() => setAuthScreen(null)}
         onNavigate={setAuthScreen}
+        onToggleTheme={toggleTheme}
         screen={authScreen}
+        theme={theme}
       />
     );
   }
@@ -1002,10 +1028,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins_700Bold',
     fontSize: 17,
     letterSpacing: -0.3,
-  },
-  headerActionSpacer: {
-    height: 40,
-    width: 40,
   },
   authContent: {
     alignItems: 'center',
