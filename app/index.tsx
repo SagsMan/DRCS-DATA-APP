@@ -42,10 +42,8 @@ const authImages: Record<AuthScreenName, ImageSourcePropType> = {
   signup: require('../assets/images/auth/sign-up.png'),
   login: require('../assets/images/auth/sign-in.png'),
   forgot: require('../assets/images/auth/forgot-password.png'),
-  pin: require('../assets/images/auth/otp-bro.png'),
+  pin: require('../assets/images/auth/mobile-encryption.png'),
 };
-
-const verifiedPinImage = require('../assets/images/auth/otp-cuate.png');
 
 function AuthScreen({
   screen,
@@ -148,7 +146,7 @@ function AuthScreen({
         showsVerticalScrollIndicator={false}
       >
         <Image
-          source={isPinScreen && notice ? verifiedPinImage : authImages[screen]}
+          source={authImages[screen]}
           accessibilityLabel={`${title} illustration`}
           resizeMode="contain"
           style={[styles.authIllustration, isPinScreen && styles.pinIllustration]}
