@@ -45,6 +45,8 @@ const authImages: Record<AuthScreenName, ImageSourcePropType> = {
   pin: require('../assets/images/auth/mobile-encryption.png'),
 };
 
+const loginThumbImage = require('../assets/images/auth/login-thumb.png');
+
 function AuthScreen({
   screen,
   theme,
@@ -319,19 +321,26 @@ function AuthScreen({
             </Pressable>
           </View>
         ) : screen === 'login' ? (
-          <View style={styles.authFooter}>
-            <Text style={[styles.footerText, { color: colors.grayGray1 }]}>
-              New to DRCS DATA?
-            </Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Sign up"
-              onPress={() => onNavigate('signup')}
-              style={({ pressed }) => [styles.inlineLinkButton, pressed && styles.pressed]}
-            >
-              <Text style={[styles.inlineLink, { color: colors.primary }]}>Sign up</Text>
-            </Pressable>
-          </View>
+          <>
+            <View style={styles.authFooter}>
+              <Text style={[styles.footerText, { color: colors.grayGray1 }]}>
+                New to DRCS DATA?
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Sign up"
+                onPress={() => onNavigate('signup')}
+                style={({ pressed }) => [styles.inlineLinkButton, pressed && styles.pressed]}
+              >
+                <Text style={[styles.inlineLink, { color: colors.primary }]}>Sign up</Text>
+              </Pressable>
+            </View>
+            <Image
+              accessibilityLabel="Login security accent"
+              source={loginThumbImage}
+              style={styles.loginThumb}
+            />
+          </>
         ) : screen === 'forgot' ? (
           <View style={styles.authFooter}>
             <Text style={[styles.footerText, { color: colors.grayGray1 }]}>
@@ -1125,6 +1134,12 @@ const styles = StyleSheet.create({
   footerText: {
     fontFamily: 'Roboto_400Regular',
     fontSize: 14,
+  },
+  loginThumb: {
+    alignSelf: 'center',
+    height: 98,
+    marginTop: 10,
+    width: 46,
   },
   pinHint: {
     fontFamily: 'Roboto_400Regular',
