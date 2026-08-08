@@ -5,6 +5,7 @@ import {
   ImageSourcePropType,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -29,6 +30,7 @@ type OnboardingSlide = {
 };
 
 type AuthScreenName = 'signup' | 'login' | 'forgot' | 'pin';
+type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
 type AuthScreenProps = {
   screen: AuthScreenName;
@@ -36,6 +38,7 @@ type AuthScreenProps = {
   onBack: () => void;
   onNavigate: (screen: AuthScreenName) => void;
   onToggleTheme: () => void;
+  onAuthenticated: () => void;
 };
 
 const authImages: Record<AuthScreenName, ImageSourcePropType> = {
@@ -53,6 +56,7 @@ function AuthScreen({
   onBack,
   onNavigate,
   onToggleTheme,
+  onAuthenticated,
 }: AuthScreenProps) {
   const insets = useSafeAreaInsets();
   const colors = useColors(theme);
@@ -84,7 +88,7 @@ function AuthScreen({
   const handleSubmit = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (isPinScreen) {
-      setNotice('Your six-digit PIN has been set.');
+      onAuthenticated();
       return;
     }
     setNotice('');
@@ -365,6 +369,374 @@ function AuthScreen({
   );
 }
 
+type HomeTab = 'Home' | 'Rewards' | 'Finance' | 'Cards' | 'Me';
+
+type HomeAction = {
+  label: string;
+  icon: IconName;
+  tone: 'primary' | 'secondary' | 'accent';
+};
+
+const homeActions: HomeAction[] = [
+  { label: 'To DRCS User', icon: 'paper-plane-outline', tone: 'primary' },
+  { label: 'To Bank', icon: 'business-outline', tone: 'secondary' },
+  { label: 'Add Money', icon: 'add-circle-outline', tone: 'accent' },
+];
+
+const homeServices: HomeAction[] = [
+  { label: 'Airtime', icon: 'phone-portrait-outline', tone: 'primary' },
+  { label: 'Data', icon: 'wifi-outline', tone: 'secondary' },
+  { label: 'Electricity', icon: 'flash-outline', tone: 'accent' },
+  { label: 'TV', icon: 'tv-outline', tone: 'primary' },
+];
+
+const homeTabs: { label: HomeTab; icon: IconName }[] = [
+  { label: 'Home', icon: 'home' },
+  { label: 'Rewards', icon: 'gift-outline' },
+  { label: 'Finance', icon: 'wallet-outline' },
+  { label: 'Cards', icon: 'card-outline' },
+  { label: 'Me', icon: 'person-outline' },
+];
+
+function HomeScreen({
+  theme,
+  onToggleTheme,
+}: {
+  theme: Theme;
+  onToggleTheme: () => void;
+}) {
+  const insets = useSafeAreaInsets();
+  const colors = useColors(theme);
+  const [activeTab, setActiveTab] = useState<HomeTab>('Home');
+  const [balanceVisible, setBalanceVisible] = useState(true);
+  const [notice, setNotice] = useState('');
+
+  const showNotice = (message: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setNotice(message);
+  };
+
+  const handleTabPress = (tab: HomeTab) => {
+    setActiveTab(tab);
+    if (tab !== 'Home') {
+      showNotice(`${tab} is ready for your DRCS DATA account.`);
+    } else {
+      setNotice('');
+    }
+  };
+
+  return (
+    <View
+      style={[
+        styles.homeContainer,
+        {
+          backgroundColor: colors.background,
+          paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 10),
+          paddingBottom: Math.max(insets.bottom, 12) + (Platform.OS === 'web' ? 34 : 0),
+        },
+      ]}
+    >
+      <ScrollView
+        contentContainerStyle={styles.homeScrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.homeHeader}>
+          <View style={styles.homeBrandRow}>
+            <View style={[styles.homeLogoBadge, { backgroundColor: colors.primary }]}>
+              <Image
+                source={require('../assets/images/logo-icon.png')}
+                style={styles.homeLogo}
+                resizeMode="contain"
+              />
+            </View>
+            <View>
+              <Text style={[styles.homeGreeting, { color: colors.grayGray1 }]}>Welcome back</Text>
+              <Text style={[styles.homeName, { color: colors.grayBlack }]}>DRCS User</Text>
+            </View>
+          </View>
+          <View style={styles.homeHeaderActions}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Toggle light and dark mode"
+              onPress={onToggleTheme}
+              style={({ pressed }) => [
+                styles.homeHeaderIcon,
+                { backgroundColor: colors.card, borderColor: colors.border },
+                pressed && styles.pressed,
+              ]}
+            >
+              <Ionicons
+                name={theme === 'light' ? 'moon-outline' : 'sunny-outline'}
+                size={18}
+                color={colors.primary}
+              />
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Notifications"
+              onPress={() => showNotice('You are all caught up.')}
+              style={({ pressed }) => [
+                styles.homeHeaderIcon,
+                { backgroundColor: colors.card, borderColor: colors.border },
+                pressed && styles.pressed,
+              ]}
+            >
+              <Ionicons name="notifications-outline" size={19} color={colors.grayBlack} />
+              <View style={[styles.notificationDot, { backgroundColor: colors.accent }]} />
+            </Pressable>
+          </View>
+        </View>
+
+        <View style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
+          <View style={styles.balanceCardTop}>
+            <Text style={[styles.balanceLabel, { color: colors.primaryForeground }]}>
+              Available balance
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={balanceVisible ? 'Hide balance' : 'Show balance'}
+              hitSlop={10}
+              onPress={() => setBalanceVisible((current) => !current)}
+              style={({ pressed }) => [pressed && styles.pressed]}
+            >
+              <Ionicons
+                name={balanceVisible ? 'eye-outline' : 'eye-off-outline'}
+                size={21}
+                color={colors.primaryForeground}
+              />
+            </Pressable>
+          </View>
+          <Text style={[styles.balanceAmount, { color: colors.primaryForeground }]}>
+            {balanceVisible ? '₦24,590.00' : '₦••••••••'}
+          </Text>
+          <View style={styles.balanceMeta}>
+            <View style={styles.balanceMetaItem}>
+              <Ionicons name="shield-checkmark-outline" size={14} color={colors.primaryForeground} />
+              <Text style={[styles.balanceMetaText, { color: colors.primaryForeground }]}>
+                Wallet protected
+              </Text>
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="View transaction history"
+              onPress={() => showNotice('Your transaction history is coming next.')}
+              style={({ pressed }) => [styles.balanceHistoryButton, pressed && styles.pressed]}
+            >
+              <Text style={[styles.balanceHistoryText, { color: colors.primaryForeground }]}>
+                History
+              </Text>
+              <Ionicons name="arrow-forward" size={14} color={colors.primaryForeground} />
+            </Pressable>
+          </View>
+        </View>
+
+        <View style={styles.homeSectionHeading}>
+          <Text style={[styles.homeSectionTitle, { color: colors.grayBlack }]}>Move money</Text>
+          <Text style={[styles.homeSectionCaption, { color: colors.grayGray1 }]}>
+            Fast, safe and simple
+          </Text>
+        </View>
+        <View style={styles.actionRow}>
+          {homeActions.map((action) => (
+            <Pressable
+              key={action.label}
+              accessibilityRole="button"
+              accessibilityLabel={action.label}
+              onPress={() => showNotice(`${action.label} selected.`)}
+              style={({ pressed }) => [
+                styles.actionCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
+                pressed && styles.actionCardPressed,
+              ]}
+            >
+              <View
+                style={[
+                  styles.actionIcon,
+                  {
+                    backgroundColor:
+                      action.tone === 'primary'
+                        ? colors.brandPrimaryLight
+                        : action.tone === 'secondary'
+                          ? colors.secondary
+                          : colors.successLight,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name={action.icon}
+                  size={22}
+                  color={
+                    action.tone === 'accent'
+                      ? colors.success
+                      : action.tone === 'secondary'
+                        ? colors.secondaryForeground
+                        : colors.primary
+                  }
+                />
+              </View>
+              <Text style={[styles.actionLabel, { color: colors.grayBlack }]}>{action.label}</Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <View style={styles.homeSectionHeading}>
+          <Text style={[styles.homeSectionTitle, { color: colors.grayBlack }]}>Everyday services</Text>
+          <Text style={[styles.homeSectionCaption, { color: colors.primary }]}>See all</Text>
+        </View>
+        <View style={styles.servicesGrid}>
+          {homeServices.map((service) => (
+            <Pressable
+              key={service.label}
+              accessibilityRole="button"
+              accessibilityLabel={service.label}
+              onPress={() => showNotice(`${service.label} service selected.`)}
+              style={({ pressed }) => [
+                styles.serviceCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
+                pressed && styles.actionCardPressed,
+              ]}
+            >
+              <View
+                style={[
+                  styles.serviceIcon,
+                  {
+                    backgroundColor:
+                      service.tone === 'primary'
+                        ? colors.brandPrimaryLight
+                        : service.tone === 'secondary'
+                          ? colors.secondary
+                          : colors.successLight,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name={service.icon}
+                  size={21}
+                  color={
+                    service.tone === 'accent'
+                      ? colors.success
+                      : service.tone === 'secondary'
+                        ? colors.secondaryForeground
+                        : colors.primary
+                  }
+                />
+              </View>
+              <Text style={[styles.serviceLabel, { color: colors.grayBlack }]}>{service.label}</Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <View style={styles.promoRow}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Refer and Earn"
+            onPress={() => showNotice('Your referral invite is ready to share.')}
+            style={({ pressed }) => [
+              styles.promoCard,
+              { backgroundColor: colors.brandPrimaryDark },
+              pressed && styles.pressed,
+            ]}
+          >
+              <View style={[styles.promoIconCircle, { backgroundColor: colors.card }]}>
+              <Ionicons name="gift-outline" size={22} color={colors.primary} />
+            </View>
+            <Text style={[styles.promoTitle, { color: colors.primaryForeground }]}>Refer and Earn</Text>
+            <Text style={[styles.promoDescription, { color: colors.primaryForeground }]}>
+              Invite friends and get rewarded
+            </Text>
+            <Ionicons name="arrow-forward" size={17} color={colors.primaryForeground} />
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Education"
+            onPress={() => showNotice('Learn more with DRCS DATA Education.')}
+            style={({ pressed }) => [
+              styles.promoCard,
+              { backgroundColor: colors.secondary },
+              pressed && styles.pressed,
+            ]}
+          >
+            <View style={[styles.promoIconCircle, { backgroundColor: colors.card }]}>
+              <Ionicons name="school-outline" size={22} color={colors.primary} />
+            </View>
+            <Text style={[styles.promoTitle, { color: colors.secondaryForeground }]}>Education</Text>
+            <Text style={[styles.promoDescription, { color: colors.secondaryForeground }]}>
+              Build your digital money skills
+            </Text>
+            <Ionicons name="arrow-forward" size={17} color={colors.secondaryForeground} />
+          </Pressable>
+        </View>
+
+        {notice ? (
+          <View style={[styles.homeNotice, { backgroundColor: colors.successLight }]}>
+            <Ionicons name="checkmark-circle" size={17} color={colors.success} />
+            <Text style={[styles.homeNoticeText, { color: colors.success }]}>{notice}</Text>
+          </View>
+        ) : null}
+
+        <View style={styles.recentHeading}>
+          <Text style={[styles.homeSectionTitle, { color: colors.grayBlack }]}>Recent activity</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="See all recent activity"
+            onPress={() => showNotice('Your full activity list is coming next.')}
+          >
+            <Text style={[styles.homeSectionCaption, { color: colors.primary }]}>See all</Text>
+          </Pressable>
+        </View>
+        <View style={[styles.transactionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={[styles.transactionIcon, { backgroundColor: colors.successLight }]}>
+            <Ionicons name="arrow-up-outline" size={19} color={colors.success} />
+          </View>
+          <View style={styles.transactionCopy}>
+            <Text style={[styles.transactionTitle, { color: colors.grayBlack }]}>Data bundle</Text>
+            <Text style={[styles.transactionSubtitle, { color: colors.grayGray1 }]}>
+              Today, 10:42 AM
+            </Text>
+          </View>
+          <Text style={[styles.transactionAmount, { color: colors.grayBlack }]}>-₦2,000</Text>
+        </View>
+      </ScrollView>
+
+      <View style={[styles.bottomNav, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        {homeTabs.map((tab) => {
+          const isActive = activeTab === tab.label;
+          return (
+            <Pressable
+              key={tab.label}
+              accessibilityRole="button"
+              accessibilityLabel={tab.label}
+              onPress={() => handleTabPress(tab.label)}
+              style={({ pressed }) => [styles.bottomNavItem, pressed && styles.pressed]}
+            >
+              <View
+                style={[
+                  styles.bottomNavIcon,
+                  isActive && { backgroundColor: colors.brandPrimaryLight },
+                ]}
+              >
+                <Ionicons
+                  name={tab.icon}
+                  size={21}
+                  color={isActive ? colors.primary : colors.grayGray1}
+                />
+              </View>
+              <Text
+                style={[
+                  styles.bottomNavLabel,
+                  { color: isActive ? colors.primary : colors.grayGray1 },
+                ]}
+              >
+                {tab.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 const slideCopy: Record<Language, OnboardingSlide[]> = {
   en: [
     {
@@ -506,6 +878,7 @@ export default function OnboardingScreen() {
   const [language, setLanguage] = useState<Language | null>(null);
   const [activeSlide, setActiveSlide] = useState(0);
   const [authScreen, setAuthScreen] = useState<AuthScreenName | null>(null);
+  const [isHome, setIsHome] = useState(false);
   const [theme, setTheme] = useState<Theme>(
     systemScheme === 'dark' ? 'dark' : 'light',
   );
@@ -569,11 +942,19 @@ export default function OnboardingScreen() {
     setAuthScreen('signup');
   };
 
+  if (isHome) {
+    return <HomeScreen onToggleTheme={toggleTheme} theme={theme} />;
+  }
+
   if (authScreen) {
     return (
       <AuthScreen
         onBack={() => setAuthScreen(null)}
         onNavigate={setAuthScreen}
+        onAuthenticated={() => {
+          setAuthScreen(null);
+          setIsHome(true);
+        }}
         onToggleTheme={toggleTheme}
         screen={authScreen}
         theme={theme}
@@ -831,6 +1212,295 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 24,
+  },
+  homeContainer: {
+    flex: 1,
+    paddingHorizontal: 18,
+  },
+  homeScrollContent: {
+    paddingBottom: 16,
+  },
+  homeHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  homeBrandRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+  },
+  homeLogoBadge: {
+    alignItems: 'center',
+    borderRadius: 15,
+    height: 42,
+    justifyContent: 'center',
+    width: 42,
+  },
+  homeLogo: {
+    height: 25,
+    width: 19,
+  },
+  homeGreeting: {
+    fontFamily: 'Roboto_400Regular',
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  homeName: {
+    fontFamily: 'Poppins_700Bold',
+    fontSize: 18,
+  },
+  homeHeaderActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  homeHeaderIcon: {
+    alignItems: 'center',
+    borderRadius: 18,
+    borderWidth: 1,
+    height: 36,
+    justifyContent: 'center',
+    position: 'relative',
+    width: 36,
+  },
+  notificationDot: {
+    borderRadius: 4,
+    height: 7,
+    position: 'absolute',
+    right: 7,
+    top: 7,
+    width: 7,
+  },
+  balanceCard: {
+    borderRadius: 24,
+    marginBottom: 24,
+    overflow: 'hidden',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+  balanceCardTop: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  balanceLabel: {
+    fontFamily: 'Roboto_500Medium',
+    fontSize: 13,
+    opacity: 0.88,
+  },
+  balanceAmount: {
+    fontFamily: 'IBMPlexSans_600SemiBold',
+    fontSize: 32,
+    letterSpacing: -0.8,
+    marginTop: 9,
+  },
+  balanceMeta: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  balanceMetaItem: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 5,
+  },
+  balanceMetaText: {
+    fontFamily: 'Roboto_400Regular',
+    fontSize: 11,
+    opacity: 0.82,
+  },
+  balanceHistoryButton: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 4,
+  },
+  balanceHistoryText: {
+    fontFamily: 'Roboto_600SemiBold',
+    fontSize: 12,
+  },
+  homeSectionHeading: {
+    alignItems: 'baseline',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  homeSectionTitle: {
+    fontFamily: 'IBMPlexSans_600SemiBold',
+    fontSize: 18,
+  },
+  homeSectionCaption: {
+    fontFamily: 'Roboto_500Medium',
+    fontSize: 12,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 26,
+  },
+  actionCard: {
+    alignItems: 'center',
+    borderRadius: 17,
+    borderWidth: 1,
+    flex: 1,
+    minHeight: 110,
+    paddingHorizontal: 5,
+    paddingVertical: 14,
+  },
+  actionCardPressed: {
+    opacity: 0.76,
+    transform: [{ scale: 0.98 }],
+  },
+  actionIcon: {
+    alignItems: 'center',
+    borderRadius: 18,
+    height: 44,
+    justifyContent: 'center',
+    marginBottom: 11,
+    width: 44,
+  },
+  actionLabel: {
+    fontFamily: 'Roboto_600SemiBold',
+    fontSize: 11,
+    textAlign: 'center',
+  },
+  servicesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 26,
+  },
+  serviceCard: {
+    alignItems: 'center',
+    borderRadius: 17,
+    borderWidth: 1,
+    minHeight: 105,
+    paddingVertical: 13,
+    width: '22%',
+  },
+  serviceIcon: {
+    alignItems: 'center',
+    borderRadius: 15,
+    height: 40,
+    justifyContent: 'center',
+    marginBottom: 9,
+    width: 40,
+  },
+  serviceLabel: {
+    fontFamily: 'Roboto_500Medium',
+    fontSize: 11,
+  },
+  promoRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 18,
+  },
+  promoCard: {
+    borderRadius: 20,
+    flex: 1,
+    minHeight: 142,
+    overflow: 'hidden',
+    padding: 15,
+  },
+  promoIconCircle: {
+    alignItems: 'center',
+    borderRadius: 15,
+    height: 30,
+    justifyContent: 'center',
+    marginBottom: 12,
+    width: 30,
+  },
+  promoTitle: {
+    fontFamily: 'IBMPlexSans_600SemiBold',
+    fontSize: 15,
+  },
+  promoDescription: {
+    fontFamily: 'Roboto_400Regular',
+    fontSize: 11,
+    lineHeight: 15,
+    marginBottom: 11,
+    marginTop: 4,
+    maxWidth: 122,
+  },
+  homeNotice: {
+    alignItems: 'center',
+    borderRadius: 13,
+    flexDirection: 'row',
+    gap: 7,
+    marginBottom: 18,
+    paddingHorizontal: 13,
+    paddingVertical: 10,
+  },
+  homeNoticeText: {
+    flex: 1,
+    fontFamily: 'Roboto_500Medium',
+    fontSize: 12,
+  },
+  recentHeading: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 11,
+  },
+  transactionCard: {
+    alignItems: 'center',
+    borderRadius: 17,
+    borderWidth: 1,
+    flexDirection: 'row',
+    paddingHorizontal: 13,
+    paddingVertical: 13,
+  },
+  transactionIcon: {
+    alignItems: 'center',
+    borderRadius: 13,
+    height: 38,
+    justifyContent: 'center',
+    width: 38,
+  },
+  transactionCopy: {
+    flex: 1,
+    marginLeft: 11,
+  },
+  transactionTitle: {
+    fontFamily: 'Roboto_600SemiBold',
+    fontSize: 13,
+  },
+  transactionSubtitle: {
+    fontFamily: 'Roboto_400Regular',
+    fontSize: 11,
+    marginTop: 3,
+  },
+  transactionAmount: {
+    fontFamily: 'Roboto_600SemiBold',
+    fontSize: 13,
+  },
+  bottomNav: {
+    alignItems: 'center',
+    borderRadius: 20,
+    borderWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    minHeight: 70,
+    paddingHorizontal: 5,
+    paddingTop: 5,
+  },
+  bottomNavItem: {
+    alignItems: 'center',
+    flex: 1,
+    minHeight: 61,
+  },
+  bottomNavIcon: {
+    alignItems: 'center',
+    borderRadius: 13,
+    height: 34,
+    justifyContent: 'center',
+    width: 42,
+  },
+  bottomNavLabel: {
+    fontFamily: 'Roboto_500Medium',
+    fontSize: 10,
+    marginTop: 2,
   },
   header: {
     alignItems: 'center',
