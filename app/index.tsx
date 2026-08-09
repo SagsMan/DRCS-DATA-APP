@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Dimensions,
   Image,
+  ImageBackground,
   ImageSourcePropType,
   Platform,
   Pressable,
@@ -398,6 +399,50 @@ const homeTabs: { label: HomeTab; icon: IconName }[] = [
   { label: 'Me', icon: 'person-outline' },
 ];
 
+type PromoSlide = {
+  title: string;
+  description: string;
+  cta: string;
+  background: ImageSourcePropType;
+  illustration?: ImageSourcePropType;
+  tone: 'light' | 'dark';
+};
+
+const promoSlides: PromoSlide[] = [
+  {
+    title: 'Giveaway season is here',
+    description: 'Enter today for a chance to win something special.',
+    cta: 'Join the giveaway',
+    background: require('../assets/images/promos/promo-pink.png'),
+    illustration: require('../assets/images/promos/giveaway-bro.png'),
+    tone: 'light',
+  },
+  {
+    title: 'Your next gift could be waiting',
+    description: 'DRCS DATA is bringing more rewards closer to you.',
+    cta: 'See what is up for grabs',
+    background: require('../assets/images/promos/promo-dark.png'),
+    illustration: require('../assets/images/promos/giveaway-amico.png'),
+    tone: 'dark',
+  },
+  {
+    title: 'Tap into something exciting',
+    description: 'Stay close. New giveaway moments are landing soon.',
+    cta: 'Keep me in the loop',
+    background: require('../assets/images/promos/promo-pink.png'),
+    illustration: require('../assets/images/promos/giveaway-rafiki.png'),
+    tone: 'light',
+  },
+  {
+    title: 'Do not miss your chance',
+    description: 'A little DRCS DATA surprise could be yours next.',
+    cta: 'Explore the giveaway',
+    background: require('../assets/images/promos/promo-dark.png'),
+    illustration: require('../assets/images/promos/giveaway-bro.png'),
+    tone: 'dark',
+  },
+];
+
 function HomeScreen({
   theme,
   onToggleTheme,
@@ -410,6 +455,9 @@ function HomeScreen({
   const [activeTab, setActiveTab] = useState<HomeTab>('Home');
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [notice, setNotice] = useState('');
+  const [promoIndex, setPromoIndex] = useState(0);
+  const promoScrollRef = useRef<ScrollView>(null);
+  const promoWidth = Math.max(SCREEN_WIDTH - 36, 280);
 
   const showNotice = (message: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -424,6 +472,19 @@ function HomeScreen({
       setNotice('');
     }
   };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const nextIndex = (promoIndex + 1) % promoSlides.length;
+      promoScrollRef.current?.scrollTo({
+        animated: true,
+        x: nextIndex * promoWidth,
+      });
+      setPromoIndex(nextIndex);
+    }, 5200);
+
+    return () => clearInterval(timer);
+  }, [promoIndex, promoWidth]);
 
   return (
     <View
@@ -665,6 +726,107 @@ function HomeScreen({
             </Text>
             <Ionicons name="arrow-forward" size={17} color={colors.secondaryForeground} />
           </Pressable>
+        </View>
+
+        <View style={styles.promoCarouselSection}>
+          <ScrollView
+            ref={promoScrollRef}
+            horizontal
+            pagingEnabled
+            decelerationRate="fast"
+            showsHorizontalScrollIndicator={false}
+            snapToInterval={promoWidth}
+            snapToAlignment="start"
+            onMomentumScrollEnd={(event) => {
+              const nextIndex = Math.round(
+                event.nativeEvent.contentOffset.x / promoWidth,
+              );
+              setPromoIndex(Math.max(0, Math.min(nextIndex, promoSlides.length - 1)));
+            }}
+          >
+            {promoSlides.map((slide, index) => {
+              const textColor = colors.primaryForeground;
+              const secondaryTextColor = colors.primaryForeground;
+
+              return (
+                <Pressable
+                  key={slide.title}
+                  accessibilityRole="button"
+                  accessibilityLabel={slide.cta}
+                  onPress={() => showNotice(`${slide.title}. Giveaway details coming soon.`)}
+                  style={({ pressed }) => [
+                    styles.promoBanner,
+                    { width: promoWidth },
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <ImageBackground
+                    source={slide.background}
+                    resizeMode="cover"
+                    style={[
+                      styles.promoBannerBackground,
+                      { backgroundColor: colors.primary },
+                    ]}
+                    imageStyle={[styles.promoBannerImage, { opacity: 0.16 }]}
+                  >
+                    <View
+                      style={[
+                        styles.promoBannerOverlay,
+                        { backgroundColor: 'transparent' },
+                      ]}
+                    />
+                    <View style={styles.promoBannerCopy}>
+                      <View style={styles.promoBannerKicker}>
+                        <Ionicons name="gift-outline" size={13} color={colors.accent} />
+                        <Text style={[styles.promoBannerKickerText, { color: textColor }]}>
+                          DRCS PROMO
+                        </Text>
+                      </View>
+                      <Text style={[styles.promoBannerTitle, { color: textColor }]}>
+                        {slide.title}
+                      </Text>
+                      <Text style={[styles.promoBannerDescription, { color: secondaryTextColor }]}>
+                        {slide.description}
+                      </Text>
+                      <View style={styles.promoBannerCta}>
+                        <Text style={[styles.promoBannerCtaText, { color: textColor }]}>
+                          {slide.cta}
+                        </Text>
+                        <Ionicons name="arrow-forward" size={14} color={textColor} />
+                      </View>
+                    </View>
+                    {slide.illustration ? (
+                      <Image
+                        source={slide.illustration}
+                        resizeMode="contain"
+                        style={styles.promoBannerIllustration}
+                      />
+                    ) : null}
+                    <View style={styles.promoBannerCounter}>
+                      <Text style={[styles.promoBannerCounterText, { color: textColor }]}>
+                        {index + 1}/{promoSlides.length}
+                      </Text>
+                    </View>
+                  </ImageBackground>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+          <View style={styles.promoDots} accessibilityLabel="Giveaway promo slides">
+            {promoSlides.map((slide, index) => (
+              <View
+                key={slide.title}
+                style={[
+                  styles.promoDot,
+                  {
+                    backgroundColor:
+                      index === promoIndex ? colors.primary : colors.grayGray4,
+                    width: index === promoIndex ? 20 : 6,
+                  },
+                ]}
+              />
+            ))}
+          </View>
         </View>
 
         {notice ? (
@@ -1278,6 +1440,97 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     paddingHorizontal: 20,
     paddingVertical: 20,
+  },
+  promoCarouselSection: {
+    marginBottom: 24,
+    marginHorizontal: -18,
+  },
+  promoBanner: {
+    borderRadius: 24,
+    overflow: 'hidden',
+    paddingHorizontal: 18,
+  },
+  promoBannerBackground: {
+    borderRadius: 24,
+    height: 188,
+    overflow: 'hidden',
+    position: 'relative',
+    width: '100%',
+  },
+  promoBannerImage: {
+    borderRadius: 24,
+  },
+  promoBannerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  promoBannerCopy: {
+    maxWidth: '58%',
+    paddingBottom: 16,
+    paddingLeft: 16,
+    paddingTop: 16,
+    zIndex: 2,
+  },
+  promoBannerKicker: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 5,
+    marginBottom: 8,
+  },
+  promoBannerKickerText: {
+    fontFamily: 'Roboto_600SemiBold',
+    fontSize: 10,
+    letterSpacing: 1,
+  },
+  promoBannerTitle: {
+    fontFamily: 'IBMPlexSans_600SemiBold',
+    fontSize: 20,
+    lineHeight: 23,
+  },
+  promoBannerDescription: {
+    fontFamily: 'Roboto_400Regular',
+    fontSize: 11,
+    lineHeight: 15,
+    marginTop: 6,
+  },
+  promoBannerCta: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 5,
+    marginTop: 12,
+  },
+  promoBannerCtaText: {
+    fontFamily: 'Roboto_600SemiBold',
+    fontSize: 11,
+  },
+  promoBannerIllustration: {
+    bottom: -6,
+    height: 186,
+    position: 'absolute',
+    right: -18,
+    width: 186,
+    zIndex: 1,
+  },
+  promoBannerCounter: {
+    bottom: 13,
+    position: 'absolute',
+    right: 15,
+    zIndex: 3,
+  },
+  promoBannerCounterText: {
+    fontFamily: 'Roboto_600SemiBold',
+    fontSize: 10,
+    opacity: 0.78,
+  },
+  promoDots: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 5,
+    justifyContent: 'center',
+    marginTop: 9,
+  },
+  promoDot: {
+    borderRadius: 4,
+    height: 6,
   },
   balanceCardTop: {
     alignItems: 'center',

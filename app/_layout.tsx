@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -40,7 +41,7 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
-  const [startupReady, setStartupReady] = useState(false);
+  const [startupReady, setStartupReady] = useState(Platform.OS === 'web');
   const [interLoaded, interError] = useInterFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -58,6 +59,12 @@ export default function RootLayout() {
   const fontError = interError || poppinsError || ibmError || robotoError;
 
   useEffect(() => {
+    if (Platform.OS === 'web') {
+      SplashScreen.hideAsync();
+      setStartupReady(true);
+      return;
+    }
+
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
       setStartupReady(true);
@@ -80,7 +87,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <GestureHandlerRootView>
+            <GestureHandlerRootView style={{ flex: 1 }}>
             <KeyboardProvider>
               <RootLayoutNav />
             </KeyboardProvider>
