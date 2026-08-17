@@ -629,13 +629,19 @@ function TelecomPicker({
         </View>
       ) : (
         <View style={{
-          flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-          paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 44), paddingHorizontal: 20, paddingBottom: 16,
+          backgroundColor: C.primaryDark,
+          paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 44),
+          paddingBottom: 88, paddingHorizontal: 20,
         }}>
-          <Pressable onPress={onBack} style={{ position: 'absolute', left: 20 }}>
-            <Ionicons name="chevron-back" size={24} color={C.primary} />
-          </Pressable>
-          <Text style={{ fontFamily: C.bold, fontSize: 18, color: C.text }}>Select DisCo</Text>
+          <Image source={require('../assets/images/design-b/logo-hex.png')}
+            style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+            resizeMode="contain" />
+          <View style={{ flexDirection:'row', alignItems:'center' }}>
+            <Pressable onPress={onBack} hitSlop={12}>
+              <Ionicons name="chevron-back" size={24} color="#fff" />
+            </Pressable>
+            <Text style={{ fontFamily: C.bold, fontSize: 18, color: '#fff', marginLeft: 8 }}>Select DisCo</Text>
+          </View>
         </View>
       )}
 
@@ -1066,15 +1072,23 @@ function TVPickerScreen({ onBack, onSelect }: {
   const ins = useSafeAreaInsets();
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <StatusBar barStyle="dark-content" />
-      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center',
-        paddingTop: ins.top + (Platform.OS==='web'?67:14), paddingHorizontal:20, paddingBottom:16 }}>
-        <Pressable onPress={onBack} style={{ position:'absolute', left:20 }}>
-          <Ionicons name="chevron-back" size={24} color={C.primary} />
-        </Pressable>
-        <Text style={{ fontFamily:C.bold, fontSize:18, color:C.text }}>Cable TV Subscription</Text>
+      <StatusBar barStyle="light-content" />
+      <View style={{
+        backgroundColor: C.primaryDark,
+        paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 44),
+        paddingBottom: 88, paddingHorizontal: 20,
+      }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}>
+            <Ionicons name="chevron-back" size={24} color="#fff" />
+          </Pressable>
+          <Text style={{ fontFamily:C.bold, fontSize:18, color:'#fff', marginLeft:8 }}>Cable TV Subscription</Text>
+        </View>
       </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal:20, paddingTop:8 }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal:20, paddingTop:16 }}>
         {TV_PROVIDERS.map(p => (
           <Pressable key={p.id} onPress={() => { Haptics.selectionAsync(); onSelect(p.id, p.label); }}
             style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', backgroundColor:C.card,
@@ -1109,9 +1123,12 @@ function TVFormScreen({ providerId, providerLabel, onBack, onProceed }: {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':undefined} style={{ flex:1, backgroundColor:C.bg }}>
-      <StatusBar barStyle="light-content" backgroundColor={C.primary} />
-      <View style={{ backgroundColor:C.primary,
-        paddingTop:ins.top+(Platform.OS==='web'?67:14), paddingBottom:36, paddingHorizontal:20 }}>
+      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
+      <View style={{ backgroundColor:C.primaryDark,
+        paddingTop:ins.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:20 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
         <View style={{ flexDirection:'row', alignItems:'center', marginBottom:20 }}>
           <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
           <Text style={{ fontFamily:C.bold, fontSize:18, color:'#fff', marginLeft:8, flex:1 }}>{providerLabel} Subscription</Text>
@@ -1171,11 +1188,14 @@ function BettingFormScreen({ onBack, onProceed }: {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
-      <StatusBar barStyle="light-content" backgroundColor={C.primary} />
-      {/* Blue header */}
-      <View style={{ backgroundColor: C.primary,
+      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
+      {/* Dark header */}
+      <View style={{ backgroundColor: C.primaryDark,
         paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 44),
-        paddingBottom: 36, paddingHorizontal: 20 }}>
+        paddingBottom: 88, paddingHorizontal: 20 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
           <Pressable onPress={onBack} hitSlop={12}>
             <Ionicons name="chevron-back" size={24} color="#fff" />
@@ -1264,9 +1284,12 @@ function AddMoneyScreen({ onBack, onDone }: { onBack: () => void; onDone: () => 
   const copy = () => { setCopied(true); setTimeout(() => setCopied(false), 2000); };
   return (
     <View style={{ flex:1, backgroundColor:C.bg }}>
-      <StatusBar barStyle="light-content" backgroundColor={C.primary} />
-      <View style={{ backgroundColor:C.primary, paddingTop:ins.top+(Platform.OS==='web'?67:14),
-        paddingBottom:36, paddingHorizontal:20 }}>
+      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
+      <View style={{ backgroundColor:C.primaryDark, paddingTop:ins.top+(Platform.OS==='web'?67:44),
+        paddingBottom:88, paddingHorizontal:20 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
         <View style={{ flexDirection:'row', alignItems:'center' }}>
           <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
           <Text style={{ fontFamily:C.bold, fontSize:18, color:'#fff', marginLeft:8 }}>Add Money</Text>
@@ -1322,9 +1345,12 @@ function SendToDRCSScreen({ onBack, onProceed }: {
     fontFamily:C.regular, fontSize:15, color:C.text };
   return (
     <KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':undefined} style={{ flex:1, backgroundColor:C.bg }}>
-      <StatusBar barStyle="light-content" backgroundColor={C.primary} />
-      <View style={{ backgroundColor:C.primary, paddingTop:ins.top+(Platform.OS==='web'?67:14),
-        paddingBottom:36, paddingHorizontal:20 }}>
+      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
+      <View style={{ backgroundColor:C.primaryDark, paddingTop:ins.top+(Platform.OS==='web'?67:44),
+        paddingBottom:88, paddingHorizontal:20 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
         <View style={{ flexDirection:'row', alignItems:'center' }}>
           <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
           <Text style={{ fontFamily:C.bold, fontSize:18, color:'#fff', marginLeft:8 }}>Send to DRCS User</Text>
@@ -1367,9 +1393,12 @@ function SendToBankScreen({ onBack, onProceed }: {
     fontFamily:C.regular, fontSize:15, color:C.text };
   return (
     <KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':undefined} style={{ flex:1, backgroundColor:C.bg }}>
-      <StatusBar barStyle="light-content" backgroundColor={C.primary} />
-      <View style={{ backgroundColor:C.primary, paddingTop:ins.top+(Platform.OS==='web'?67:14),
-        paddingBottom:36, paddingHorizontal:20 }}>
+      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
+      <View style={{ backgroundColor:C.primaryDark, paddingTop:ins.top+(Platform.OS==='web'?67:44),
+        paddingBottom:88, paddingHorizontal:20 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
         <View style={{ flexDirection:'row', alignItems:'center' }}>
           <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
           <Text style={{ fontFamily:C.bold, fontSize:18, color:'#fff', marginLeft:8 }}>Send to Bank</Text>
@@ -1435,16 +1464,21 @@ function EducationPickerScreen({ onBack, onSelect }: {
   const ins = useSafeAreaInsets();
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" />
       <View style={{
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+        backgroundColor: C.primaryDark,
         paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 44),
-        paddingHorizontal: 20, paddingBottom: 16,
+        paddingBottom: 88, paddingHorizontal: 20,
       }}>
-        <Pressable onPress={onBack} style={{ position: 'absolute', left: 20 }}>
-          <Ionicons name="chevron-back" size={24} color={C.primary} />
-        </Pressable>
-        <Text style={{ fontFamily: C.bold, fontSize: 18, color: C.text }}>Select Exam Body</Text>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}>
+            <Ionicons name="chevron-back" size={24} color="#fff" />
+          </Pressable>
+          <Text style={{ fontFamily: C.bold, fontSize: 18, color: '#fff', marginLeft: 8 }}>Select Exam Body</Text>
+        </View>
       </View>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8 }}>
         {EDUCATION_BODIES.map(b => (
@@ -1489,12 +1523,15 @@ function EducationFormScreen({ bodyId, bodyLabel, onBack, onProceed }: {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
-      <StatusBar barStyle="light-content" backgroundColor={C.primary} />
+      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
       <View style={{
-        backgroundColor: C.primary,
+        backgroundColor: C.primaryDark,
         paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 44),
-        paddingBottom: 36, paddingHorizontal: 20,
+        paddingBottom: 88, paddingHorizontal: 20,
       }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
           <Pressable onPress={onBack} hitSlop={12}>
             <Ionicons name="chevron-back" size={24} color="#fff" />
@@ -1630,8 +1667,13 @@ function HomeTab({
   };
 
   return (
-    <View style={{ flex: 1 }}>
-      <ScrollView style={{ flex: 1, backgroundColor: C.bg }}
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <View style={{ position:'absolute', right:-30, bottom:100 }} pointerEvents="none">
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ width:260, height:260, opacity:0.04 }}
+          resizeMode="contain" />
+      </View>
+      <ScrollView style={{ flex: 1, backgroundColor: 'transparent' }}
         contentContainerStyle={{ paddingBottom: 12 }}
         showsVerticalScrollIndicator={false}>
 
@@ -1782,7 +1824,13 @@ function HomeTab({
 function ProfileTab({ onNavigate }: { onNavigate: (s: DBScreen) => void }) {
   const ins = useSafeAreaInsets();
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: C.bg }}
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <View style={{ position:'absolute', right:-30, bottom:80 }} pointerEvents="none">
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ width:260, height:260, opacity:0.04 }}
+          resizeMode="contain" />
+      </View>
+    <ScrollView style={{ flex: 1, backgroundColor: 'transparent' }}
       contentContainerStyle={{
         paddingHorizontal: 20, paddingBottom: 24,
         paddingTop: ins.top + (Platform.OS === 'web' ? 80 : 16),
@@ -1808,6 +1856,7 @@ function ProfileTab({ onNavigate }: { onNavigate: (s: DBScreen) => void }) {
       {/* Figma: logout BTN r=40, height 44, fill #fe0d0d */}
       <Btn label="Log Out" onPress={() => {}} variant="danger" style={{ marginTop: 14, minHeight: 44 }} />
     </ScrollView>
+    </View>
   );
 }
 
@@ -2230,15 +2279,20 @@ function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
 
   if (transferPicker) return (
     <View style={{ flex:1, backgroundColor:C.bg }}>
-      <StatusBar barStyle="dark-content" />
-      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center',
-        paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 44), paddingHorizontal:20, paddingBottom:16 }}>
-        <Pressable onPress={() => setTransferPicker(false)} style={{ position:'absolute', left:20 }}>
-          <Ionicons name="chevron-back" size={24} color={C.primary} />
-        </Pressable>
-        <Text style={{ fontFamily:C.bold, fontSize:18, color:C.text }}>Transfer Money</Text>
+      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
+      <View style={{ backgroundColor:C.primaryDark,
+        paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 44), paddingBottom:88, paddingHorizontal:20 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={() => setTransferPicker(false)} hitSlop={12}>
+            <Ionicons name="chevron-back" size={24} color="#fff" />
+          </Pressable>
+          <Text style={{ fontFamily:C.bold, fontSize:18, color:'#fff', marginLeft:8 }}>Transfer Money</Text>
+        </View>
       </View>
-      <View style={{ paddingHorizontal:20, gap:14 }}>
+      <View style={{ paddingHorizontal:20, paddingTop:20, gap:14 }}>
         {[
           { label:'To DRCS User', icon:'person-outline' as const, sub:'Send to any DRCS account',  fn:() => { setTransferPicker(false); setSendToDRCS(true); } },
           { label:'To Bank',      icon:'business-outline' as const, sub:'Send to any Nigerian bank', fn:() => { setTransferPicker(false); setSendToBank(true); } },
