@@ -621,6 +621,9 @@ function TelecomPicker({
   const ins = useSafeAreaInsets();
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <Image source={require('../assets/images/design-b/logo-hex.png')}
+        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }}
+        resizeMode="contain" />
       <StatusBar barStyle={serviceLabel === 'Electricity' ? 'dark-content' : 'light-content'} />
       {/* Header — dark blue with hex watermark for Airtime/Data; plain for Electricity */}
       {serviceLabel !== 'Electricity' ? (
@@ -827,6 +830,9 @@ function ServiceFormScreen({
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
+      <Image source={require('../assets/images/design-b/logo-hex.png')}
+        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }}
+        resizeMode="contain" />
       <StatusBar barStyle="light-content" backgroundColor={C.primary} />
 
       {/* Blue header — primaryDark + hex watermark for Airtime/Data */}
@@ -874,7 +880,7 @@ function ServiceFormScreen({
       >
         <View style={{
           backgroundColor: C.card, borderRadius: 24, padding: 24,
-          marginTop: -20, marginBottom: 24,
+          marginTop: 16, marginBottom: 24,
           shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, elevation: 4,
         }}>
 
@@ -1086,6 +1092,9 @@ function TVPickerScreen({ onBack, onSelect }: {
   const ins = useSafeAreaInsets();
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <Image source={require('../assets/images/design-b/logo-hex.png')}
+        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }}
+        resizeMode="contain" />
       <StatusBar barStyle="light-content" />
       <View style={{
         backgroundColor: C.primaryDark,
@@ -1137,6 +1146,9 @@ function TVFormScreen({ providerId, providerLabel, onBack, onProceed }: {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':undefined} style={{ flex:1, backgroundColor:C.bg }}>
+      <Image source={require('../assets/images/design-b/logo-hex.png')}
+        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }}
+        resizeMode="contain" />
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
       <View style={{ backgroundColor:C.primaryDark,
         paddingTop:ins.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:20 }}>
@@ -1202,6 +1214,9 @@ function BettingFormScreen({ onBack, onProceed }: {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
+      <Image source={require('../assets/images/design-b/logo-hex.png')}
+        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }}
+        resizeMode="contain" />
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
       {/* Dark header */}
       <View style={{ backgroundColor: C.primaryDark,
@@ -1298,6 +1313,9 @@ function AddMoneyScreen({ onBack, onDone }: { onBack: () => void; onDone: () => 
   const copy = () => { setCopied(true); setTimeout(() => setCopied(false), 2000); };
   return (
     <View style={{ flex:1, backgroundColor:C.bg }}>
+      <Image source={require('../assets/images/design-b/logo-hex.png')}
+        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }}
+        resizeMode="contain" />
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
       <View style={{ backgroundColor:C.primaryDark, paddingTop:ins.top+(Platform.OS==='web'?67:44),
         paddingBottom:88, paddingHorizontal:20 }}>
@@ -1359,6 +1377,9 @@ function SendToDRCSScreen({ onBack, onProceed }: {
     fontFamily:C.regular, fontSize:15, color:C.text };
   return (
     <KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':undefined} style={{ flex:1, backgroundColor:C.bg }}>
+      <Image source={require('../assets/images/design-b/logo-hex.png')}
+        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }}
+        resizeMode="contain" />
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
       <View style={{ backgroundColor:C.primaryDark, paddingTop:ins.top+(Platform.OS==='web'?67:44),
         paddingBottom:88, paddingHorizontal:20 }}>
@@ -1407,6 +1428,9 @@ function SendToBankScreen({ onBack, onProceed }: {
     fontFamily:C.regular, fontSize:15, color:C.text };
   return (
     <KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':undefined} style={{ flex:1, backgroundColor:C.bg }}>
+      <Image source={require('../assets/images/design-b/logo-hex.png')}
+        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }}
+        resizeMode="contain" />
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
       <View style={{ backgroundColor:C.primaryDark, paddingTop:ins.top+(Platform.OS==='web'?67:44),
         paddingBottom:88, paddingHorizontal:20 }}>
@@ -1478,6 +1502,9 @@ function EducationPickerScreen({ onBack, onSelect }: {
   const ins = useSafeAreaInsets();
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <Image source={require('../assets/images/design-b/logo-hex.png')}
+        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }}
+        resizeMode="contain" />
       <StatusBar barStyle="light-content" />
       <View style={{
         backgroundColor: C.primaryDark,
@@ -1537,6 +1564,9 @@ function EducationFormScreen({ bodyId, bodyLabel, onBack, onProceed }: {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
+      <Image source={require('../assets/images/design-b/logo-hex.png')}
+        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }}
+        resizeMode="contain" />
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
       <View style={{
         backgroundColor: C.primaryDark,
@@ -1891,6 +1921,9 @@ function ProfileSettingsScreen({ onBack }: { onBack: () => void }) {
   ];
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <Image source={require('../assets/images/design-b/logo-hex.png')}
+        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }}
+        resizeMode="contain" />
       <View style={{
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
         paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 12), paddingHorizontal: 20, paddingBottom: 16,
@@ -1940,6 +1973,9 @@ function SecurityScreen({ onBack }: { onBack: () => void }) {
   const [fp, setFp] = useState(true);
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <Image source={require('../assets/images/design-b/logo-hex.png')}
+        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }}
+        resizeMode="contain" />
       <View style={{
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
         paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 12), paddingHorizontal: 20, paddingBottom: 16,
@@ -1965,6 +2001,9 @@ function AccountDetailsScreen({ onBack }: { onBack: () => void }) {
   const ins = useSafeAreaInsets();
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <Image source={require('../assets/images/design-b/logo-hex.png')}
+        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }}
+        resizeMode="contain" />
       <View style={{
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
         paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 12), paddingHorizontal: 20, paddingBottom: 16,
@@ -2293,6 +2332,9 @@ function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
 
   if (transferPicker) return (
     <View style={{ flex:1, backgroundColor:C.bg }}>
+      <Image source={require('../assets/images/design-b/logo-hex.png')}
+        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }}
+        resizeMode="contain" />
       <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
       <View style={{ backgroundColor:C.primaryDark,
         paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 44), paddingBottom:88, paddingHorizontal:20 }}>
