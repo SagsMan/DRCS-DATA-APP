@@ -60,11 +60,14 @@ interface ReceiptData {
 
 // ─── Telecom networks ────────────────────────────────────────────────────────
 const TELECOMS = [
-  { id: 'mtn',    label: 'MTN',    color: '#ffcc00', textColor: '#000', initial: 'MTN' },
-  { id: 'airtel', label: 'Airtel', color: '#e8001c', textColor: '#fff', initial: 'AIR' },
+  { id: 'mtn',    label: 'MTN',    color: '#ffcc00', textColor: '#000', initial: 'MTN',
+    logo: require('../assets/images/design-b/telecoms/mtn-logo.png') },
+  { id: 'airtel', label: 'Airtel', color: '#e8001c', textColor: '#fff', initial: 'AIR',
+    logo: require('../assets/images/design-b/telecoms/airtel-logo.png') },
   { id: 'glo',    label: 'Glo',    color: '#0a8234', textColor: '#fff', initial: 'glo',
     logo: require('../assets/images/design-b/glo-logo.png') },
-  { id: '9mobile',label: '9Mobile',color: '#006b50', textColor: '#fff', initial: '9m'  },
+  { id: '9mobile',label: '9Mobile',color: '#006b50', textColor: '#fff', initial: '9m',
+    logo: require('../assets/images/design-b/telecoms/9mobile-logo.png') },
 ] as const;
 
 // ─── Shared UI atoms ─────────────────────────────────────────────────────────
