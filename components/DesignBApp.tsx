@@ -58,6 +58,40 @@ interface ReceiptData {
   details: { label: string; value: string }[];
 }
 
+// ─── Data plans per network ──────────────────────────────────────────────────
+const DATA_PLANS: Record<string, { size: string; validity: string; price: string; naira: number }[]> = {
+  MTN: [
+    { size: '500MB', validity: '1 Day',   price: '₦200',   naira: 200   },
+    { size: '1GB',   validity: '7 Days',  price: '₦500',   naira: 500   },
+    { size: '2GB',   validity: '30 Days', price: '₦1,000', naira: 1000  },
+    { size: '5GB',   validity: '30 Days', price: '₦2,000', naira: 2000  },
+    { size: '10GB',  validity: '30 Days', price: '₦3,000', naira: 3000  },
+  ],
+  Airtel: [
+    { size: '300MB', validity: '1 Day',   price: '₦200',   naira: 200   },
+    { size: '1GB',   validity: '7 Days',  price: '₦500',   naira: 500   },
+    { size: '3GB',   validity: '30 Days', price: '₦1,000', naira: 1000  },
+    { size: '6GB',   validity: '30 Days', price: '₦2,000', naira: 2000  },
+    { size: '15GB',  validity: '30 Days', price: '₦3,000', naira: 3000  },
+  ],
+  Glo: [
+    { size: '1GB',   validity: '1 Day',   price: '₦300',   naira: 300   },
+    { size: '2GB',   validity: '7 Days',  price: '₦500',   naira: 500   },
+    { size: '5GB',   validity: '30 Days', price: '₦1,500', naira: 1500  },
+    { size: '10GB',  validity: '30 Days', price: '₦2,500', naira: 2500  },
+    { size: '20GB',  validity: '30 Days', price: '₦4,000', naira: 4000  },
+  ],
+  '9Mobile': [
+    { size: '500MB', validity: '1 Day',   price: '₦150',   naira: 150   },
+    { size: '1.5GB', validity: '7 Days',  price: '₦500',   naira: 500   },
+    { size: '3GB',   validity: '30 Days', price: '₦1,000', naira: 1000  },
+    { size: '7.5GB', validity: '30 Days', price: '₦2,000', naira: 2000  },
+    { size: '12GB',  validity: '30 Days', price: '₦3,000', naira: 3000  },
+  ],
+};
+
+const AIRTIME_QUICK = ['₦50', '₦100', '₦200', '₦500', '₦1,000'];
+
 // ─── Telecom networks ────────────────────────────────────────────────────────
 const TELECOMS = [
   { id: 'mtn',    label: 'MTN',    color: '#ffcc00', textColor: '#000', initial: 'MTN',
@@ -522,18 +556,9 @@ function TelecomPicker({
               borderRadius: 18, padding: 16, marginBottom: 12,
               opacity: pressed ? 0.8 : 1,
             }]}>
-            {/* Logo / badge */}
-            {'logo' in net ? (
-              <Image source={(net as any).logo}
-                style={{ width: 48, height: 48, borderRadius: 24, marginRight: 16 }} resizeMode="cover" />
-            ) : (
-              <View style={{
-                width: 48, height: 48, borderRadius: 24, backgroundColor: net.color,
-                alignItems: 'center', justifyContent: 'center', marginRight: 16,
-              }}>
-                <Text style={{ fontFamily: C.bold, fontSize: 12, color: net.textColor }}>{net.initial}</Text>
-              </View>
-            )}
+            {/* Logo */}
+            <Image source={net.logo}
+              style={{ width: 48, height: 48, borderRadius: 24, marginRight: 16 }} resizeMode="cover" />
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: C.bold, fontSize: 16, color: C.text }}>{net.label}</Text>
               <Text style={{ fontFamily: C.regular, fontSize: 12, color: C.subtext, marginTop: 2 }}>
@@ -563,6 +588,217 @@ function TelecomPicker({
         ))}
       </ScrollView>
     </View>
+  );
+}
+
+// ─── 5b. Service form (Airtime / Data / Electricity) ─────────────────────────
+interface FormPayload {
+  serviceLabel: string;
+  network: string;
+  phone: string;
+  amount: string;     // naira value string e.g. "500"
+  plan?: string;      // data plan description e.g. "1GB / 7 Days"
+  meterType?: string; // 'Prepaid' | 'Postpaid'
+}
+
+function ServiceFormScreen({
+  serviceLabel, network, onBack, onProceed,
+}: {
+  serviceLabel: string;
+  network: string;
+  onBack: () => void;
+  onProceed: (payload: FormPayload) => void;
+}) {
+  const ins = useSafeAreaInsets();
+  const [phone,      setPhone]      = useState('');
+  const [amount,     setAmount]     = useState('');
+  const [plan,       setPlan]       = useState<string | null>(null);
+  const [meterType,  setMeterType]  = useState<'Prepaid'|'Postpaid'>('Prepaid');
+
+  const isAirtime     = serviceLabel === 'Airtime';
+  const isData        = serviceLabel === 'Data';
+  const isElectricity = serviceLabel === 'Electricity';
+
+  const plans = DATA_PLANS[network] ?? DATA_PLANS['MTN'];
+
+  // network badge/logo (same logic as TelecomPicker)
+  const telecomMeta = TELECOMS.find(t => t.label === network);
+
+  const canProceed = isElectricity
+    ? phone.length >= 11 && amount.length > 0
+    : isData
+      ? phone.length >= 11 && !!plan
+      : phone.length >= 11 && amount.length > 0;
+
+  const handleProceed = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onProceed({ serviceLabel, network, phone, amount, plan: plan ?? undefined, meterType });
+  };
+
+  const Row = ({ label, children }: { label: string; children: React.ReactNode }) => (
+    <View style={{ marginBottom: 20 }}>
+      <Text style={{ fontFamily: C.bold, fontSize: 13, color: C.subtext, marginBottom: 8 }}>{label}</Text>
+      {children}
+    </View>
+  );
+
+  const inputSt: object = {
+    backgroundColor: C.inputBg, borderRadius: 14, height: 52,
+    paddingHorizontal: 16, fontFamily: C.regular, fontSize: 15, color: C.text,
+  };
+
+  return (
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
+      <StatusBar barStyle="light-content" backgroundColor={C.primary} />
+
+      {/* Blue header */}
+      <View style={{
+        backgroundColor: C.primary,
+        paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 14),
+        paddingBottom: 36, paddingHorizontal: 20,
+      }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+          <Pressable onPress={onBack} hitSlop={12}>
+            <Ionicons name="chevron-back" size={24} color="#fff" />
+          </Pressable>
+          <Text style={{ fontFamily: C.bold, fontSize: 18, color: '#fff', marginLeft: 8, flex: 1 }}>
+            {network} {serviceLabel}
+          </Text>
+          {/* Network badge */}
+          {telecomMeta ? (
+            <Image source={(telecomMeta as any).logo}
+              style={{ width: 40, height: 40, borderRadius: 20 }} resizeMode="cover" />
+          ) : (
+            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontFamily: C.bold, fontSize: 10, color: '#fff' }}>{network.slice(0,4)}</Text>
+            </View>
+          )}
+        </View>
+      </View>
+
+      {/* Card pulled up over blue */}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ padding: 20, paddingTop: 0 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={{
+          backgroundColor: C.card, borderRadius: 24, padding: 24,
+          marginTop: -20, marginBottom: 24,
+          shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, elevation: 4,
+        }}>
+
+          {/* Phone / Meter number */}
+          <Row label={isElectricity ? 'Meter Number' : 'Phone Number'}>
+            <TextInput
+              value={phone} onChangeText={setPhone}
+              placeholder={isElectricity ? 'Enter meter number' : '080 XXXX XXXX'}
+              placeholderTextColor={C.label}
+              keyboardType={isElectricity ? 'numeric' : 'phone-pad'}
+              maxLength={isElectricity ? 13 : 11}
+              style={inputSt}
+            />
+          </Row>
+
+          {/* AIRTIME: quick amounts + custom */}
+          {isAirtime && (
+            <Row label="Amount">
+              <>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                  {AIRTIME_QUICK.map(q => {
+                    const raw = q.replace('₦', '').replace(',', '');
+                    const active = amount === raw;
+                    return (
+                      <Pressable key={q}
+                        onPress={() => { Haptics.selectionAsync(); setAmount(raw); }}
+                        style={({ pressed }) => [{
+                          paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20,
+                          backgroundColor: active ? C.primary : C.inputBg,
+                          opacity: pressed ? 0.75 : 1,
+                        }]}>
+                        <Text style={{ fontFamily: C.bold, fontSize: 13, color: active ? '#fff' : C.primary }}>{q}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+                <TextInput
+                  value={amount} onChangeText={t => { setAmount(t.replace(/\D/g, '')); }}
+                  placeholder="Or enter custom amount (₦)"
+                  placeholderTextColor={C.label}
+                  keyboardType="numeric"
+                  style={inputSt}
+                />
+              </>
+            </Row>
+          )}
+
+          {/* DATA: plan list */}
+          {isData && (
+            <Row label="Select Data Plan">
+              <>
+                {plans.map(p => {
+                  const key = `${p.size}/${p.validity}`;
+                  const active = plan === key;
+                  return (
+                    <Pressable key={key} onPress={() => { Haptics.selectionAsync(); setPlan(key); }}
+                      style={({ pressed }) => [{
+                        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+                        backgroundColor: active ? '#eaf0ff' : C.inputBg,
+                        borderRadius: 14, padding: 16, marginBottom: 10,
+                        borderWidth: active ? 1.5 : 0, borderColor: C.primary,
+                        opacity: pressed ? 0.8 : 1,
+                      }]}>
+                      <View>
+                        <Text style={{ fontFamily: C.bold, fontSize: 16, color: C.text }}>{p.size}</Text>
+                        <Text style={{ fontFamily: C.regular, fontSize: 12, color: C.subtext, marginTop: 2 }}>{p.validity}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <Text style={{ fontFamily: C.bold, fontSize: 16, color: C.primary }}>{p.price}</Text>
+                        {active && <Ionicons name="checkmark-circle" size={20} color={C.primary} />}
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </>
+            </Row>
+          )}
+
+          {/* ELECTRICITY: amount + meter type */}
+          {isElectricity && (
+            <>
+              <Row label="Amount (₦)">
+                <TextInput
+                  value={amount} onChangeText={t => setAmount(t.replace(/\D/g, ''))}
+                  placeholder="Enter amount"
+                  placeholderTextColor={C.label}
+                  keyboardType="numeric"
+                  style={inputSt}
+                />
+              </Row>
+              <Row label="Meter Type">
+                <View style={{ flexDirection: 'row', gap: 12 }}>
+                  {(['Prepaid', 'Postpaid'] as const).map(mt => {
+                    const active = meterType === mt;
+                    return (
+                      <Pressable key={mt} onPress={() => setMeterType(mt)}
+                        style={[{
+                          flex: 1, paddingVertical: 14, borderRadius: 14, alignItems: 'center',
+                          backgroundColor: active ? C.primary : C.inputBg,
+                        }]}>
+                        <Text style={{ fontFamily: C.bold, fontSize: 14, color: active ? '#fff' : C.subtext }}>{mt}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </Row>
+            </>
+          )}
+
+          <Btn label="Proceed" onPress={handleProceed} disabled={!canProceed} />
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -989,27 +1225,99 @@ function PlaceholderTab({ label }: { label: string }) {
   );
 }
 
+// ─── Receipt builder from FormPayload ────────────────────────────────────────
+function buildReceipt(tx: FormPayload): ReceiptData {
+  const txNo = Math.floor(Math.random() * 9e15).toString().slice(0, 16);
+  const now  = new Date();
+  const dateStr = now.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })
+    + '  ' + now.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+
+  if (tx.serviceLabel === 'Airtime') {
+    return {
+      status: 'success', type: 'Airtime',
+      amount: `₦${Number(tx.amount).toLocaleString()}`,
+      details: [
+        { label: 'Bill Type',        value: `${tx.network} Airtime` },
+        { label: 'Recipient Mobile', value: tx.phone },
+        { label: 'Amount',           value: `₦${Number(tx.amount).toLocaleString()}` },
+        { label: 'Transaction No.',  value: txNo },
+        { label: 'Transaction Date', value: dateStr },
+      ],
+    };
+  }
+  if (tx.serviceLabel === 'Data') {
+    const [size, validity] = (tx.plan ?? '').split('/');
+    const planMeta = (DATA_PLANS[tx.network] ?? DATA_PLANS['MTN']).find(
+      p => `${p.size}/${p.validity}` === tx.plan
+    );
+    return {
+      status: 'success', type: 'Data',
+      amount: planMeta?.price ?? tx.plan ?? '',
+      details: [
+        { label: 'Bill Type',        value: `${tx.network} Data` },
+        { label: 'Recipient Mobile', value: tx.phone },
+        { label: 'Data Bundle',      value: size?.trim() ?? '' },
+        { label: 'Validity',         value: validity?.trim() ?? '' },
+        { label: 'Transaction No.',  value: txNo },
+        { label: 'Transaction Date', value: dateStr },
+      ],
+    };
+  }
+  // Electricity
+  return {
+    status: 'success', type: 'Electricity',
+    amount: `₦${Number(tx.amount).toLocaleString()}`,
+    details: [
+      { label: 'Bill Type',        value: `${tx.network} Electricity` },
+      { label: 'Meter Number',     value: tx.phone },
+      { label: 'Meter Type',       value: tx.meterType ?? 'Prepaid' },
+      { label: 'Amount',           value: `₦${Number(tx.amount).toLocaleString()}` },
+      { label: 'Transaction No.',  value: txNo },
+      { label: 'Transaction Date', value: dateStr },
+    ],
+  };
+}
+
 // ─── Main app shell ───────────────────────────────────────────────────────────
 function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
-  const [tab,       setTab]       = useState<HomeTab>('Home');
-  const [subScreen, setSubScreen] = useState<DBScreen | null>(null);
-  const [receipt,   setReceipt]   = useState<ReceiptData | null>(null);
-  const [pinOpen,   setPinOpen]   = useState(false);
-  const [picker,    setPicker]    = useState<string | null>(null); // current service label
+  const [tab,             setTab]             = useState<HomeTab>('Home');
+  const [subScreen,       setSubScreen]       = useState<DBScreen | null>(null);
+  const [receipt,         setReceipt]         = useState<ReceiptData | null>(null);
+  const [pinOpen,         setPinOpen]         = useState(false);
+  const [picker,          setPicker]          = useState<string | null>(null); // service label
+  const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null); // chosen network
+  const [pendingTx,       setPendingTx]       = useState<FormPayload | null>(null);
 
   const goSub = useCallback((s: DBScreen) => setSubScreen(s), []);
+
+  const resetPicker = () => { setPicker(null); setSelectedNetwork(null); };
 
   // Sub-screens (full-screen, no bottom nav)
   if (subScreen === 'profileSettings') return <ProfileSettingsScreen onBack={() => setSubScreen(null)} />;
   if (subScreen === 'security')        return <SecurityScreen        onBack={() => setSubScreen(null)} />;
   if (subScreen === 'accountDetails')  return <AccountDetailsScreen  onBack={() => setSubScreen(null)} />;
 
-  // Telecom picker
-  if (picker) return (
+  // Step 1 — Telecom / DisCo picker
+  if (picker && !selectedNetwork) return (
     <TelecomPicker
       serviceLabel={picker}
-      onBack={() => setPicker(null)}
-      onSelect={network => { setPicker(null); setPinOpen(true); }}
+      onBack={resetPicker}
+      onSelect={network => setSelectedNetwork(network)}
+    />
+  );
+
+  // Step 2 — Service form (phone/amount/plan)
+  if (picker && selectedNetwork) return (
+    <ServiceFormScreen
+      serviceLabel={picker}
+      network={selectedNetwork}
+      onBack={() => setSelectedNetwork(null)}   // go back to picker
+      onProceed={payload => {
+        setPendingTx(payload);
+        setSelectedNetwork(null);
+        setPicker(null);
+        setPinOpen(true);
+      }}
     />
   );
 
@@ -1052,17 +1360,14 @@ function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
 
       <PinModal
         visible={pinOpen}
-        onClose={() => setPinOpen(false)}
+        onClose={() => { setPinOpen(false); setPendingTx(null); }}
         onSubmit={() => {
           setPinOpen(false);
-          setReceipt({
-            status: 'success', type: 'Airtime', amount: '$10.00',
-            details: [
-              { label: 'Bill Type',        value: 'Airtime' },
-              { label: 'Recipient Mobile', value: 'GLO  081 0578 9011' },
-              { label: 'Transaction No.',  value: '1098469208461910' },
-              { label: 'Transaction Date', value: 'Jun 21st, 2026  02:36:34' },
-            ],
+          const tx = pendingTx;
+          setPendingTx(null);
+          setReceipt(tx ? buildReceipt(tx) : {
+            status: 'success', type: 'Payment', amount: '₦0',
+            details: [{ label: 'Transaction No.', value: Date.now().toString() }],
           });
         }}
       />
