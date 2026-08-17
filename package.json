@@ -58,6 +58,7 @@
     "@expo-google-fonts/dm-sans": "^0.4.2",
     "@expo-google-fonts/ibm-plex-sans": "^0.4.1",
     "@expo-google-fonts/poppins": "^0.4.1",
-    "@expo-google-fonts/roboto": "^0.4.3"
+    "@expo-google-fonts/roboto": "^0.4.3",
+    "react-compiler-runtime": "^1.0.0"
   }
 }
