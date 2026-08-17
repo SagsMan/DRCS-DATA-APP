@@ -1684,7 +1684,7 @@ function HomeTab({
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <View style={{ position:'absolute', right:-30, bottom:100 }} pointerEvents="none">
         <Image source={require('../assets/images/design-b/logo-hex.png')}
-          style={{ width:260, height:260, opacity:0.04 }}
+          style={{ width:260, height:260, opacity:0.02 }}
           resizeMode="contain" />
       </View>
       <ScrollView style={{ flex: 1, backgroundColor: 'transparent' }}
@@ -1841,7 +1841,7 @@ function ProfileTab({ onNavigate }: { onNavigate: (s: DBScreen) => void }) {
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <View style={{ position:'absolute', right:-30, bottom:80 }} pointerEvents="none">
         <Image source={require('../assets/images/design-b/logo-hex.png')}
-          style={{ width:260, height:260, opacity:0.04 }}
+          style={{ width:260, height:260, opacity:0.02 }}
           resizeMode="contain" />
       </View>
     <ScrollView style={{ flex: 1, backgroundColor: 'transparent' }}
