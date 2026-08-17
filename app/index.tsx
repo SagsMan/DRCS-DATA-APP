@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Dimensions,
   Image,
   ImageBackground,
@@ -514,7 +515,7 @@ function AHeader({ title, onBack, colors }: { title:string; onBack:()=>void; col
   const ins = useSafeAreaInsets();
   return (
     <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center',
-      paddingTop:ins.top+(Platform.OS==='web'?67:14), paddingHorizontal:20, paddingBottom:16,
+      paddingTop:ins.top+(Platform.OS==='web'?67:44), paddingHorizontal:20, paddingBottom:16,
       backgroundColor:colors.card, borderBottomWidth:1, borderBottomColor:colors.border }}>
       <Pressable onPress={onBack} style={{ position:'absolute', left:20 }} hitSlop={12}>
         <Ionicons name="chevron-back" size={24} color={colors.primary} />
@@ -1073,13 +1074,20 @@ function HomeScreen({
   const promoWidth = Math.max(SCREEN_WIDTH - 36, 280);
 
   // ── Flow state ──────────────────────────────────────────────────────────────
-  const [flow,    setFlow]    = useState<AFlow>(null);
-  const [flowMeta,setFlowMeta]= useState<Record<string,string>>({});
+  const [flow,       setFlow]       = useState<AFlow>(null);
+  const [flowMeta,   setFlowMeta]   = useState<Record<string,string>>({});
+  const [processing, setProcessing] = useState(false);
 
   const openFlow = (f: AFlow) => { setFlow(f); setFlowMeta({}); };
   const closeFlow = () => { setFlow(null); setFlowMeta({}); };
-  const showPin   = (onConfirm: ()=>void) => setFlow({ kind:'pin', onConfirm });
   const showReceipt = (r: AReceiptData)  => setFlow({ kind:'receipt', data:r });
+  const showPin = (onConfirm: ()=>void) => setFlow({
+    kind:'pin',
+    onConfirm: () => {
+      setProcessing(true);
+      setTimeout(() => { setProcessing(false); onConfirm(); }, 1600);
+    },
+  });
 
   const showNotice = (message: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -1170,6 +1178,7 @@ function HomeScreen({
         {
           backgroundColor: colors.background,
           paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 10),
+          ...(processing ? { pointerEvents: 'none' as any } : {}),
           paddingBottom: Math.max(insets.bottom, 12) + (Platform.OS === 'web' ? 34 : 0),
         },
       ]}
@@ -1610,6 +1619,26 @@ function HomeScreen({
           );
         })}
       </View>
+
+      {/* Processing overlay shown while purchase is being confirmed */}
+      {processing && (
+        <View style={{
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.52)',
+          alignItems: 'center', justifyContent: 'center',
+        }}>
+          <View style={{
+            backgroundColor: colors.card, borderRadius: 24, padding: 32,
+            alignItems: 'center', minWidth: 160,
+          }}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={{
+              fontFamily: colors.fontBodySemiBold, fontSize: 15,
+              color: colors.grayBlack, marginTop: 16,
+            }}>Processing…</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 }

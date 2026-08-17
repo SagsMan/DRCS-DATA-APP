@@ -579,52 +579,53 @@ function TelecomPicker({
       {/* Header */}
       <View style={{
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-        paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 14), paddingHorizontal: 20, paddingBottom: 16,
+        paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 44), paddingHorizontal: 20, paddingBottom: 16,
       }}>
         <Pressable onPress={onBack} style={{ position: 'absolute', left: 20 }}>
           <Ionicons name="chevron-back" size={24} color={C.primary} />
         </Pressable>
-        <Text style={{ fontFamily: C.bold, fontSize: 18, color: C.text }}>Select Network — {serviceLabel}</Text>
+        <Text style={{ fontFamily: C.bold, fontSize: 18, color: C.text }}>
+          {serviceLabel === 'Electricity' ? 'Select DisCo' : `Select Network — ${serviceLabel}`}
+        </Text>
       </View>
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8 }}>
-        {TELECOMS.map(net => (
-          <Pressable key={net.id} onPress={() => { Haptics.selectionAsync(); onSelect(net.label); }}
-            style={({ pressed }) => [{
-              flexDirection: 'row', alignItems: 'center', backgroundColor: C.card,
-              borderRadius: 18, padding: 16, marginBottom: 12,
-              opacity: pressed ? 0.8 : 1,
-            }]}>
-            {/* Logo */}
-            <Image source={net.logo}
-              style={{ width: 48, height: 48, borderRadius: 24, marginRight: 16 }} resizeMode="cover" />
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: C.bold, fontSize: 16, color: C.text }}>{net.label}</Text>
-              <Text style={{ fontFamily: C.regular, fontSize: 12, color: C.subtext, marginTop: 2 }}>
-                Tap to {serviceLabel.toLowerCase()}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={C.label} />
-          </Pressable>
-        ))}
-
-        {/* AEDC for Electricity / extra items */}
-        {serviceLabel === 'Electricity' && ['AEDC','IKEDC','EKEDC','KANO'].map(c => (
-          <Pressable key={c} onPress={() => { Haptics.selectionAsync(); onSelect(c); }}
-            style={({ pressed }) => [{
-              flexDirection: 'row', alignItems: 'center', backgroundColor: C.card,
-              borderRadius: 18, padding: 16, marginBottom: 12, opacity: pressed ? 0.8 : 1,
-            }]}>
-            <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: '#1e3a8a', alignItems: 'center', justifyContent: 'center', marginRight: 16 }}>
-              <Text style={{ fontFamily: C.bold, fontSize: 10, color: '#fff' }}>{c}</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: C.bold, fontSize: 16, color: C.text }}>{c}</Text>
-              <Text style={{ fontFamily: C.regular, fontSize: 12, color: C.subtext, marginTop: 2 }}>DisCo</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={C.label} />
-          </Pressable>
-        ))}
+        {serviceLabel === 'Electricity'
+          ? ['AEDC','IKEDC','EKEDC','KANO'].map(c => (
+            <Pressable key={c} onPress={() => { Haptics.selectionAsync(); onSelect(c); }}
+              style={({ pressed }) => [{
+                flexDirection: 'row', alignItems: 'center', backgroundColor: C.card,
+                borderRadius: 18, padding: 16, marginBottom: 12, opacity: pressed ? 0.8 : 1,
+              }]}>
+              <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: '#1e3a8a', alignItems: 'center', justifyContent: 'center', marginRight: 16 }}>
+                <Text style={{ fontFamily: C.bold, fontSize: 10, color: '#fff' }}>{c}</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: C.bold, fontSize: 16, color: C.text }}>{c}</Text>
+                <Text style={{ fontFamily: C.regular, fontSize: 12, color: C.subtext, marginTop: 2 }}>Electricity DisCo</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={C.label} />
+            </Pressable>
+          ))
+          : TELECOMS.map(net => (
+            <Pressable key={net.id} onPress={() => { Haptics.selectionAsync(); onSelect(net.label); }}
+              style={({ pressed }) => [{
+                flexDirection: 'row', alignItems: 'center', backgroundColor: C.card,
+                borderRadius: 18, padding: 16, marginBottom: 12,
+                opacity: pressed ? 0.8 : 1,
+              }]}>
+              <Image source={net.logo}
+                style={{ width: 48, height: 48, borderRadius: 24, marginRight: 16 }} resizeMode="cover" />
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: C.bold, fontSize: 16, color: C.text }}>{net.label}</Text>
+                <Text style={{ fontFamily: C.regular, fontSize: 12, color: C.subtext, marginTop: 2 }}>
+                  Tap to {serviceLabel.toLowerCase()}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={C.label} />
+            </Pressable>
+          ))
+        }
       </ScrollView>
     </View>
   );
@@ -751,7 +752,7 @@ function ServiceFormScreen({
       {/* Blue header */}
       <View style={{
         backgroundColor: C.primary,
-        paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 14),
+        paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 44),
         paddingBottom: 36, paddingHorizontal: 20,
       }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
@@ -1253,7 +1254,7 @@ const SERVICES = [
   { id: 'data',        label: 'Data',        icon: 'wifi-outline'            },
   { id: 'tv',          label: 'Cable TV',    icon: 'tv-outline'              },
   { id: 'betting',     label: 'Betting',     icon: 'dice-outline'            },
-  { id: 'water',       label: 'Water',       icon: 'water-outline'           },
+  { id: 'education',   label: 'Education',   icon: 'school-outline'          },
 ] as const;
 
 const TXS = [
@@ -1298,6 +1299,8 @@ function HomeTab({
       onOpenPicker(label);
     } else if (id === 'tv') {
       onOpenTVPicker();
+    } else if (id === 'education') {
+      onShowPin(); // placeholder — full education flow in a future task
     } else {
       onShowPin();
     }
@@ -1793,6 +1796,7 @@ type BPending =
   | { kind:'bank';     accountNo:string; bankName:string; accountName:string; amount:string };
 
 function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
+  const ins = useSafeAreaInsets();
   const [tab,             setTab]             = useState<HomeTab>('Home');
   const [subScreen,       setSubScreen]       = useState<DBScreen | null>(null);
   const [receipt,         setReceipt]         = useState<ReceiptData | null>(null);
@@ -1816,14 +1820,20 @@ function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
   const goSub = useCallback((s: DBScreen) => setSubScreen(s), []);
 
   const openPin = (p: BPending) => { setPending(p); setPinOpen(true); };
+  const [processing, setProcessing] = useState(false);
+
   const handlePinSubmit = () => {
     setPinOpen(false);
     const p = pending; setPending(null);
     if (!p) return;
-    if (p.kind==='service') setReceipt(buildReceipt(p.payload));
-    else if (p.kind==='tv')   setReceipt(buildTVReceipt(p.provider, p.smartCard, p.bouquet, p.price));
-    else if (p.kind==='drcs') setReceipt(buildDRCSReceipt(p.username, p.amount, p.note));
-    else if (p.kind==='bank') setReceipt(buildBankReceipt(p.accountNo, p.bankName, p.accountName, p.amount));
+    setProcessing(true);
+    setTimeout(() => {
+      setProcessing(false);
+      if (p.kind==='service') setReceipt(buildReceipt(p.payload));
+      else if (p.kind==='tv')   setReceipt(buildTVReceipt(p.provider, p.smartCard, p.bouquet, p.price));
+      else if (p.kind==='drcs') setReceipt(buildDRCSReceipt(p.username, p.amount, p.note));
+      else if (p.kind==='bank') setReceipt(buildBankReceipt(p.accountNo, p.bankName, p.accountName, p.amount));
+    }, 1600);
   };
 
   // Sub-screens
@@ -1858,7 +1868,7 @@ function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
     <View style={{ flex:1, backgroundColor:C.bg }}>
       <StatusBar barStyle="dark-content" />
       <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center',
-        paddingTop:60, paddingHorizontal:20, paddingBottom:16 }}>
+        paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 44), paddingHorizontal:20, paddingBottom:16 }}>
         <Pressable onPress={() => setTransferPicker(false)} style={{ position:'absolute', left:20 }}>
           <Ionicons name="chevron-back" size={24} color={C.primary} />
         </Pressable>
@@ -1926,6 +1936,7 @@ function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
       <PinModal visible={pinOpen}
         onClose={() => { setPinOpen(false); setPending(null); }}
         onSubmit={handlePinSubmit} />
+      {processing && <LoadingOverlay />}
     </View>
   );
 }
