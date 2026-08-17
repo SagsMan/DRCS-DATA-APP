@@ -59,6 +59,7 @@
     "@expo-google-fonts/ibm-plex-sans": "^0.4.1",
     "@expo-google-fonts/poppins": "^0.4.1",
     "@expo-google-fonts/roboto": "^0.4.3",
+    "expo-contacts": "~15.0.11",
     "react-compiler-runtime": "^1.0.0"
   }
 }

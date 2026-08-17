@@ -7,6 +7,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Dimensions,
   Image,
   KeyboardAvoidingView,
@@ -24,6 +25,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import * as Contacts from 'expo-contacts';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width: W, height: H } = Dimensions.get('window');
 
@@ -111,6 +114,10 @@ const DATA_PLANS: Record<string, { size: string; validity: string; price: string
 
 
 const AIRTIME_QUICK = ['₦50', '₦100', '₦200', '₦500', '₦1,000'];
+
+const RECENT_BENEFICIARIES_KEY = 'drcs_recent_beneficiaries';
+interface Beneficiary { name: string; phone: string; network: string; }
+const MAX_RECENT = 5;
 
 // ─── Telecom networks ────────────────────────────────────────────────────────
 const TELECOMS = [
@@ -646,15 +653,76 @@ function ServiceFormScreen({
   const [amount,     setAmount]     = useState('');
   const [plan,       setPlan]       = useState<string | null>(null);
   const [meterType,  setMeterType]  = useState<'Prepaid'|'Postpaid'>('Prepaid');
+  const [recentBeneficiaries, setRecentBeneficiaries] = useState<Beneficiary[]>([]);
 
   const isAirtime     = serviceLabel === 'Airtime';
   const isData        = serviceLabel === 'Data';
   const isElectricity = serviceLabel === 'Electricity';
+  const showBeneficiaries = isAirtime || isData;
 
   const plans = DATA_PLANS[network] ?? DATA_PLANS['MTN'];
 
   // network badge/logo (same logic as TelecomPicker)
   const telecomMeta = TELECOMS.find(t => t.label === network);
+
+  // Load recent beneficiaries from AsyncStorage on mount
+  useEffect(() => {
+    if (!showBeneficiaries) return;
+    AsyncStorage.getItem(RECENT_BENEFICIARIES_KEY).then(raw => {
+      if (raw) {
+        const all: Beneficiary[] = JSON.parse(raw);
+        // Show only beneficiaries matching this network
+        setRecentBeneficiaries(all.filter(b => b.network === network).slice(0, MAX_RECENT));
+      }
+    }).catch(() => {});
+  }, [network, showBeneficiaries]);
+
+  // Save beneficiary then call onProceed
+  const saveAndProceed = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (showBeneficiaries && phone.length >= 11) {
+      try {
+        const raw = await AsyncStorage.getItem(RECENT_BENEFICIARIES_KEY);
+        const all: Beneficiary[] = raw ? JSON.parse(raw) : [];
+        const entry: Beneficiary = { name: phone, phone, network };
+        // Deduplicate by phone number and move to front
+        const filtered = all.filter(b => b.phone !== phone);
+        const updated = [entry, ...filtered].slice(0, MAX_RECENT * 4); // keep a larger pool across networks
+        await AsyncStorage.setItem(RECENT_BENEFICIARIES_KEY, JSON.stringify(updated));
+      } catch {}
+    }
+    onProceed({ serviceLabel, network, phone, amount, plan: plan ?? undefined, meterType });
+  };
+
+  // Pick from device contacts
+  const pickContact = async () => {
+    const { status } = await Contacts.requestPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'Allow contacts access to pick a number from your contacts.');
+      return;
+    }
+    const { data } = await Contacts.getContactsAsync({
+      fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.Name],
+    });
+    if (!data.length) {
+      Alert.alert('No Contacts', 'No contacts found on this device.');
+      return;
+    }
+    // Build a simple picker list (show a modal with contacts)
+    setContactsList(data.filter(c => c.phoneNumbers && c.phoneNumbers.length > 0));
+    setContactsModalVisible(true);
+  };
+
+  const [contactsList, setContactsList] = useState<Contacts.Contact[]>([]);
+  const [contactsModalVisible, setContactsModalVisible] = useState(false);
+
+  const selectContact = (contact: Contacts.Contact) => {
+    const raw = contact.phoneNumbers?.[0]?.number ?? '';
+    // Normalize: remove spaces, dashes, plus prefix
+    const normalized = raw.replace(/[\s\-]/g, '').replace(/^\+234/, '0').slice(0, 11);
+    setPhone(normalized);
+    setContactsModalVisible(false);
+  };
 
   const canProceed = isElectricity
     ? phone.length >= 11 && amount.length > 0
@@ -662,10 +730,7 @@ function ServiceFormScreen({
       ? phone.length >= 11 && !!plan
       : phone.length >= 11 && amount.length > 0;
 
-  const handleProceed = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    onProceed({ serviceLabel, network, phone, amount, plan: plan ?? undefined, meterType });
-  };
+  const handleProceed = () => saveAndProceed();
 
   const Row = ({ label, children }: { label: string; children: React.ReactNode }) => (
     <View style={{ marginBottom: 20 }}>
@@ -723,15 +788,102 @@ function ServiceFormScreen({
 
           {/* Phone / Meter number */}
           <Row label={isElectricity ? 'Meter Number' : 'Phone Number'}>
-            <TextInput
-              value={phone} onChangeText={setPhone}
-              placeholder={isElectricity ? 'Enter meter number' : '080 XXXX XXXX'}
-              placeholderTextColor={C.label}
-              keyboardType={isElectricity ? 'numeric' : 'phone-pad'}
-              maxLength={isElectricity ? 13 : 11}
-              style={inputSt}
-            />
+            <>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <TextInput
+                  value={phone} onChangeText={setPhone}
+                  placeholder={isElectricity ? 'Enter meter number' : '080 XXXX XXXX'}
+                  placeholderTextColor={C.label}
+                  keyboardType={isElectricity ? 'numeric' : 'phone-pad'}
+                  maxLength={isElectricity ? 13 : 11}
+                  style={[inputSt, { flex: 1 }]}
+                />
+                {showBeneficiaries && (
+                  <Pressable
+                    onPress={pickContact}
+                    style={({ pressed }) => [{
+                      width: 52, height: 52, borderRadius: 14,
+                      backgroundColor: C.primaryLight,
+                      alignItems: 'center', justifyContent: 'center',
+                      opacity: pressed ? 0.75 : 1,
+                    }]}>
+                    <Ionicons name="people-outline" size={22} color={C.primary} />
+                  </Pressable>
+                )}
+              </View>
+
+              {/* Recent beneficiaries */}
+              {showBeneficiaries && recentBeneficiaries.length > 0 && (
+                <View style={{ marginTop: 12 }}>
+                  <Text style={{ fontFamily: C.bold, fontSize: 11, color: C.label, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                    Recent
+                  </Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -4 }}>
+                    {recentBeneficiaries.map((b, i) => (
+                      <Pressable
+                        key={`${b.phone}-${i}`}
+                        onPress={() => { Haptics.selectionAsync(); setPhone(b.phone); }}
+                        style={({ pressed }) => [{
+                          alignItems: 'center', marginHorizontal: 4,
+                          opacity: pressed ? 0.7 : 1,
+                        }]}>
+                        <View style={{
+                          width: 48, height: 48, borderRadius: 24,
+                          backgroundColor: phone === b.phone ? C.primary : C.primaryLight,
+                          alignItems: 'center', justifyContent: 'center', marginBottom: 4,
+                        }}>
+                          <Ionicons name="person-outline" size={20}
+                            color={phone === b.phone ? '#fff' : C.primary} />
+                        </View>
+                        <Text style={{ fontFamily: C.regular, fontSize: 10, color: C.subtext, maxWidth: 64, textAlign: 'center' }}
+                          numberOfLines={1}>
+                          {b.phone.length > 7 ? b.phone.slice(0, 4) + '…' + b.phone.slice(-4) : b.phone}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+            </>
           </Row>
+
+          {/* Contacts picker modal */}
+          <Modal visible={contactsModalVisible} transparent animationType="slide" onRequestClose={() => setContactsModalVisible(false)}>
+            <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.48)' }} onPress={() => setContactsModalVisible(false)} />
+            <View style={{
+              backgroundColor: C.card, borderTopLeftRadius: 28, borderTopRightRadius: 28,
+              paddingTop: 14, paddingHorizontal: 20, paddingBottom: 32, maxHeight: '70%',
+            }}>
+              <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: C.border, alignSelf: 'center', marginBottom: 16 }} />
+              <Text style={{ fontFamily: C.bold, fontSize: 18, color: C.text, marginBottom: 14 }}>Pick a Contact</Text>
+              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                {contactsList.map((c, i) => {
+                  const num = c.phoneNumbers?.[0]?.number ?? '';
+                  return (
+                    <Pressable key={i} onPress={() => selectContact(c)}
+                      style={({ pressed }) => [{
+                        flexDirection: 'row', alignItems: 'center',
+                        paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: C.divider,
+                        opacity: pressed ? 0.7 : 1,
+                      }]}>
+                      <View style={{
+                        width: 40, height: 40, borderRadius: 20,
+                        backgroundColor: C.primaryLight, alignItems: 'center', justifyContent: 'center', marginRight: 14,
+                      }}>
+                        <Text style={{ fontFamily: C.bold, fontSize: 14, color: C.primary }}>
+                          {(c.name ?? '?').charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontFamily: C.bold, fontSize: 14, color: C.text }}>{c.name}</Text>
+                        <Text style={{ fontFamily: C.regular, fontSize: 12, color: C.subtext, marginTop: 1 }}>{num}</Text>
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          </Modal>
 
           {/* AIRTIME: quick amounts + custom */}
           {isAirtime && (
