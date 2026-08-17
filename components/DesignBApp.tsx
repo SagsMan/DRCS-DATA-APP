@@ -10,6 +10,7 @@ import {
   Alert,
   Dimensions,
   Image,
+  ImageBackground,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -1819,6 +1820,13 @@ const SERVICES: { id: string; label: string; Icon: ServiceIconComponent }[] = [
   { id: 'education',   label: 'Education',   Icon: EducationIcon   },
 ];
 
+const B_PROMO_SLIDES = [
+  { title:'Win ₦500,000 Cash!',    desc:'Refer a friend and top up airtime to win big.',   cta:'Refer Now',  bg:require('../assets/images/promos/promo-pink.png'), illo:require('../assets/images/promos/giveaway-bro.png')    },
+  { title:'₦1M Data Giveaway',     desc:'Buy any data bundle this week — win 10GB free.',  cta:'Buy Data',   bg:require('../assets/images/promos/promo-dark.png'), illo:require('../assets/images/promos/giveaway-amico.png')  },
+  { title:'Student Bonus Bundle',  desc:'Exclusive data & SMS deals for students.',         cta:'Get Bundle', bg:require('../assets/images/promos/promo-pink.png'), illo:require('../assets/images/promos/giveaway-rafiki.png') },
+  { title:'Electricity Cashback',  desc:'Get 5% cashback on every electricity recharge.',   cta:'Pay Now',    bg:require('../assets/images/promos/promo-dark.png'), illo:require('../assets/images/promos/giveaway-bro.png')    },
+];
+
 const TXS = [
   { id:'1', name:'Electricity',       sub:'AEDC  905 783 9231',  amt:'₦5,000', date:'Today, 08:15 AM',      lbl:'AEDC', bg:'#e8f0ff', fg:'#014dd4' },
   { id:'2', name:'Airtime',           sub:'Glo  0905 783 9231',  amt:'₦500',   date:'Today, 10:42 AM',      lbl:'glo',  bg:'#d4f5e0', fg:'#0d8f47', logo: require('../assets/images/design-b/glo-logo.png') },
@@ -1856,6 +1864,18 @@ function HomeTab({
   const ins = useSafeAreaInsets();
   const [balHidden, setBalHidden] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [promoIdx, setPromoIdx] = useState(0);
+  const promoRef = useRef<ScrollView>(null);
+  const promoW   = Math.max(W - 32, 280);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      const next = (promoIdx + 1) % B_PROMO_SLIDES.length;
+      promoRef.current?.scrollTo({ x: next * promoW, animated: true });
+      setPromoIdx(next);
+    }, 4000);
+    return () => clearInterval(t);
+  }, [promoIdx, promoW]);
 
   const tapService = (id: string, label: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -1969,6 +1989,55 @@ function HomeTab({
                   </View>
                   <Text style={{ fontFamily: C.regular, fontSize: 12, color: C.text }}>{s.label}</Text>
                 </Pressable>
+              ))}
+            </View>
+          </View>
+
+          {/* Promo carousel */}
+          <View style={{ marginBottom: 20 }}>
+            <ScrollView ref={promoRef} horizontal pagingEnabled decelerationRate="fast"
+              showsHorizontalScrollIndicator={false}
+              snapToInterval={promoW} snapToAlignment="start"
+              onMomentumScrollEnd={e => {
+                const i = Math.round(e.nativeEvent.contentOffset.x / promoW);
+                setPromoIdx(Math.max(0, Math.min(i, B_PROMO_SLIDES.length - 1)));
+              }}>
+              {B_PROMO_SLIDES.map((slide, i) => (
+                <Pressable key={slide.title} style={{ width: promoW }} onPress={() => {}}>
+                  <ImageBackground source={slide.bg} resizeMode="cover"
+                    style={{ width: promoW, height: 164, borderRadius: 20, overflow: 'hidden',
+                      backgroundColor: C.primaryDark }}
+                    imageStyle={{ opacity: 0.18, borderRadius: 20 }}>
+                    <View style={{ flex: 1, flexDirection: 'row', padding: 18 }}>
+                      <View style={{ flex: 1, justifyContent: 'center' }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 6 }}>
+                          <Ionicons name="gift-outline" size={13} color="#ffcf40" />
+                          <Text style={{ fontFamily: C.bold, fontSize: 10, color: '#fff', letterSpacing: 0.6 }}>DRCS PROMO</Text>
+                        </View>
+                        <Text style={{ fontFamily: C.bold, fontSize: 16, color: '#fff', marginBottom: 4 }}>{slide.title}</Text>
+                        <Text style={{ fontFamily: C.regular, fontSize: 11, color: 'rgba(255,255,255,0.82)', marginBottom: 10, lineHeight: 15 }}>{slide.desc}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                          <Text style={{ fontFamily: C.bold, fontSize: 12, color: '#fff' }}>{slide.cta}</Text>
+                          <Ionicons name="arrow-forward" size={12} color="#fff" />
+                        </View>
+                      </View>
+                      <Image source={slide.illo} resizeMode="contain"
+                        style={{ width: 110, height: 130, position: 'absolute', right: 0, bottom: 0 }} />
+                    </View>
+                    <View style={{ position: 'absolute', top: 12, right: 14 }}>
+                      <Text style={{ fontFamily: C.bold, fontSize: 10, color: 'rgba(255,255,255,0.65)' }}>
+                        {i + 1}/{B_PROMO_SLIDES.length}
+                      </Text>
+                    </View>
+                  </ImageBackground>
+                </Pressable>
+              ))}
+            </ScrollView>
+            <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 8 }}>
+              {B_PROMO_SLIDES.map((_, i) => (
+                <View key={i} style={{ height: 6, borderRadius: 3,
+                  width: i === promoIdx ? 20 : 6,
+                  backgroundColor: i === promoIdx ? C.primary : C.divider }} />
               ))}
             </View>
           </View>

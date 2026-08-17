@@ -20,6 +20,9 @@ import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useColors, type DesignVariant } from '@/hooks/useColors';
 import { DesignBApp } from '@/components/DesignBApp';
+import {
+  AirtimeIcon, BettingIcon, CableTVIcon, DataIcon, EducationIcon, ElectricityIcon,
+} from '@/components/icons/DrcsIcons';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -390,12 +393,14 @@ const homeActions: HomeAction[] = [
   { label: 'Add Money', icon: 'add-circle-outline', tone: 'accent' },
 ];
 
-const homeServices: HomeAction[] = [
-  { label: 'Airtime',    icon: 'phone-portrait-outline', tone: 'primary'   },
-  { label: 'Data',       icon: 'wifi-outline',           tone: 'secondary' },
-  { label: 'Electricity',icon: 'flash-outline',          tone: 'accent'    },
-  { label: 'TV',         icon: 'tv-outline',             tone: 'primary'   },
-  { label: 'Education',  icon: 'school-outline',         tone: 'secondary' },
+type ServiceItem = { id: string; label: string; Icon: React.ComponentType<{size?:number;color?:string;strokeWidth?:number}> };
+const homeServices: ServiceItem[] = [
+  { id:'airtime',     label:'Airtime',     Icon: AirtimeIcon     },
+  { id:'data',        label:'Data',        Icon: DataIcon        },
+  { id:'electricity', label:'Electricity', Icon: ElectricityIcon },
+  { id:'tv',          label:'TV',          Icon: CableTVIcon     },
+  { id:'betting',     label:'Betting',     Icon: BettingIcon     },
+  { id:'education',   label:'Education',   Icon: EducationIcon   },
 ];
 
 const homeTabs: { label: HomeTab; icon: IconName }[] = [
@@ -479,12 +484,51 @@ const A_TELECOMS = [
   { id:'9mobile', label:'9Mobile',color:'#006b50', tc:'#fff' },
 ];
 const A_DISCOS = ['AEDC','IKEDC','EKEDC','KANO Electricity'];
-const A_DATA_PLANS: Record<string,{size:string;validity:string;price:string;naira:number}[]> = {
-  MTN:     [{size:'500MB',validity:'1 Day',price:'₦200',naira:200},{size:'1GB',validity:'7 Days',price:'₦500',naira:500},{size:'2GB',validity:'30 Days',price:'₦1,000',naira:1000},{size:'5GB',validity:'30 Days',price:'₦2,000',naira:2000},{size:'10GB',validity:'30 Days',price:'₦3,000',naira:3000}],
-  Airtel:  [{size:'300MB',validity:'1 Day',price:'₦200',naira:200},{size:'1GB',validity:'7 Days',price:'₦500',naira:500},{size:'3GB',validity:'30 Days',price:'₦1,000',naira:1000},{size:'6GB',validity:'30 Days',price:'₦2,000',naira:2000},{size:'15GB',validity:'30 Days',price:'₦3,000',naira:3000}],
-  Glo:     [{size:'1GB',validity:'1 Day',price:'₦300',naira:300},{size:'2GB',validity:'7 Days',price:'₦500',naira:500},{size:'5GB',validity:'30 Days',price:'₦1,500',naira:1500},{size:'10GB',validity:'30 Days',price:'₦2,500',naira:2500},{size:'20GB',validity:'30 Days',price:'₦4,000',naira:4000}],
-  '9Mobile':[{size:'500MB',validity:'1 Day',price:'₦150',naira:150},{size:'1.5GB',validity:'7 Days',price:'₦500',naira:500},{size:'3GB',validity:'30 Days',price:'₦1,000',naira:1000},{size:'7.5GB',validity:'30 Days',price:'₦2,000',naira:2000},{size:'12GB',validity:'30 Days',price:'₦3,000',naira:3000}],
+type ADataPlan = { size: string; validity: string; price: string; naira: number };
+type ADataCategory = 'Daily'|'Weekly'|'Monthly'|'SMS'|'Gift'|'Corporate'|'SM2';
+const A_DATA_CATEGORIES: ADataCategory[] = ['Daily','Weekly','Monthly','SMS','Gift','Corporate','SM2'];
+const A_DATA_PLANS: Record<string, Record<ADataCategory, ADataPlan[]>> = {
+  MTN: {
+    Daily:     [{size:'500MB',validity:'1 Day',price:'₦200',naira:200},{size:'1GB',validity:'1 Day',price:'₦350',naira:350},{size:'2GB',validity:'1 Day',price:'₦500',naira:500}],
+    Weekly:    [{size:'1GB',validity:'7 Days',price:'₦500',naira:500},{size:'3GB',validity:'7 Days',price:'₦1,000',naira:1000},{size:'5GB',validity:'7 Days',price:'₦1,500',naira:1500}],
+    Monthly:   [{size:'5GB',validity:'30 Days',price:'₦2,000',naira:2000},{size:'10GB',validity:'30 Days',price:'₦3,000',naira:3000},{size:'20GB',validity:'30 Days',price:'₦5,000',naira:5000},{size:'50GB',validity:'30 Days',price:'₦10,000',naira:10000}],
+    SMS:       [{size:'50 SMS',validity:'1 Day',price:'₦10',naira:10},{size:'100 SMS',validity:'7 Days',price:'₦20',naira:20},{size:'250 SMS',validity:'30 Days',price:'₦50',naira:50}],
+    Gift:      [{size:'1GB',validity:'7 Days',price:'₦500',naira:500},{size:'2GB',validity:'30 Days',price:'₦1,000',naira:1000},{size:'5GB',validity:'30 Days',price:'₦2,000',naira:2000}],
+    Corporate: [{size:'5GB',validity:'30 Days',price:'₦1,800',naira:1800},{size:'10GB',validity:'30 Days',price:'₦2,800',naira:2800},{size:'20GB',validity:'30 Days',price:'₦4,500',naira:4500}],
+    SM2:       [{size:'200MB',validity:'1 Day',price:'₦100',naira:100},{size:'500MB',validity:'7 Days',price:'₦200',naira:200},{size:'1GB',validity:'30 Days',price:'₦350',naira:350}],
+  },
+  Airtel: {
+    Daily:     [{size:'300MB',validity:'1 Day',price:'₦200',naira:200},{size:'1GB',validity:'1 Day',price:'₦350',naira:350},{size:'2GB',validity:'1 Day',price:'₦500',naira:500}],
+    Weekly:    [{size:'1GB',validity:'7 Days',price:'₦500',naira:500},{size:'3GB',validity:'7 Days',price:'₦1,000',naira:1000},{size:'6GB',validity:'7 Days',price:'₦1,500',naira:1500}],
+    Monthly:   [{size:'6GB',validity:'30 Days',price:'₦2,000',naira:2000},{size:'15GB',validity:'30 Days',price:'₦3,000',naira:3000},{size:'30GB',validity:'30 Days',price:'₦5,000',naira:5000}],
+    SMS:       [{size:'50 SMS',validity:'1 Day',price:'₦10',naira:10},{size:'100 SMS',validity:'7 Days',price:'₦25',naira:25},{size:'300 SMS',validity:'30 Days',price:'₦55',naira:55}],
+    Gift:      [{size:'1GB',validity:'7 Days',price:'₦500',naira:500},{size:'3GB',validity:'30 Days',price:'₦1,000',naira:1000},{size:'6GB',validity:'30 Days',price:'₦2,000',naira:2000}],
+    Corporate: [{size:'6GB',validity:'30 Days',price:'₦1,800',naira:1800},{size:'15GB',validity:'30 Days',price:'₦2,800',naira:2800},{size:'30GB',validity:'30 Days',price:'₦4,500',naira:4500}],
+    SM2:       [{size:'200MB',validity:'1 Day',price:'₦100',naira:100},{size:'500MB',validity:'7 Days',price:'₦200',naira:200},{size:'1GB',validity:'30 Days',price:'₦400',naira:400}],
+  },
+  Glo: {
+    Daily:     [{size:'1GB',validity:'1 Day',price:'₦300',naira:300},{size:'2GB',validity:'1 Day',price:'₦500',naira:500},{size:'3GB',validity:'1 Day',price:'₦700',naira:700}],
+    Weekly:    [{size:'2GB',validity:'7 Days',price:'₦500',naira:500},{size:'5GB',validity:'7 Days',price:'₦1,000',naira:1000},{size:'10GB',validity:'7 Days',price:'₦2,000',naira:2000}],
+    Monthly:   [{size:'5GB',validity:'30 Days',price:'₦1,500',naira:1500},{size:'10GB',validity:'30 Days',price:'₦2,500',naira:2500},{size:'20GB',validity:'30 Days',price:'₦4,000',naira:4000},{size:'50GB',validity:'30 Days',price:'₦8,000',naira:8000}],
+    SMS:       [{size:'50 SMS',validity:'1 Day',price:'₦10',naira:10},{size:'150 SMS',validity:'7 Days',price:'₦25',naira:25},{size:'400 SMS',validity:'30 Days',price:'₦55',naira:55}],
+    Gift:      [{size:'2GB',validity:'7 Days',price:'₦500',naira:500},{size:'5GB',validity:'30 Days',price:'₦1,500',naira:1500},{size:'10GB',validity:'30 Days',price:'₦2,500',naira:2500}],
+    Corporate: [{size:'5GB',validity:'30 Days',price:'₦1,400',naira:1400},{size:'10GB',validity:'30 Days',price:'₦2,200',naira:2200},{size:'20GB',validity:'30 Days',price:'₦3,800',naira:3800}],
+    SM2:       [{size:'200MB',validity:'1 Day',price:'₦100',naira:100},{size:'500MB',validity:'7 Days',price:'₦200',naira:200},{size:'1.5GB',validity:'30 Days',price:'₦400',naira:400}],
+  },
+  '9Mobile': {
+    Daily:     [{size:'500MB',validity:'1 Day',price:'₦150',naira:150},{size:'1GB',validity:'1 Day',price:'₦300',naira:300},{size:'2GB',validity:'1 Day',price:'₦500',naira:500}],
+    Weekly:    [{size:'1.5GB',validity:'7 Days',price:'₦500',naira:500},{size:'3GB',validity:'7 Days',price:'₦1,000',naira:1000},{size:'5GB',validity:'7 Days',price:'₦1,500',naira:1500}],
+    Monthly:   [{size:'3GB',validity:'30 Days',price:'₦1,000',naira:1000},{size:'7.5GB',validity:'30 Days',price:'₦2,000',naira:2000},{size:'12GB',validity:'30 Days',price:'₦3,000',naira:3000}],
+    SMS:       [{size:'50 SMS',validity:'1 Day',price:'₦10',naira:10},{size:'100 SMS',validity:'7 Days',price:'₦20',naira:20},{size:'200 SMS',validity:'30 Days',price:'₦45',naira:45}],
+    Gift:      [{size:'1.5GB',validity:'7 Days',price:'₦500',naira:500},{size:'3GB',validity:'30 Days',price:'₦1,000',naira:1000},{size:'7.5GB',validity:'30 Days',price:'₦2,000',naira:2000}],
+    Corporate: [{size:'3GB',validity:'30 Days',price:'₦900',naira:900},{size:'7.5GB',validity:'30 Days',price:'₦1,800',naira:1800},{size:'12GB',validity:'30 Days',price:'₦2,700',naira:2700}],
+    SM2:       [{size:'150MB',validity:'1 Day',price:'₦80',naira:80},{size:'400MB',validity:'7 Days',price:'₦180',naira:180},{size:'1GB',validity:'30 Days',price:'₦350',naira:350}],
+  },
 };
+function flatADataPlans(network: string): ADataPlan[] {
+  const net = A_DATA_PLANS[network] ?? A_DATA_PLANS['MTN'];
+  return A_DATA_CATEGORIES.flatMap(cat => net[cat]);
+}
 const A_TV_PROVIDERS = [
   { id:'dstv',      label:'DSTV',      color:'#0065BD', tc:'#fff' },
   { id:'gotv',      label:'GOTV',      color:'#E8001C', tc:'#fff' },
@@ -565,12 +609,14 @@ function AServiceFormScreen({ service, network, colors, onBack, onProceed }: {
   onBack:()=>void;
   onProceed:(data:{phone:string;amount:string;plan?:string;meterType?:string})=>void;
 }) {
-  const [phone,    setPhone]    = useState('');
-  const [amount,   setAmount]   = useState('');
-  const [plan,     setPlan]     = useState<string|null>(null);
-  const [meterType,setMeterType]= useState<'Prepaid'|'Postpaid'>('Prepaid');
+  const [phone,        setPhone]        = useState('');
+  const [amount,       setAmount]       = useState('');
+  const [plan,         setPlan]         = useState<string|null>(null);
+  const [planCategory, setPlanCategory] = useState<ADataCategory>('Daily');
+  const [meterType,    setMeterType]    = useState<'Prepaid'|'Postpaid'>('Prepaid');
   const isAirtime = service==='Airtime', isData=service==='Data', isElec=service==='Electricity';
-  const plans = A_DATA_PLANS[network] ?? A_DATA_PLANS['MTN'];
+  const networkPlans = A_DATA_PLANS[network] ?? A_DATA_PLANS['MTN'];
+  const plans = networkPlans[planCategory];
   const canGo = isData ? phone.length>=11&&!!plan : phone.length>=(isElec?11:11)&&amount.length>0;
   const inp:object = { backgroundColor:colors.background, borderRadius:12, height:50, paddingHorizontal:14,
     fontFamily:colors.fontBody, fontSize:15, color:colors.grayBlack, borderWidth:1, borderColor:colors.border };
@@ -610,25 +656,47 @@ function AServiceFormScreen({ service, network, colors, onBack, onProceed }: {
         )}
         {isData && (
           <View>
-            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>Select Plan</Text>
-            {plans.map(p => {
-              const key=`${p.size}/${p.validity}`, active=plan===key;
-              return (
-                <Pressable key={key} onPress={() => setPlan(key)}
-                  style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', justifyContent:'space-between',
-                    backgroundColor:active?colors.brandPrimaryLight:colors.card, borderRadius:12, padding:14, marginBottom:8,
-                    borderWidth:active?1.5:1, borderColor:active?colors.primary:colors.border, opacity:pressed?0.8:1 }]}>
-                  <View>
-                    <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.grayBlack }}>{p.size}</Text>
-                    <Text style={{ fontFamily:colors.fontBody, fontSize:12, color:colors.grayGray1 }}>{p.validity}</Text>
-                  </View>
-                  <View style={{ flexDirection:'row', alignItems:'center', gap:8 }}>
-                    <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.primary }}>{p.price}</Text>
-                    {active && <Ionicons name="checkmark-circle" size={18} color={colors.primary} />}
-                  </View>
-                </Pressable>
-              );
-            })}
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:10 }}>Select Plan</Text>
+            {/* Category tabs */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}
+              style={{ marginBottom:12 }} contentContainerStyle={{ gap:8, paddingRight:4 }}>
+              {A_DATA_CATEGORIES.map(cat => {
+                const active = planCategory === cat;
+                return (
+                  <Pressable key={cat} onPress={() => { Haptics.selectionAsync(); setPlanCategory(cat); setPlan(null); }}
+                    style={({ pressed }) => [{ paddingHorizontal:14, paddingVertical:7, borderRadius:20,
+                      backgroundColor:active?colors.primary:colors.card,
+                      borderWidth:1, borderColor:active?colors.primary:colors.border,
+                      opacity:pressed?0.75:1 }]}>
+                    <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:12,
+                      color:active?colors.primaryForeground:colors.grayGray1 }}>{cat}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+            {/* 3-column grid */}
+            <View style={{ flexDirection:'row', flexWrap:'wrap', gap:8 }}>
+              {plans.map(p => {
+                const key=`${p.size}/${p.validity}`, active=plan===key;
+                return (
+                  <Pressable key={key} onPress={() => setPlan(key)}
+                    style={({ pressed }) => [{ width:'31%', borderRadius:12, padding:10, alignItems:'center',
+                      backgroundColor:active?colors.primary:colors.card,
+                      borderWidth:1, borderColor:active?colors.primary:colors.border,
+                      opacity:pressed?0.8:1 }]}>
+                    <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:14, textAlign:'center',
+                      color:active?colors.primaryForeground:colors.grayBlack }}>{p.size}</Text>
+                    <Text style={{ fontFamily:colors.fontBody, fontSize:10, marginTop:2, textAlign:'center',
+                      color:active?colors.primaryForeground+'cc':colors.grayGray1 }}>{p.validity}</Text>
+                    <View style={{ marginTop:6, paddingHorizontal:8, paddingVertical:3, borderRadius:8,
+                      backgroundColor:active?'rgba(255,255,255,0.22)':colors.brandPrimaryLight }}>
+                      <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:11,
+                        color:active?colors.primaryForeground:colors.primary }}>{p.price}</Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
         )}
         {isElec && (
@@ -1244,8 +1312,7 @@ function HomeScreen({
       onBack={() => setFlow({ kind:'telecomPicker', service:flow.service })}
       onProceed={data => {
         const f = flow;
-        const plans = A_DATA_PLANS[f.network] ?? A_DATA_PLANS['MTN'];
-        const planMeta = f.service==='Data' ? plans.find(p=>`${p.size}/${p.validity}`===data.plan) : undefined;
+        const planMeta = f.service==='Data' ? flatADataPlans(f.network).find(p=>`${p.size}/${p.validity}`===data.plan) : undefined;
         showPin(() => showReceipt(buildAReceipt(f, {
           phone:    data.phone,
           amount:   data.amount,
@@ -1498,57 +1565,32 @@ function HomeScreen({
           <Text style={[styles.homeSectionTitle, { color: colors.grayBlack }]}>Everyday services</Text>
           <Text style={[styles.homeSectionCaption, { color: colors.primary }]}>See all</Text>
         </View>
-        <View style={styles.servicesGrid}>
-          {homeServices.map((service) => (
-            <Pressable
-              key={service.label}
-              accessibilityRole="button"
-              accessibilityLabel={service.label}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                if (service.label === 'Airtime' || service.label === 'Data' || service.label === 'Electricity')
-                  openFlow({ kind: 'telecomPicker', service: service.label });
-                else if (service.label === 'TV')
-                  openFlow({ kind: 'tvPicker' });
-                else if (service.label === 'Education')
-                  openFlow({ kind: 'educationPicker' });
-                else
-                  showNotice(`${service.label} service selected.`);
-              }}
-              style={({ pressed }) => [
-                styles.serviceCard,
-                { backgroundColor: colors.card, borderColor: colors.border },
-                pressed && styles.actionCardPressed,
-              ]}
-            >
-              <View
-                style={[
-                  styles.serviceIcon,
-                  {
-                    backgroundColor:
-                      service.tone === 'primary'
-                        ? colors.brandPrimaryLight
-                        : service.tone === 'secondary'
-                          ? colors.secondary
-                          : colors.successLight,
-                  },
-                ]}
-              >
-                <Ionicons
-                  name={service.icon}
-                  size={21}
-                  color={
-                    service.tone === 'accent'
-                      ? colors.success
-                      : service.tone === 'secondary'
-                        ? colors.secondaryForeground
-                        : colors.primary
-                  }
-                />
-              </View>
-              <Text style={[styles.serviceLabel, { color: colors.grayBlack }]}>{service.label}</Text>
-            </Pressable>
-          ))}
+        <View style={{ backgroundColor: colors.card, borderRadius: 20, padding: 8,
+          borderWidth: 1, borderColor: colors.border, marginBottom: 26 }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+            {homeServices.map(service => (
+              <Pressable key={service.id}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  if (service.label === 'Airtime' || service.label === 'Data' || service.label === 'Electricity')
+                    openFlow({ kind: 'telecomPicker', service: service.label });
+                  else if (service.label === 'TV')
+                    openFlow({ kind: 'tvPicker' });
+                  else if (service.label === 'Education')
+                    openFlow({ kind: 'educationPicker' });
+                  else
+                    showNotice(`${service.label} service selected.`);
+                }}
+                style={({ pressed }) => [{ width: '33.33%', alignItems: 'center', paddingVertical: 16, opacity: pressed ? 0.7 : 1 }]}>
+                <View style={{ width: 52, height: 52, borderRadius: 16,
+                  backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', marginBottom: 8,
+                  borderWidth: 1, borderColor: colors.border }}>
+                  <service.Icon size={24} color={colors.primary} strokeWidth={1.6} />
+                </View>
+                <Text style={{ fontFamily: colors.fontBody, fontSize: 12, color: colors.grayBlack }}>{service.label}</Text>
+              </Pressable>
+            ))}
+          </View>
         </View>
 
         <View style={styles.promoRow}>
