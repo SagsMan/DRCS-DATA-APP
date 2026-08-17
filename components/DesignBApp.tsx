@@ -119,8 +119,33 @@ const RECENT_BENEFICIARIES_KEY = 'drcs_recent_beneficiaries';
 interface Beneficiary { name: string; phone: string; network: string; }
 const MAX_RECENT = 5;
 
-// ─── Telecom networks ────────────────────────────────────────────────────────
-const TELECOMS = [
+interface TelecomItem {
+  id: string;
+
+  label: string;
+
+  color: string;
+
+  textColor: string;
+
+  initial: string;
+  /**
+   * Metro always resolves this to a bundled asset number — either the real
+   * logo or the NO_LOGO sentinel (1×1 transparent PNG) when the file is
+   * absent.  Compare with NO_LOGO to decide whether to render an Image or the
+   * coloured-badge fallback.
+   */
+  logo: number;
+}
+
+/**
+ * Sentinel asset: metro.config.js remaps any missing image require() to this
+ * 1×1 transparent PNG so the bundle never fails.  Comparing net.logo === NO_LOGO
+ * at runtime tells us a real logo file was absent and the badge should show.
+ */
+const NO_LOGO: number = require('../assets/images/no-logo.png');
+
+const TELECOMS: TelecomItem[] = [
   { id: 'mtn',    label: 'MTN',    color: '#ffcc00', textColor: '#000', initial: 'MTN',
     logo: require('../assets/images/design-b/telecoms/mtn-logo.png') },
   { id: 'airtel', label: 'Airtel', color: '#e8001c', textColor: '#fff', initial: 'AIR',
@@ -129,7 +154,7 @@ const TELECOMS = [
     logo: require('../assets/images/design-b/glo-logo.png') },
   { id: '9mobile',label: '9Mobile',color: '#006b50', textColor: '#fff', initial: '9m',
     logo: require('../assets/images/design-b/telecoms/9mobile-logo.png') },
-] as const;
+];
 
 // ─── Shared UI atoms ─────────────────────────────────────────────────────────
 function Btn({
@@ -614,8 +639,18 @@ function TelecomPicker({
                 borderRadius: 18, padding: 16, marginBottom: 12,
                 opacity: pressed ? 0.8 : 1,
               }]}>
-              <Image source={net.logo}
-                style={{ width: 48, height: 48, borderRadius: 24, marginRight: 16 }} resizeMode="cover" />
+              {/* Logo — coloured badge when the file was absent at build time */}
+              {net.logo !== NO_LOGO ? (
+                <Image source={net.logo}
+                  style={{ width: 48, height: 48, borderRadius: 24, marginRight: 16 }} resizeMode="cover" />
+              ) : (
+                <View style={{
+                  width: 48, height: 48, borderRadius: 24, marginRight: 16,
+                  backgroundColor: net.color, alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Text style={{ fontFamily: C.bold, fontSize: 11, color: net.textColor }}>{net.initial}</Text>
+                </View>
+              )}
               <View style={{ flex: 1 }}>
                 <Text style={{ fontFamily: C.bold, fontSize: 16, color: C.text }}>{net.label}</Text>
                 <Text style={{ fontFamily: C.regular, fontSize: 12, color: C.subtext, marginTop: 2 }}>
@@ -762,13 +797,19 @@ function ServiceFormScreen({
           <Text style={{ fontFamily: C.bold, fontSize: 18, color: '#fff', marginLeft: 8, flex: 1 }}>
             {network} {serviceLabel}
           </Text>
-          {/* Network badge */}
-          {telecomMeta ? (
-            <Image source={(telecomMeta as any).logo}
+          {/* Network badge — coloured fallback when logo was absent at build time */}
+          {telecomMeta && telecomMeta.logo !== NO_LOGO ? (
+            <Image source={telecomMeta.logo}
               style={{ width: 40, height: 40, borderRadius: 20 }} resizeMode="cover" />
           ) : (
-            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ fontFamily: C.bold, fontSize: 10, color: '#fff' }}>{network.slice(0,4)}</Text>
+            <View style={{
+              width: 40, height: 40, borderRadius: 20,
+              backgroundColor: telecomMeta ? telecomMeta.color : 'rgba(255,255,255,0.2)',
+              alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Text style={{ fontFamily: C.bold, fontSize: 10, color: telecomMeta ? telecomMeta.textColor : '#fff' }}>
+                {(telecomMeta?.initial ?? network).slice(0, 4)}
+              </Text>
             </View>
           )}
         </View>
@@ -1956,4 +1997,3 @@ export function DesignBApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
     </>
   );
 }
-
