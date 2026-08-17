@@ -67,7 +67,14 @@ interface ReceiptData {
   details: { label: string; value: string }[];
 }
 
-// ─── TV Providers & Bouquets ──────────────────────────────────────────────────
+const BETTING_PROVIDERS = [
+  { id: 'sportybet', label: 'SportyBet',  color: '#1D7A3A', tc: '#fff' },
+  { id: 'bet9ja',    label: 'Bet9ja',     color: '#006634', tc: '#fff' },
+  { id: '1xbet',     label: '1xBet',      color: '#FF6600', tc: '#fff' },
+  { id: 'nairabet',  label: 'NairaBet',   color: '#003399', tc: '#fff' },
+  { id: 'betking',   label: 'BetKing',    color: '#C8102E', tc: '#fff' },
+  { id: 'parimatch', label: 'Parimatch',  color: '#F5A623', tc: '#000' },
+] as const;
 const TV_PROVIDERS = [
   { id: 'dstv',      label: 'DSTV',     color: '#0065BD', tc: '#fff' },
   { id: 'gotv',      label: 'GOTV',     color: '#E8001C', tc: '#fff' },
@@ -1124,7 +1131,109 @@ function TVFormScreen({ providerId, providerLabel, onBack, onProceed }: {
   );
 }
 
-// ─── 5d. Money flow screens ───────────────────────────────────────────────────
+function BettingFormScreen({ onBack, onProceed }: {
+  onBack: () => void;
+  onProceed: (provider: string, accountId: string, amount: string) => void;
+}) {
+  const ins = useSafeAreaInsets();
+  const [provider,  setProvider]  = useState<string | null>(null);
+  const [accountId, setAccountId] = useState('');
+  const [amount,    setAmount]    = useState('');
+  const canProceed = !!provider && accountId.length >= 4 && amount.length > 0;
+  const inp: object = {
+    backgroundColor: C.inputBg, borderRadius: 14, height: 52,
+    paddingHorizontal: 16, fontFamily: C.regular, fontSize: 15, color: C.text,
+  };
+  const selectedProv = BETTING_PROVIDERS.find(p => p.id === provider);
+
+  return (
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
+      <StatusBar barStyle="light-content" backgroundColor={C.primary} />
+      {/* Blue header */}
+      <View style={{ backgroundColor: C.primary,
+        paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 44),
+        paddingBottom: 36, paddingHorizontal: 20 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+          <Pressable onPress={onBack} hitSlop={12}>
+            <Ionicons name="chevron-back" size={24} color="#fff" />
+          </Pressable>
+          <Text style={{ fontFamily: C.bold, fontSize: 18, color: '#fff', marginLeft: 8, flex: 1 }}>
+            {selectedProv ? `${selectedProv.label} Top-Up` : 'Betting Top-Up'}
+          </Text>
+          {selectedProv && (
+            <View style={{ width: 40, height: 40, borderRadius: 20,
+              backgroundColor: selectedProv.color, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontFamily: C.bold, fontSize: 8, color: selectedProv.tc, textAlign: 'center' }}>
+                {selectedProv.label.slice(0, 4)}
+              </Text>
+            </View>
+          )}
+        </View>
+      </View>
+
+      <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 0 }}
+        keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <View style={{ backgroundColor: C.card, borderRadius: 24, padding: 24, marginTop: -20, marginBottom: 24,
+          shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, elevation: 4 }}>
+
+          {/* Provider selection */}
+          <Text style={{ fontFamily: C.bold, fontSize: 13, color: C.subtext, marginBottom: 10 }}>
+            Select Betting Platform
+          </Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 22 }}>
+            {BETTING_PROVIDERS.map(p => {
+              const active = provider === p.id;
+              return (
+                <Pressable key={p.id}
+                  onPress={() => { Haptics.selectionAsync(); setProvider(p.id); }}
+                  style={({ pressed }) => [{
+                    paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20,
+                    backgroundColor: active ? p.color : C.inputBg,
+                    borderWidth: active ? 0 : 1.5, borderColor: C.border,
+                    opacity: pressed ? 0.75 : 1,
+                  }]}>
+                  <Text style={{ fontFamily: C.bold, fontSize: 13,
+                    color: active ? p.tc : C.subtext }}>{p.label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {/* Account / User ID */}
+          <Text style={{ fontFamily: C.bold, fontSize: 13, color: C.subtext, marginBottom: 8 }}>
+            Account / User ID
+          </Text>
+          <TextInput
+            value={accountId}
+            onChangeText={t => setAccountId(t.replace(/\s/g, ''))}
+            placeholder="Enter your betting account ID"
+            placeholderTextColor={C.label}
+            keyboardType="default"
+            autoCapitalize="none"
+            style={[inp, { marginBottom: 20 }]}
+          />
+
+          {/* Amount */}
+          <Text style={{ fontFamily: C.bold, fontSize: 13, color: C.subtext, marginBottom: 8 }}>
+            Amount (₦)
+          </Text>
+          <TextInput
+            value={amount}
+            onChangeText={t => setAmount(t.replace(/\D/g, ''))}
+            placeholder="Enter amount"
+            placeholderTextColor={C.label}
+            keyboardType="numeric"
+            style={[inp, { marginBottom: 24 }]}
+          />
+
+          <Btn label="Proceed"
+            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onProceed(selectedProv!.label, accountId, amount); }}
+            disabled={!canProceed} />
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
 function AddMoneyScreen({ onBack, onDone }: { onBack: () => void; onDone: () => void }) {
   const ins = useSafeAreaInsets();
   const ACCOUNT = { bank:'DRCS Microfinance Bank', name:'John Doe', number:'1234567890' };
@@ -1467,11 +1576,12 @@ function LoadingOverlay() {
 const StyleFill = { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0 };
 
 function HomeTab({
-  onShowReceipt, onOpenPicker, onOpenTVPicker, onOpenEducationPicker, onShowPin, onShowAddMoney, onShowTransfer,
+  onShowReceipt, onOpenPicker, onOpenTVPicker, onOpenBetting, onOpenEducationPicker, onShowPin, onShowAddMoney, onShowTransfer,
 }: {
   onShowReceipt: (d: ReceiptData) => void;
   onOpenPicker: (svc: string) => void;
   onOpenTVPicker: () => void;
+  onOpenBetting: () => void;
   onOpenEducationPicker: () => void;
   onShowPin: () => void;
   onShowAddMoney: () => void;
@@ -1487,6 +1597,8 @@ function HomeTab({
       onOpenPicker(label);
     } else if (id === 'tv') {
       onOpenTVPicker();
+    } else if (id === 'betting') {
+      onOpenBetting();
     } else if (id === 'education') {
       onOpenEducationPicker();
     } else {
@@ -1976,13 +2088,25 @@ function buildBankReceipt(accountNo: string, bankName: string, accountName: stri
   };
 }
 
-// ─── Main app shell ───────────────────────────────────────────────────────────
+function buildBettingReceipt(provider: string, accountId: string, amount: string): ReceiptData {
+  const fmt = `₦${Number(amount).toLocaleString()}`;
+  return { status:'success', type:'Betting Top-Up', amount:fmt,
+    details:[
+      { label:'Platform',         value:provider       },
+      { label:'Account / User ID',value:accountId      },
+      { label:'Amount',           value:fmt            },
+      { label:'Transaction No.',  value:makeTxRef()    },
+      { label:'Transaction Date', value:nowStr()       },
+    ],
+  };
+}
 type BPending =
   | { kind:'service';   payload: FormPayload }
   | { kind:'tv';        provider:string; smartCard:string; bouquet:string; price:string }
   | { kind:'education'; body:string; regNo:string; examYear:string; amount:string }
   | { kind:'drcs';      username:string; amount:string; note:string }
-  | { kind:'bank';      accountNo:string; bankName:string; accountName:string; amount:string };
+  | { kind:'bank';      accountNo:string; bankName:string; accountName:string; amount:string }
+  | { kind:'betting';   provider:string; accountId:string; amount:string };
 
 function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
   const ins = useSafeAreaInsets();
@@ -2004,6 +2128,9 @@ function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
   const [educationPicker, setEducationPicker] = useState(false);
   const [educationBody,   setEducationBody]   = useState<{id:string;label:string}|null>(null);
 
+  // Betting flow
+  const [bettingForm,     setBettingForm]     = useState(false);
+
   // Money flows
   const [addMoney,        setAddMoney]        = useState(false);
   const [transferPicker,  setTransferPicker]  = useState(false);
@@ -2022,11 +2149,12 @@ function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
     setProcessing(true);
     setTimeout(() => {
       setProcessing(false);
-      if (p.kind==='service')   setReceipt(buildReceipt(p.payload));
+      if (p.kind==='service')        setReceipt(buildReceipt(p.payload));
       else if (p.kind==='tv')        setReceipt(buildTVReceipt(p.provider, p.smartCard, p.bouquet, p.price));
       else if (p.kind==='education') setReceipt(buildEducationReceipt(p.body, p.regNo, p.examYear, p.amount));
       else if (p.kind==='drcs')      setReceipt(buildDRCSReceipt(p.username, p.amount, p.note));
       else if (p.kind==='bank')      setReceipt(buildBankReceipt(p.accountNo, p.bankName, p.accountName, p.amount));
+      else if (p.kind==='betting')   setReceipt(buildBettingReceipt(p.provider, p.accountId, p.amount));
     }, 1600);
   };
 
@@ -2067,6 +2195,12 @@ function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
                 setEducationBody(null); setEducationPicker(false);
                 openPin({ kind:'education', body:b.label, regNo, examYear, amount });
               }} />;
+
+  // Betting flow
+  if (bettingForm)
+    return <BettingFormScreen onBack={() => setBettingForm(false)}
+              onProceed={(prov, acId, amt) => { setBettingForm(false);
+                openPin({ kind:'betting', provider:prov, accountId:acId, amount:amt }); }} />;
 
   // Money flows
   if (addMoney) return <AddMoneyScreen onBack={() => setAddMoney(false)} onDone={() => setAddMoney(false)} />;
@@ -2129,6 +2263,7 @@ function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
             onShowReceipt={setReceipt}
             onOpenPicker={svc => setPicker(svc)}
             onOpenTVPicker={() => setTvPicker(true)}
+            onOpenBetting={() => setBettingForm(true)}
             onOpenEducationPicker={() => setEducationPicker(true)}
             onShowPin={() => setPinOpen(true)}
             onShowAddMoney={() => setAddMoney(true)}
