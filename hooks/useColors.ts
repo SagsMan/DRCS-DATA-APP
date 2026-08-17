@@ -2,25 +2,23 @@ import { useColorScheme } from 'react-native';
 import colors from '@/constants/colors';
 
 type ColorScheme = 'light' | 'dark';
+export type DesignVariant = 'A' | 'B';
 
 /**
- * Returns the design tokens for the current color scheme.
+ * Returns the design tokens for the current color scheme and design variant.
  *
- * The returned object contains all color tokens for the active palette
- * plus scheme-independent values like `radius`.
+ * Design A — royal-blue fintech palette, Roboto/IBMPlexSans/Poppins typography.
+ * Design B — deep navy-blue palette from Figma (DRCSDATA Copy), DM Sans typography.
  *
- * Falls back to the light palette when no dark key is defined in
- * constants/colors.ts (the scaffold ships light-only by default).
- * When a sibling web artifact's dark tokens are synced into a `dark`
- * key, this hook will automatically switch palettes based on the
- * device's appearance setting.
+ * Falls back to light palette when scheme is not determined.
  */
-export function useColors(preferredScheme?: ColorScheme) {
+export function useColors(
+  preferredScheme?: ColorScheme,
+  designVariant: DesignVariant = 'A',
+) {
   const systemScheme = useColorScheme();
   const scheme = preferredScheme ?? systemScheme;
-  const palette =
-    scheme === 'dark'
-      ? colors.dark
-      : colors.light;
-  return { ...palette, radius: colors.radius };
+  const tokens = designVariant === 'B' ? colors.designB : colors.designA;
+  const palette = scheme === 'dark' ? tokens.dark : tokens.light;
+  return { ...palette, radius: tokens.radius };
 }

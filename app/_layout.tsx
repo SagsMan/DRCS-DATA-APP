@@ -25,6 +25,13 @@ import {
   Roboto_600SemiBold,
   useFonts as useRobotoFonts,
 } from '@expo-google-fonts/roboto';
+import {
+  DMSans_400Regular,
+  DMSans_500Medium,
+  DMSans_600SemiBold,
+  DMSans_700Bold,
+  useFonts as useDMSansFonts,
+} from '@expo-google-fonts/dm-sans';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 
@@ -54,9 +61,17 @@ export default function RootLayout() {
     Roboto_400Regular,
     Roboto_600SemiBold,
   });
+  const [dmSansLoaded, dmSansError] = useDMSansFonts({
+    DMSans_400Regular,
+    DMSans_500Medium,
+    DMSans_600SemiBold,
+    DMSans_700Bold,
+  });
 
-  const fontsLoaded = interLoaded && poppinsLoaded && ibmLoaded && robotoLoaded;
-  const fontError = interError || poppinsError || ibmError || robotoError;
+  const fontsLoaded =
+    interLoaded && poppinsLoaded && ibmLoaded && robotoLoaded && dmSansLoaded;
+  const fontError =
+    interError || poppinsError || ibmError || robotoError || dmSansError;
 
   useEffect(() => {
     if (Platform.OS === 'web') {

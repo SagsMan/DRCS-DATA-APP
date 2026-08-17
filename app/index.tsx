@@ -14,9 +14,10 @@ import {
   useColorScheme,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
-import { useColors } from '@/hooks/useColors';
+import { useColors, type DesignVariant } from '@/hooks/useColors';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -36,6 +37,7 @@ type IconName = React.ComponentProps<typeof Ionicons>['name'];
 type AuthScreenProps = {
   screen: AuthScreenName;
   theme: Theme;
+  designVariant: DesignVariant;
   onBack: () => void;
   onNavigate: (screen: AuthScreenName) => void;
   onToggleTheme: () => void;
@@ -54,13 +56,14 @@ const loginThumbImage = require('../assets/images/auth/login-thumb.png');
 function AuthScreen({
   screen,
   theme,
+  designVariant,
   onBack,
   onNavigate,
   onToggleTheme,
   onAuthenticated,
 }: AuthScreenProps) {
   const insets = useSafeAreaInsets();
-  const colors = useColors(theme);
+  const colors = useColors(theme, designVariant);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -445,13 +448,17 @@ const promoSlides: PromoSlide[] = [
 
 function HomeScreen({
   theme,
+  designVariant,
   onToggleTheme,
+  onToggleDesign,
 }: {
   theme: Theme;
+  designVariant: DesignVariant;
   onToggleTheme: () => void;
+  onToggleDesign: () => void;
 }) {
   const insets = useSafeAreaInsets();
-  const colors = useColors(theme);
+  const colors = useColors(theme, designVariant);
   const [activeTab, setActiveTab] = useState<HomeTab>('Home');
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [notice, setNotice] = useState('');
@@ -531,6 +538,30 @@ function HomeScreen({
                 size={18}
                 color={colors.primary}
               />
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Switch to Design ${designVariant === 'A' ? 'B' : 'A'}`}
+              onPress={onToggleDesign}
+              style={({ pressed }) => [
+                styles.homeHeaderIcon,
+                {
+                  backgroundColor: designVariant === 'B' ? colors.primary : colors.card,
+                  borderColor: colors.primary,
+                },
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text
+                style={{
+                  fontFamily: colors.fontBodySemiBold,
+                  fontSize: 11,
+                  color: designVariant === 'B' ? colors.primaryForeground : colors.primary,
+                  letterSpacing: 0.5,
+                }}
+              >
+                {designVariant === 'A' ? 'B' : 'A'}
+              </Text>
             </Pressable>
             <Pressable
               accessibilityRole="button"
@@ -1035,6 +1066,8 @@ const languages: { key: Language; label: string; nativeLabel: string }[] = [
   { key: 'ha-ajami', label: 'Hausa Ajami', nativeLabel: 'هَوْسَ' },
 ];
 
+const DESIGN_VARIANT_KEY = '@drcs_design_variant';
+
 export default function OnboardingScreen() {
   const systemScheme = useColorScheme();
   const [language, setLanguage] = useState<Language | null>(null);
@@ -1044,8 +1077,16 @@ export default function OnboardingScreen() {
   const [theme, setTheme] = useState<Theme>(
     systemScheme === 'dark' ? 'dark' : 'light',
   );
+  const [designVariant, setDesignVariant] = useState<DesignVariant>('A');
   const insets = useSafeAreaInsets();
-  const colors = useColors(theme);
+  const colors = useColors(theme, designVariant);
+
+  // Load persisted design variant on mount
+  useEffect(() => {
+    AsyncStorage.getItem(DESIGN_VARIANT_KEY).then((stored) => {
+      if (stored === 'A' || stored === 'B') setDesignVariant(stored);
+    }).catch(() => {});
+  }, []);
   const copy = languageCopy[language ?? 'en'];
   const slides = language ? slideCopy[language] : [];
   const slide = slides[activeSlide];
@@ -1060,6 +1101,13 @@ export default function OnboardingScreen() {
 
   const toggleTheme = () => {
     setTheme((current) => (current === 'light' ? 'dark' : 'light'));
+    Haptics.selectionAsync();
+  };
+
+  const toggleDesign = () => {
+    const next: DesignVariant = designVariant === 'A' ? 'B' : 'A';
+    setDesignVariant(next);
+    AsyncStorage.setItem(DESIGN_VARIANT_KEY, next).catch(() => {});
     Haptics.selectionAsync();
   };
 
@@ -1105,7 +1153,14 @@ export default function OnboardingScreen() {
   };
 
   if (isHome) {
-    return <HomeScreen onToggleTheme={toggleTheme} theme={theme} />;
+    return (
+      <HomeScreen
+        onToggleTheme={toggleTheme}
+        onToggleDesign={toggleDesign}
+        theme={theme}
+        designVariant={designVariant}
+      />
+    );
   }
 
   if (authScreen) {
@@ -1120,6 +1175,7 @@ export default function OnboardingScreen() {
         onToggleTheme={toggleTheme}
         screen={authScreen}
         theme={theme}
+        designVariant={designVariant}
       />
     );
   }
@@ -1166,23 +1222,50 @@ export default function OnboardingScreen() {
           <View style={styles.headerSpacer} />
         )}
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={copy.themeLabel}
-          hitSlop={10}
-          onPress={toggleTheme}
-          style={({ pressed }) => [
-            styles.themeButton,
-            { backgroundColor: colors.secondary },
-            pressed && styles.pressed,
-          ]}
-        >
-          <Ionicons
-            name={theme === 'light' ? 'moon-outline' : 'sunny-outline'}
-            size={18}
-            color={colors.primary}
-          />
-        </Pressable>
+        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Switch to Design ${designVariant === 'A' ? 'B' : 'A'}`}
+            hitSlop={10}
+            onPress={toggleDesign}
+            style={({ pressed }) => [
+              styles.themeButton,
+              {
+                backgroundColor: designVariant === 'B' ? colors.primary : colors.secondary,
+                minWidth: 36,
+              },
+              pressed && styles.pressed,
+            ]}
+          >
+            <Text
+              style={{
+                fontFamily: colors.fontBodySemiBold,
+                fontSize: 12,
+                color: designVariant === 'B' ? colors.primaryForeground : colors.primary,
+                letterSpacing: 0.5,
+              }}
+            >
+              {designVariant === 'A' ? 'B' : 'A'}
+            </Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={copy.themeLabel}
+            hitSlop={10}
+            onPress={toggleTheme}
+            style={({ pressed }) => [
+              styles.themeButton,
+              { backgroundColor: colors.secondary },
+              pressed && styles.pressed,
+            ]}
+          >
+            <Ionicons
+              name={theme === 'light' ? 'moon-outline' : 'sunny-outline'}
+              size={18}
+              color={colors.primary}
+            />
+          </Pressable>
+        </View>
       </View>
 
       {!language ? (

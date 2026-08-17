@@ -1,22 +1,20 @@
 /**
- * DRCS DATA fintech design tokens.
+ * DRCS DATA fintech design tokens — two design variants.
  *
- * Royal blue is the primary brand signal, white is reserved for clear
- * surfaces and contrast, charcoal handles primary text, and green is kept
- * for small positive/status accents.
+ * Design A: Royal blue brand signal, white surfaces, charcoal text.
+ * Design B: Deep navy-blue brand, off-white surfaces, warm-dark text. DM Sans
+ *           typography. Derived from the DRCSDATA (Copy) Figma file.
  */
 
-const colors = {
+// ─── Design A ────────────────────────────────────────────────────────────────
+const designA = {
   light: {
-    // Legacy aliases
     text: '#172033',
     tint: '#2557D6',
 
-    // Core surfaces
     background: '#EAF4FF',
     foreground: '#172033',
 
-    // Brand
     brandPrimaryLight: '#DFF0FF',
     brandPrimary: '#2557D6',
     brandPrimaryDark: '#12358F',
@@ -25,36 +23,36 @@ const colors = {
     grayGray1: '#5E6B82',
     grayGray4: '#D8E1F0',
 
-    // Cards / elevated surfaces
     card: '#FFFFFF',
     cardForeground: '#172033',
 
-    // Primary action (buttons)
     primary: '#2557D6',
     primaryForeground: '#FFFFFF',
 
-    // Secondary
     secondary: '#D9EDFF',
     secondaryForeground: '#12358F',
 
-    // Muted
     muted: '#EEF7FF',
     mutedForeground: '#5E6B82',
 
-    // Accent
     accent: '#18A66A',
     accentForeground: '#FFFFFF',
     success: '#18A66A',
     successLight: '#E6F7EF',
 
-    // Destructive
     destructive: '#D64545',
     destructiveForeground: '#FFFFFF',
 
-    // Borders
     border: '#D8E1F0',
     input: '#C8D5EA',
     overlay: 'rgba(18, 53, 143, 0.56)',
+
+    // Typography families
+    fontBody: 'Roboto_400Regular',
+    fontBodyMedium: 'Roboto_400Regular',
+    fontBodySemiBold: 'Roboto_600SemiBold',
+    fontHeading: 'IBMPlexSans_600SemiBold',
+    fontBrand: 'Poppins_700Bold',
   },
   dark: {
     text: '#F4F7FF',
@@ -85,9 +83,112 @@ const colors = {
     border: '#34476C',
     input: '#40557D',
     overlay: 'rgba(0, 0, 0, 0.64)',
-  },
 
+    fontBody: 'Roboto_400Regular',
+    fontBodyMedium: 'Roboto_400Regular',
+    fontBodySemiBold: 'Roboto_600SemiBold',
+    fontHeading: 'IBMPlexSans_600SemiBold',
+    fontBrand: 'Poppins_700Bold',
+  },
   radius: 12,
+};
+
+// ─── Design B (Figma: DRCSDATA Copy) ─────────────────────────────────────────
+// Primary: #014dd4  Background: #f1f7ff  Text: #17000e  Font: DM Sans
+const designB = {
+  light: {
+    text: '#17000e',
+    tint: '#014dd4',
+
+    background: '#f1f7ff',
+    foreground: '#17000e',
+
+    brandPrimaryLight: '#c9ddff',
+    brandPrimary: '#014dd4',
+    brandPrimaryDark: '#013aab',
+    brandPrimaryLightest: '#eaf2ff',
+    grayBlack: '#17000e',
+    grayGray1: '#4a5878',
+    grayGray4: '#d0ddf4',
+
+    card: '#ffffff',
+    cardForeground: '#17000e',
+
+    primary: '#014dd4',
+    primaryForeground: '#ffffff',
+
+    secondary: '#c9ddff',
+    secondaryForeground: '#013aab',
+
+    muted: '#eef4ff',
+    mutedForeground: '#4a5878',
+
+    accent: '#18A66A',
+    accentForeground: '#ffffff',
+    success: '#18A66A',
+    successLight: '#E6F7EF',
+
+    destructive: '#D64545',
+    destructiveForeground: '#ffffff',
+
+    border: '#d0ddf4',
+    input: '#e2ebff',
+    overlay: 'rgba(1, 77, 212, 0.52)',
+
+    // DM Sans typography for Design B
+    fontBody: 'DMSans_400Regular',
+    fontBodyMedium: 'DMSans_500Medium',
+    fontBodySemiBold: 'DMSans_600SemiBold',
+    fontHeading: 'DMSans_600SemiBold',
+    fontBrand: 'DMSans_700Bold',
+  },
+  dark: {
+    text: '#e8eeff',
+    tint: '#5b8ef0',
+    background: '#070f23',
+    foreground: '#e8eeff',
+    brandPrimaryLight: '#142957',
+    brandPrimary: '#5b8ef0',
+    brandPrimaryDark: '#8ab0f5',
+    brandPrimaryLightest: '#0d1e3d',
+    grayBlack: '#e8eeff',
+    grayGray1: '#94a8cc',
+    grayGray4: '#253760',
+    card: '#0f1e3a',
+    cardForeground: '#e8eeff',
+    primary: '#5b8ef0',
+    primaryForeground: '#070f23',
+    secondary: '#142957',
+    secondaryForeground: '#c5d5f5',
+    muted: '#101e3a',
+    mutedForeground: '#94a8cc',
+    accent: '#39C987',
+    accentForeground: '#070f23',
+    success: '#39C987',
+    successLight: '#0e2f25',
+    destructive: '#F07171',
+    destructiveForeground: '#1A1010',
+    border: '#253760',
+    input: '#2c4070',
+    overlay: 'rgba(0, 0, 0, 0.70)',
+
+    fontBody: 'DMSans_400Regular',
+    fontBodyMedium: 'DMSans_500Medium',
+    fontBodySemiBold: 'DMSans_600SemiBold',
+    fontHeading: 'DMSans_600SemiBold',
+    fontBrand: 'DMSans_700Bold',
+  },
+  radius: 10,
+};
+
+const colors = {
+  designA,
+  designB,
+
+  // Legacy flat exports (Design A light) kept for backward compatibility
+  light: designA.light,
+  dark: designA.dark,
+  radius: designA.radius,
 };
 
 export default colors;
