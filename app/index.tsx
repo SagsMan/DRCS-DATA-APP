@@ -64,6 +64,7 @@ function AuthScreen({
 }: AuthScreenProps) {
   const insets = useSafeAreaInsets();
   const colors = useColors(theme, designVariant);
+  const styles = makeStyles(colors);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -459,6 +460,7 @@ function HomeScreen({
 }) {
   const insets = useSafeAreaInsets();
   const colors = useColors(theme, designVariant);
+  const styles = makeStyles(colors);
   const [activeTab, setActiveTab] = useState<HomeTab>('Home');
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [notice, setNotice] = useState('');
@@ -1080,6 +1082,7 @@ export default function OnboardingScreen() {
   const [designVariant, setDesignVariant] = useState<DesignVariant>('A');
   const insets = useSafeAreaInsets();
   const colors = useColors(theme, designVariant);
+  const styles = makeStyles(colors);
 
   // Load persisted design variant on mount
   useEffect(() => {
@@ -1453,7 +1456,7 @@ export default function OnboardingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ReturnType<typeof useColors>) => StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 24,
@@ -1488,12 +1491,12 @@ const styles = StyleSheet.create({
     width: 19,
   },
   homeGreeting: {
-    fontFamily: 'Roboto_400Regular',
+    fontFamily: c.fontBody,
     fontSize: 12,
     marginBottom: 2,
   },
   homeName: {
-    fontFamily: 'Poppins_700Bold',
+    fontFamily: c.fontBrand,
     fontSize: 18,
   },
   homeHeaderActions: {
@@ -1560,17 +1563,17 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   promoBannerKickerText: {
-    fontFamily: 'Roboto_600SemiBold',
+    fontFamily: c.fontBodySemiBold,
     fontSize: 10,
     letterSpacing: 1,
   },
   promoBannerTitle: {
-    fontFamily: 'IBMPlexSans_600SemiBold',
+    fontFamily: c.fontHeading,
     fontSize: 20,
     lineHeight: 23,
   },
   promoBannerDescription: {
-    fontFamily: 'Roboto_400Regular',
+    fontFamily: c.fontBody,
     fontSize: 11,
     lineHeight: 15,
     marginTop: 6,
@@ -1582,7 +1585,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   promoBannerCtaText: {
-    fontFamily: 'Roboto_600SemiBold',
+    fontFamily: c.fontBodySemiBold,
     fontSize: 11,
   },
   promoBannerIllustration: {
@@ -1600,7 +1603,7 @@ const styles = StyleSheet.create({
     zIndex: 3,
   },
   promoBannerCounterText: {
-    fontFamily: 'Roboto_600SemiBold',
+    fontFamily: c.fontBodySemiBold,
     fontSize: 10,
     opacity: 0.78,
   },
@@ -1621,12 +1624,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   balanceLabel: {
-    fontFamily: 'Roboto_500Medium',
+    fontFamily: c.fontBody,
     fontSize: 13,
     opacity: 0.88,
   },
   balanceAmount: {
-    fontFamily: 'IBMPlexSans_600SemiBold',
+    fontFamily: c.fontHeading,
     fontSize: 32,
     letterSpacing: -0.8,
     marginTop: 9,
@@ -1643,7 +1646,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   balanceMetaText: {
-    fontFamily: 'Roboto_400Regular',
+    fontFamily: c.fontBody,
     fontSize: 11,
     opacity: 0.82,
   },
@@ -1653,7 +1656,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   balanceHistoryText: {
-    fontFamily: 'Roboto_600SemiBold',
+    fontFamily: c.fontBodySemiBold,
     fontSize: 12,
   },
   homeSectionHeading: {
@@ -1663,11 +1666,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   homeSectionTitle: {
-    fontFamily: 'IBMPlexSans_600SemiBold',
+    fontFamily: c.fontHeading,
     fontSize: 18,
   },
   homeSectionCaption: {
-    fontFamily: 'Roboto_500Medium',
+    fontFamily: c.fontBody,
     fontSize: 12,
   },
   actionRow: {
@@ -1697,7 +1700,7 @@ const styles = StyleSheet.create({
     width: 44,
   },
   actionLabel: {
-    fontFamily: 'Roboto_600SemiBold',
+    fontFamily: c.fontBodySemiBold,
     fontSize: 11,
     textAlign: 'center',
   },
@@ -1724,7 +1727,7 @@ const styles = StyleSheet.create({
     width: 40,
   },
   serviceLabel: {
-    fontFamily: 'Roboto_500Medium',
+    fontFamily: c.fontBody,
     fontSize: 11,
   },
   promoRow: {
@@ -1748,11 +1751,11 @@ const styles = StyleSheet.create({
     width: 30,
   },
   promoTitle: {
-    fontFamily: 'IBMPlexSans_600SemiBold',
+    fontFamily: c.fontHeading,
     fontSize: 15,
   },
   promoDescription: {
-    fontFamily: 'Roboto_400Regular',
+    fontFamily: c.fontBody,
     fontSize: 11,
     lineHeight: 15,
     marginBottom: 11,
@@ -1770,7 +1773,7 @@ const styles = StyleSheet.create({
   },
   homeNoticeText: {
     flex: 1,
-    fontFamily: 'Roboto_500Medium',
+    fontFamily: c.fontBody,
     fontSize: 12,
   },
   recentHeading: {
@@ -1799,16 +1802,16 @@ const styles = StyleSheet.create({
     marginLeft: 11,
   },
   transactionTitle: {
-    fontFamily: 'Roboto_600SemiBold',
+    fontFamily: c.fontBodySemiBold,
     fontSize: 13,
   },
   transactionSubtitle: {
-    fontFamily: 'Roboto_400Regular',
+    fontFamily: c.fontBody,
     fontSize: 11,
     marginTop: 3,
   },
   transactionAmount: {
-    fontFamily: 'Roboto_600SemiBold',
+    fontFamily: c.fontBodySemiBold,
     fontSize: 13,
   },
   bottomNav: {
@@ -1834,7 +1837,7 @@ const styles = StyleSheet.create({
     width: 42,
   },
   bottomNavLabel: {
-    fontFamily: 'Roboto_500Medium',
+    fontFamily: c.fontBody,
     fontSize: 10,
     marginTop: 2,
   },
@@ -1854,7 +1857,7 @@ const styles = StyleSheet.create({
     width: 16,
   },
   logoText: {
-    fontFamily: 'Poppins_700Bold',
+    fontFamily: c.fontBrand,
     fontSize: 18,
     letterSpacing: -0.3,
   },
@@ -1875,7 +1878,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   skipText: {
-    fontFamily: 'Roboto_600SemiBold',
+    fontFamily: c.fontBodySemiBold,
     fontSize: 14,
   },
   content: {
@@ -1899,19 +1902,19 @@ const styles = StyleSheet.create({
     maxWidth: 360,
   },
   eyebrow: {
-    fontFamily: 'Roboto_600SemiBold',
+    fontFamily: c.fontBodySemiBold,
     fontSize: 11,
     letterSpacing: 1.2,
     marginBottom: 11,
   },
   title: {
-    fontFamily: 'IBMPlexSans_600SemiBold',
+    fontFamily: c.fontHeading,
     fontSize: 29,
     lineHeight: 35,
     textAlign: 'center',
   },
   description: {
-    fontFamily: 'Roboto_400Regular',
+    fontFamily: c.fontBody,
     fontSize: 15,
     lineHeight: 22,
     marginTop: 12,
@@ -1966,11 +1969,11 @@ const styles = StyleSheet.create({
   },
   languageLabel: {
     flex: 1,
-    fontFamily: 'Roboto_600SemiBold',
+    fontFamily: c.fontBodySemiBold,
     fontSize: 16,
   },
   languageNative: {
-    fontFamily: 'Roboto_400Regular',
+    fontFamily: c.fontBody,
     fontSize: 13,
     marginRight: 12,
   },
@@ -1993,7 +1996,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   primaryButtonText: {
-    fontFamily: 'Roboto_600SemiBold',
+    fontFamily: c.fontBodySemiBold,
     fontSize: 16,
   },
   secondaryButton: {
@@ -2006,7 +2009,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   secondaryButtonText: {
-    fontFamily: 'Roboto_600SemiBold',
+    fontFamily: c.fontBodySemiBold,
     fontSize: 16,
   },
   pressed: {
@@ -2038,7 +2041,7 @@ const styles = StyleSheet.create({
     width: 18,
   },
   authBrandText: {
-    fontFamily: 'Poppins_700Bold',
+    fontFamily: c.fontBrand,
     fontSize: 17,
     letterSpacing: -0.3,
   },
@@ -2058,13 +2061,13 @@ const styles = StyleSheet.create({
     height: Math.min(SCREEN_HEIGHT * 0.25, 210),
   },
   authTitle: {
-    fontFamily: 'IBMPlexSans_600SemiBold',
+    fontFamily: c.fontHeading,
     fontSize: 28,
     lineHeight: 34,
     textAlign: 'center',
   },
   authDescription: {
-    fontFamily: 'Roboto_400Regular',
+    fontFamily: c.fontBody,
     fontSize: 15,
     lineHeight: 21,
     marginTop: 8,
@@ -2080,7 +2083,7 @@ const styles = StyleSheet.create({
   authInput: {
     borderRadius: 14,
     borderWidth: 1,
-    fontFamily: 'Roboto_400Regular',
+    fontFamily: c.fontBody,
     fontSize: 16,
     minHeight: 54,
     paddingHorizontal: 16,
@@ -2089,7 +2092,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     borderRadius: 14,
     borderWidth: 1,
-    fontFamily: 'IBMPlexSans_600SemiBold',
+    fontFamily: c.fontHeading,
     fontSize: 28,
     letterSpacing: 8,
     minHeight: 64,
@@ -2112,7 +2115,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   inlineLink: {
-    fontFamily: 'Roboto_600SemiBold',
+    fontFamily: c.fontBodySemiBold,
     fontSize: 14,
   },
   notice: {
@@ -2126,7 +2129,7 @@ const styles = StyleSheet.create({
   },
   noticeText: {
     flex: 1,
-    fontFamily: 'Roboto_600SemiBold',
+    fontFamily: c.fontBodySemiBold,
     fontSize: 13,
     lineHeight: 18,
   },
@@ -2138,7 +2141,7 @@ const styles = StyleSheet.create({
     marginTop: 22,
   },
   footerText: {
-    fontFamily: 'Roboto_400Regular',
+    fontFamily: c.fontBody,
     fontSize: 14,
   },
   loginThumb: {
@@ -2148,7 +2151,7 @@ const styles = StyleSheet.create({
     width: 46,
   },
   pinHint: {
-    fontFamily: 'Roboto_400Regular',
+    fontFamily: c.fontBody,
     fontSize: 13,
     lineHeight: 19,
     marginTop: 20,
