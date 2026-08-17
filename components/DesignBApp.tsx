@@ -28,23 +28,29 @@ import * as Haptics from 'expo-haptics';
 const { width: W, height: H } = Dimensions.get('window');
 
 // ─── Tokens ──────────────────────────────────────────────────────────────────
+// Values extracted from Figma (file DH0zgCNw5OK8qWo4VlnWIC) via REST API
 const C = {
-  primary:      '#014dd4',
+  primary:      '#014dd4',   // Figma primary blue
   primaryMid:   '#0245c0',
   primaryDark:  '#012d80',
-  primaryLight: '#c9ddff',
-  bg:           '#f1f7ff',
-  text:         '#17000e',
+  primaryLight: '#caddff',   // Figma balance-card wrapper fill
+  link:         '#0073d2',   // Figma secondary/link blue ("Help", icons)
+  bg:           '#f1f7ff',   // Figma screen background
+  text:         '#17000e',   // Figma primary text
   subtext:      '#636e88',
   label:        '#9aa5bb',
   card:         '#ffffff',
   border:       '#dde5f5',
-  inputBg:      '#eff3fb',
+  inputBg:      '#f4f9ff',   // Figma "Input" component fill
+  authInput:    '#f8f8f8',   // Figma auth-form input fill
   success:      '#22c55e',
   error:        '#ef4444',
-  logoutRed:    '#fe0d0d',
+  logoutRed:    '#fe0d0d',   // Figma logout BTN fill
   divider:      '#eef2fb',
+  heavy:        'DMSans_700Bold',
+  inter:        'Inter_400Regular',
   bold:         'DMSans_600SemiBold',
+  medium:       'DMSans_500Medium',
   regular:      'DMSans_400Regular',
 } as const;
 
@@ -137,12 +143,14 @@ function Btn({
     <Pressable
       onPress={() => { if (!disabled) { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onPress(); } }}
       style={({ pressed }) => [{
-        backgroundColor: bg, borderRadius: 28, minHeight: 52,
-        alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20,
+        // Figma "Frame 6" button: cornerRadius 40, height 56
+        backgroundColor: bg, borderRadius: 40, minHeight: 56,
+        alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24,
         opacity: pressed ? 0.82 : disabled ? 0.5 : 1, ...bdr, ...style,
       }]}
     >
-      <Text style={{ fontFamily: C.bold, fontSize: 16, color: tc }}>{label}</Text>
+      {/* Figma: DM Sans 500, 16px, lineHeight 20.8 */}
+      <Text style={{ fontFamily: C.medium, fontSize: 16, lineHeight: 21, color: tc }}>{label}</Text>
     </Pressable>
   );
 }
@@ -162,14 +170,16 @@ function Field({
         secureTextEntry={secure && !show}
         keyboardType={keyboard} autoCapitalize={autoCapitalize}
         style={{
-          backgroundColor: C.inputBg, borderRadius: 28, minHeight: 52,
-          paddingHorizontal: 20, paddingRight: secure ? 50 : 20,
-          fontFamily: C.regular, fontSize: 15, color: C.text,
+          // Figma auth input: fill #f8f8f8, cornerRadius 40, height 56, padH 16
+          backgroundColor: C.authInput, borderRadius: 40, minHeight: 56,
+          paddingHorizontal: 16, paddingRight: secure ? 50 : 16,
+          // Figma placeholder: DM Sans 500, 14px, lineHeight 18.2
+          fontFamily: C.medium, fontSize: 14, color: C.text,
         }}
       />
       {secure && (
         <Pressable onPress={() => setShow(s => !s)}
-          style={{ position: 'absolute', right: 18, top: 16 }}>
+          style={{ position: 'absolute', right: 18, top: 18 }}>
           <Ionicons name={show ? 'eye-outline' : 'eye-off-outline'} size={20} color={C.label} />
         </Pressable>
       )}
@@ -183,17 +193,19 @@ function MenuRow({
   return (
     <Pressable onPress={onPress}
       style={({ pressed }) => [{
+        // Figma: menu row r=16, height 56, padH 16, gap 12, white fill
         flexDirection: 'row', alignItems: 'center', backgroundColor: C.card,
-        borderRadius: 16, paddingHorizontal: 16, paddingVertical: 16,
+        borderRadius: 16, paddingHorizontal: 16, minHeight: 56,
         marginBottom: 10, opacity: pressed ? 0.8 : 1,
       }]}>
       <View style={{
-        width: 36, height: 36, borderRadius: 18, backgroundColor: C.bg,
-        alignItems: 'center', justifyContent: 'center', marginRight: 14,
+        width: 32, height: 32, borderRadius: 16, backgroundColor: C.bg,
+        alignItems: 'center', justifyContent: 'center', marginRight: 12,
       }}>
         <Ionicons name={icon as any} size={18} color={C.primary} />
       </View>
-      <Text style={{ fontFamily: C.bold, fontSize: 15, color: C.text, flex: 1 }}>{label}</Text>
+      {/* Figma: row label DM Sans 400 16/20.8 */}
+      <Text style={{ fontFamily: C.regular, fontSize: 16, lineHeight: 21, color: C.text, flex: 1 }}>{label}</Text>
       {right ?? <Ionicons name="chevron-forward" size={18} color={C.label} />}
     </Pressable>
   );
@@ -230,7 +242,8 @@ function BottomNav({ active, onSelect }: { active: HomeTab; onSelect: (t: HomeTa
               <Ionicons name={(on ? t.active : t.icon) as any} size={20}
                 color={on ? '#fff' : C.subtext} />
             </View>
-            <Text style={{ fontFamily: C.regular, fontSize: 10, color: on ? C.primary : C.subtext }}>
+            {/* Figma: nav label DM Sans 500 10/13 */}
+            <Text style={{ fontFamily: C.medium, fontSize: 10, lineHeight: 13, color: on ? C.primary : C.subtext }}>
               {t.id}
             </Text>
           </Pressable>
@@ -246,10 +259,10 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
   return (
     <View style={{ flex: 1, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center' }}>
       <StatusBar barStyle="light-content" backgroundColor={C.primary} />
-      {/* The splash-logo.png already contains the hexagon + DRCSDATA text */}
+      {/* Figma: logo block 140×195 (hexagon 140×160 + DRCSDATA 24px text) */}
       <Image
         source={require('../assets/images/design-b/splash-logo.png')}
-        style={{ width: W * 0.55, height: W * 0.65 }}
+        style={{ width: 140, height: 195 }}
         resizeMode="contain"
       />
     </View>
@@ -257,32 +270,31 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
 }
 
 // ─── 2. Onboarding ────────────────────────────────────────────────────────────
-// The Figma exports are full-screen frames (393×852 logical px, saved at 2×).
-// We render each image from the TOP, clipping at ~57 % of device height so only
-// the illustration+blue area shows — never the white bottom-sheet from the frame.
+// Illustration-only exports pulled straight from Figma (nodes 1:3693, 1:4429,
+// 1:3849, 1:4092) — no full-frame clipping workaround needed anymore.
 const SLIDES = [
-  { img: require('../assets/images/design-b/onboard1.png'),
+  { img: require('../assets/images/design-b/illus1.png'),
     title: 'Pay Bills Without\nStress',
     body:  'Pay your bills fast, reliable, and available whenever you need it',
     cta:   'Next' },
-  { img: require('../assets/images/design-b/onboard2.png'),
+  { img: require('../assets/images/design-b/illus2.png'),
     title: 'Get More\nValue',
     body:  'Pay your bills fast, reliable, and available whenever you need it',
     cta:   'Next' },
-  { img: require('../assets/images/design-b/onboard3.png'),
+  { img: require('../assets/images/design-b/illus3.png'),
     title: 'Safe, Instant\nTransaction',
     body:  'Pay your bills fast, reliable, and available whenever you need it',
     cta:   'Next' },
-  { img: require('../assets/images/design-b/onboard4.png'),
+  { img: require('../assets/images/design-b/illus4.png'),
     title: 'Earn While your\nRecharge',
     body:  'Pay your bills fast, reliable, and available whenever you need it',
     cta:   'Get Started' },
 ] as const;
 
-// Height of the blue illustration zone (must stay above Figma's white sheet boundary)
-const ILLUS_H = H * 0.56;
-// Figma frame: 393×852 logical px. Scaled to device width:
-const FRAME_RENDERED_H = W * (852 / 393);
+// Figma: white sheet is 324 of 852 px → blue illustration zone ≈ 62 % of height
+const ILLUS_H = H * (528 / 852);
+// Figma illustration: 320×320 on a 393-wide frame
+const ILLUS_SIZE = W * (320 / 393);
 
 function OnboardingScreen({ onDone }: { onDone: () => void }) {
   const [idx, setIdx] = useState(0);
@@ -297,51 +309,50 @@ function OnboardingScreen({ onDone }: { onDone: () => void }) {
     <View style={{ flex: 1, backgroundColor: C.card }}>
       <StatusBar barStyle="light-content" backgroundColor={C.primary} />
 
-      {/* ── Blue illustration zone (clipped from top of Figma frame) ── */}
-      <View style={{ height: ILLUS_H, backgroundColor: C.primary, overflow: 'hidden' }}>
+      {/* ── Blue illustration zone ── */}
+      <View style={{ height: ILLUS_H, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center' }}>
         <Image
           source={slide.img}
-          style={{
-            position: 'absolute', top: 0, left: 0,
-            width: W,
-            height: FRAME_RENDERED_H, // natural aspect-ratio height
-          }}
-          resizeMode="stretch"
+          style={{ width: ILLUS_SIZE, height: ILLUS_SIZE, marginTop: ins.top / 2 }}
+          resizeMode="contain"
         />
 
-        {/* Progress bars — 4 short rectangles at bottom of blue zone */}
+        {/* Progress bars — Figma: 4×16 active / 4×12 inactive, r=10, gap 2 */}
         <View style={{
           position: 'absolute', bottom: 20, left: 0, right: 0,
-          flexDirection: 'row', justifyContent: 'center', gap: 5,
+          flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 2,
         }}>
           {SLIDES.map((_, i) => (
             <View key={i} style={{
-              width: i === idx ? 24 : 8,
-              height: 6,
-              borderRadius: 3,
+              width: 4,
+              height: i === idx ? 16 : 12,
+              borderRadius: 10,
               backgroundColor: i === idx ? '#fff' : 'rgba(255,255,255,0.38)',
             }} />
           ))}
         </View>
       </View>
 
-      {/* ── White bottom sheet ── */}
+      {/* ── White bottom sheet (Figma: r=24 top, pad 20 sides, gap 32) ── */}
       <View style={{
         flex: 1, backgroundColor: C.card,
-        paddingHorizontal: 26, paddingTop: 28,
+        borderTopLeftRadius: 24, borderTopRightRadius: 24, marginTop: -24,
+        paddingHorizontal: 20, paddingTop: 40,
         paddingBottom: Math.max(ins.bottom, 16) + (Platform.OS === 'web' ? 20 : 0),
       }}>
-        {/* Skip — top-right, only on non-last slides */}
+        {/* Skip — Figma: Inter 400 14/17 black */}
         {!isLast && (
           <Pressable onPress={skip} style={{ position: 'absolute', top: 18, right: 22 }}>
-            <Text style={{ fontFamily: C.regular, fontSize: 14, color: C.subtext }}>Skip</Text>
+            <Text style={{ fontFamily: C.inter, fontSize: 14, lineHeight: 17, color: C.text }}>Skip</Text>
           </Pressable>
         )}
 
-        <Text style={{ fontFamily: C.bold, fontSize: 26, color: C.text, lineHeight: 32, marginBottom: 12 }}>
+        {/* Figma: DM Sans 700, 24px, lh 31.2, ls -1.2 */}
+        <Text style={{ fontFamily: C.heavy, fontSize: 24, color: C.text, lineHeight: 31, letterSpacing: -1.2, marginBottom: 16 }}>
           {slide.title}
         </Text>
-        <Text style={{ fontFamily: C.regular, fontSize: 14, color: C.subtext, lineHeight: 21, marginBottom: 28 }}>
+        {/* Figma: Inter 400, 14px, lh 16.9 */}
+        <Text style={{ fontFamily: C.inter, fontSize: 14, color: C.subtext, lineHeight: 17, marginBottom: 32 }}>
           {slide.body}
         </Text>
         <Btn label={slide.cta} onPress={next} />
@@ -367,15 +378,17 @@ function AuthShell({ title, children }: { title: string; children: React.ReactNo
           style={{ position: 'absolute', right: -24, top: ins.top + 8, width: 160, height: 160, opacity: 0.12 }}
           resizeMode="contain"
         />
-        <Text style={{ fontFamily: C.bold, fontSize: 32, color: '#fff', lineHeight: 38 }}>{title}</Text>
+        {/* Figma: DM Sans 600, 32px, lh 41.7, ls -0.64 */}
+        <Text style={{ fontFamily: C.bold, fontSize: 32, color: '#fff', lineHeight: 42, letterSpacing: -0.64 }}>{title}</Text>
       </View>
 
       {/* White form card */}
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView
           contentContainerStyle={{
-            backgroundColor: C.card, borderTopLeftRadius: 32, borderTopRightRadius: 32,
-            paddingHorizontal: 24, paddingTop: 32, flexGrow: 1,
+            // Figma: white form card r=24 top, pad 20 sides / 40 top
+            backgroundColor: C.card, borderTopLeftRadius: 24, borderTopRightRadius: 24,
+            paddingHorizontal: 20, paddingTop: 40, flexGrow: 1,
             paddingBottom: Math.max(ins.bottom, 24) + (Platform.OS === 'web' ? 32 : 0),
           }}
           showsVerticalScrollIndicator={false}
@@ -391,23 +404,27 @@ function AuthShell({ title, children }: { title: string; children: React.ReactNo
 function SocialButtons() {
   return (
     <>
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 18, gap: 12 }}>
+      {/* Figma: "or" DM Sans 400 14/18.2 ls -0.28, black */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 20, gap: 12 }}>
         <View style={{ flex: 1, height: 1, backgroundColor: C.border }} />
-        <Text style={{ fontFamily: C.regular, fontSize: 13, color: C.label }}>or</Text>
+        <Text style={{ fontFamily: C.regular, fontSize: 14, lineHeight: 18, letterSpacing: -0.28, color: C.text }}>or</Text>
         <View style={{ flex: 1, height: 1, backgroundColor: C.border }} />
       </View>
-      <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 14 }}>
+      {/* Figma: social buttons 44×44, r=40, white fill, gap 12 */}
+      <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 12 }}>
         {/* Google */}
         <Pressable style={({ pressed }) => [{
-          width: 52, height: 52, borderRadius: 26, backgroundColor: C.inputBg,
+          width: 44, height: 44, borderRadius: 40, backgroundColor: C.card,
+          borderWidth: 1, borderColor: C.border,
           alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1,
         }]}>
           <Image source={require('../assets/images/design-b/google-logo.png')}
-            style={{ width: 26, height: 26 }} resizeMode="contain" />
+            style={{ width: 24, height: 24 }} resizeMode="contain" />
         </Pressable>
         {/* Apple */}
         <Pressable style={({ pressed }) => [{
-          width: 52, height: 52, borderRadius: 26, backgroundColor: C.inputBg,
+          width: 44, height: 44, borderRadius: 40, backgroundColor: C.card,
+          borderWidth: 1, borderColor: C.border,
           alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1,
         }]}>
           <Ionicons name="logo-apple" size={24} color={C.text} />
@@ -431,10 +448,11 @@ function LoginScreen({ onLogin, onGoSignup }: { onLogin: () => void; onGoSignup:
       </View>
       <Btn label="Login" onPress={onLogin} style={{ marginTop: 18 }} />
       <SocialButtons />
-      <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 18 }}>
-        <Text style={{ fontFamily: C.regular, fontSize: 14, color: C.subtext }}>New here? </Text>
+      {/* Figma: DM Sans 400 14/18.2 ls -0.28; link is #014dd4 */}
+      <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 20 }}>
+        <Text style={{ fontFamily: C.regular, fontSize: 14, letterSpacing: -0.28, color: C.text }}>New here? </Text>
         <Pressable onPress={onGoSignup}>
-          <Text style={{ fontFamily: C.bold, fontSize: 14, color: C.primary }}>Create an account</Text>
+          <Text style={{ fontFamily: C.regular, fontSize: 14, letterSpacing: -0.28, color: C.primary }}>Create an account</Text>
         </Pressable>
       </View>
     </AuthShell>
@@ -473,10 +491,11 @@ function SignUpScreen({ onSignup, onGoLogin }: { onSignup: () => void; onGoLogin
       </View>
       <Btn label="Create account" onPress={onSignup} style={{ marginTop: 20 }} />
       <SocialButtons />
-      <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 18 }}>
-        <Text style={{ fontFamily: C.regular, fontSize: 14, color: C.subtext }}>Have an account? </Text>
+      {/* Figma: DM Sans 400 14/18.2 ls -0.28; link is #014dd4 */}
+      <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 20 }}>
+        <Text style={{ fontFamily: C.regular, fontSize: 14, letterSpacing: -0.28, color: C.text }}>Have an account? </Text>
         <Pressable onPress={onGoLogin}>
-          <Text style={{ fontFamily: C.bold, fontSize: 14, color: C.primary }}>Login</Text>
+          <Text style={{ fontFamily: C.regular, fontSize: 14, letterSpacing: -0.28, color: C.primary }}>Login</Text>
         </Pressable>
       </View>
     </AuthShell>
@@ -1150,8 +1169,9 @@ function HomeTab({
             style={{ width: 44, height: 44, borderRadius: 22 }} />
           {/* Name */}
           <View style={{ alignItems: 'center' }}>
-            <Text style={{ fontFamily: C.regular, fontSize: 12, color: C.subtext }}>Welcome</Text>
-            <Text style={{ fontFamily: C.bold, fontSize: 18, color: C.text }}>John Doe</Text>
+            {/* Figma: Welcome DM Sans 400 12/15.6; name DM Sans 600 18/23.4 */}
+            <Text style={{ fontFamily: C.regular, fontSize: 12, lineHeight: 16, color: C.text }}>Welcome</Text>
+            <Text style={{ fontFamily: C.bold, fontSize: 18, lineHeight: 23, color: C.text }}>John Doe</Text>
           </View>
           {/* Bell */}
           <Pressable>
@@ -1170,12 +1190,15 @@ function HomeTab({
 
         <View style={{ paddingHorizontal: 16 }}>
           {/* Balance card */}
-          <View style={{ backgroundColor: C.primary, borderRadius: 22, padding: 22, marginBottom: 14 }}>
-            <Text style={{ fontFamily: C.regular, fontSize: 13, color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>
+          {/* Figma: balance card r=40, pad 10, fill #014dd4 (wrapper #caddff) */}
+          <View style={{ backgroundColor: C.primary, borderRadius: 40, paddingVertical: 20, paddingHorizontal: 22, marginBottom: 14 }}>
+            {/* Figma: DM Sans 600 14/18.2 ls -0.28 white */}
+            <Text style={{ fontFamily: C.bold, fontSize: 14, lineHeight: 18, letterSpacing: -0.28, color: '#fff', marginBottom: 6 }}>
               Available Balance
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={{ fontFamily: C.bold, fontSize: 30, color: '#fff', letterSpacing: -0.5 }}>
+              {/* Figma: DM Sans 600 32/41.7 ls -0.64 */}
+              <Text style={{ fontFamily: C.bold, fontSize: 32, lineHeight: 42, color: '#fff', letterSpacing: -0.64 }}>
                 {balHidden ? '• • • • • •' : '₦30,000.34'}
               </Text>
               <Pressable onPress={() => setBalHidden(h => !h)}>
@@ -1225,9 +1248,11 @@ function HomeTab({
           </View>
 
           {/* Recent transactions */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
-            <Text style={{ fontFamily: C.bold, fontSize: 18, color: C.text }}>Recent Transactions</Text>
-            <Pressable><Text style={{ fontFamily: C.regular, fontSize: 13, color: C.primary }}>See More</Text></Pressable>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            {/* Figma: DM Sans 600 16/20.8 ls -0.8 */}
+            <Text style={{ fontFamily: C.bold, fontSize: 16, lineHeight: 21, letterSpacing: -0.8, color: C.text }}>Recent Transactions</Text>
+            {/* Figma: DM Sans 400 12/15.6 ls -0.6 */}
+            <Pressable><Text style={{ fontFamily: C.regular, fontSize: 12, lineHeight: 16, letterSpacing: -0.6, color: C.primary }}>See More</Text></Pressable>
           </View>
 
           <View style={{ gap: 10 }}>
@@ -1284,14 +1309,16 @@ function ProfileTab({ onNavigate }: { onNavigate: (s: DBScreen) => void }) {
         paddingHorizontal: 20, paddingBottom: 24,
         paddingTop: ins.top + (Platform.OS === 'web' ? 80 : 16),
       }}>
-      <Text style={{ fontFamily: C.bold, fontSize: 22, color: C.text, textAlign: 'center', marginBottom: 22 }}>
+      {/* Figma: header DM Sans 600 20/26 ls -1.0 */}
+      <Text style={{ fontFamily: C.bold, fontSize: 20, lineHeight: 26, letterSpacing: -1, color: C.text, textAlign: 'center', marginBottom: 22 }}>
         Profile
       </Text>
+      {/* Figma: avatar 130×130; name DM Sans 600 18/23.4; email DM Sans 400 12/15.6 */}
       <View style={{ alignItems: 'center', marginBottom: 20 }}>
         <Image source={require('../assets/images/design-b/avatar.png')}
-          style={{ width: 100, height: 100, borderRadius: 50 }} />
-        <Text style={{ fontFamily: C.bold, fontSize: 20, color: C.text, marginTop: 12 }}>John Doe</Text>
-        <Text style={{ fontFamily: C.regular, fontSize: 13, color: C.subtext, marginTop: 3 }}>
+          style={{ width: 130, height: 130, borderRadius: 65 }} />
+        <Text style={{ fontFamily: C.bold, fontSize: 18, lineHeight: 23, color: C.text, marginTop: 16 }}>John Doe</Text>
+        <Text style={{ fontFamily: C.regular, fontSize: 12, lineHeight: 16, color: C.text, marginTop: 4 }}>
           johndoe239@gmail.com
         </Text>
       </View>
@@ -1300,7 +1327,8 @@ function ProfileTab({ onNavigate }: { onNavigate: (s: DBScreen) => void }) {
       <MenuRow icon="shield-outline"         label="Security"         onPress={() => onNavigate('security')} />
       <MenuRow icon="people-outline"         label="Referral"         onPress={() => {}} />
       <MenuRow icon="notifications-outline"  label="Notification"     onPress={() => {}} />
-      <Btn label="Log Out" onPress={() => {}} variant="danger" style={{ marginTop: 14 }} />
+      {/* Figma: logout BTN r=40, height 44, fill #fe0d0d */}
+      <Btn label="Log Out" onPress={() => {}} variant="danger" style={{ marginTop: 14, minHeight: 44 }} />
     </ScrollView>
   );
 }

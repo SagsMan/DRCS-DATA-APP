@@ -27,7 +27,9 @@ import {
 } from '@expo-google-fonts/roboto';
 import {
   DMSans_400Regular,
+  DMSans_500Medium,
   DMSans_600SemiBold,
+  DMSans_700Bold,
   useFonts as useDMSansFonts,
 } from '@expo-google-fonts/dm-sans';
 import { Stack } from 'expo-router';
@@ -61,7 +63,9 @@ export default function RootLayout() {
   });
   const [dmSansLoaded, dmSansError] = useDMSansFonts({
     DMSans_400Regular,
+    DMSans_500Medium,
     DMSans_600SemiBold,
+    DMSans_700Bold,
   });
 
   const fontsLoaded =
