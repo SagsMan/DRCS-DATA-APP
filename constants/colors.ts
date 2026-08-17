@@ -137,10 +137,10 @@ const designB = {
 
     // DM Sans typography for Design B
     fontBody: 'DMSans_400Regular',
-    fontBodyMedium: 'DMSans_500Medium',
+    fontBodyMedium: 'DMSans_400Regular',
     fontBodySemiBold: 'DMSans_600SemiBold',
     fontHeading: 'DMSans_600SemiBold',
-    fontBrand: 'DMSans_700Bold',
+    fontBrand: 'DMSans_600SemiBold',
   },
   dark: {
     text: '#e8eeff',
@@ -173,10 +173,10 @@ const designB = {
     overlay: 'rgba(0, 0, 0, 0.70)',
 
     fontBody: 'DMSans_400Regular',
-    fontBodyMedium: 'DMSans_500Medium',
+    fontBodyMedium: 'DMSans_400Regular',
     fontBodySemiBold: 'DMSans_600SemiBold',
     fontHeading: 'DMSans_600SemiBold',
-    fontBrand: 'DMSans_700Bold',
+    fontBrand: 'DMSans_600SemiBold',
   },
   radius: 10,
 };
