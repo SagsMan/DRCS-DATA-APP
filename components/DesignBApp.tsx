@@ -103,6 +103,7 @@ const DATA_PLANS: Record<string, { size: string; validity: string; price: string
   ],
 };
 
+
 const AIRTIME_QUICK = ['₦50', '₦100', '₦200', '₦500', '₦1,000'];
 
 // ─── Telecom networks ────────────────────────────────────────────────────────
@@ -542,7 +543,6 @@ function PinModal({ visible, onClose, onSubmit }: {
   );
 }
 
-// ─── 5. Telecom picker ────────────────────────────────────────────────────────
 function TelecomPicker({
   serviceLabel, onBack, onSelect,
 }: { serviceLabel: string; onBack: () => void; onSelect: (network: string) => void }) {
@@ -1765,3 +1765,4 @@ export function DesignBApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
     </>
   );
 }
+
