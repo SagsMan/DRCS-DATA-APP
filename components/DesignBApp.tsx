@@ -616,7 +616,7 @@ function TelecomPicker({
           paddingBottom: 88, paddingHorizontal: 20,
         }}>
           <Image source={require('../assets/images/design-b/logo-hex.png')}
-            style={{ position: 'absolute', right: 16, top: ins.top + 20, width: 140, height: 140, opacity: 0.1 }}
+            style={{ position: 'absolute', right: 12, bottom: 0, width: 160, height: 160, opacity: 0.12 }}
             resizeMode="contain" />
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Pressable onPress={onBack} hitSlop={12}>
@@ -817,7 +817,7 @@ function ServiceFormScreen({
       }}>
         {(isAirtime || isData) && (
           <Image source={require('../assets/images/design-b/logo-hex.png')}
-            style={{ position: 'absolute', right: 16, top: ins.top + 20, width: 140, height: 140, opacity: 0.1 }}
+            style={{ position: 'absolute', right: 12, bottom: 0, width: 160, height: 160, opacity: 0.12 }}
             resizeMode="contain" />
         )}
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
