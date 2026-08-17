@@ -25,6 +25,21 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import {
+  AirtimeIcon,
+  BettingIcon,
+  CableTVIcon,
+  CardsNavIcon,
+  DataIcon,
+  DepositIcon,
+  EducationIcon,
+  ElectricityIcon,
+  HistoryNavIcon,
+  HomeNavIcon,
+  ProfileNavIcon,
+  RewardsNavIcon,
+  TransferIcon,
+} from './icons/DrcsIcons';
 import * as Contacts from 'expo-contacts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -250,13 +265,13 @@ function MenuRow({
   );
 }
 
-// ─── Bottom nav ───────────────────────────────────────────────────────────────
-const NAV_TABS: { id: HomeTab; icon: string; active: string }[] = [
-  { id: 'Home',    icon: 'home-outline',        active: 'home'         },
-  { id: 'Rewards', icon: 'diamond-outline',     active: 'diamond'      },
-  { id: 'History', icon: 'trending-up-outline', active: 'trending-up'  },
-  { id: 'Cards',   icon: 'card-outline',        active: 'card'         },
-  { id: 'Profile', icon: 'person-outline',      active: 'person'       },
+type NavIconComponent = React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
+const NAV_TABS: { id: HomeTab; Icon: NavIconComponent }[] = [
+  { id: 'Home',    Icon: HomeNavIcon    },
+  { id: 'Rewards', Icon: RewardsNavIcon },
+  { id: 'History', Icon: HistoryNavIcon },
+  { id: 'Cards',   Icon: CardsNavIcon   },
+  { id: 'Profile', Icon: ProfileNavIcon },
 ];
 
 function BottomNav({ active, onSelect }: { active: HomeTab; onSelect: (t: HomeTab) => void }) {
@@ -278,8 +293,7 @@ function BottomNav({ active, onSelect }: { active: HomeTab; onSelect: (t: HomeTa
               backgroundColor: on ? C.primary : 'transparent',
               alignItems: 'center', justifyContent: 'center', marginBottom: 2,
             }}>
-              <Ionicons name={(on ? t.active : t.icon) as any} size={20}
-                color={on ? '#fff' : C.subtext} />
+              <t.Icon size={20} color={on ? '#fff' : C.subtext} strokeWidth={1.7} />
             </View>
             {/* Figma: nav label DM Sans 500 10/13 */}
             <Text style={{ fontFamily: C.medium, fontSize: 10, lineHeight: 13, color: on ? C.primary : C.subtext }}>
@@ -1603,15 +1617,15 @@ function buildEducationReceipt(body: string, regNo: string, examYear: string, am
   };
 }
 
-// ─── 6. Home tab ──────────────────────────────────────────────────────────────
-const SERVICES = [
-  { id: 'electricity', label: 'Electricity', icon: 'flash-outline'          },
-  { id: 'airtime',     label: 'Airtime',     icon: 'phone-portrait-outline'  },
-  { id: 'data',        label: 'Data',        icon: 'wifi-outline'            },
-  { id: 'tv',          label: 'Cable TV',    icon: 'tv-outline'              },
-  { id: 'betting',     label: 'Betting',     icon: 'dice-outline'            },
-  { id: 'education',   label: 'Education',   icon: 'school-outline'          },
-] as const;
+type ServiceIconComponent = React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
+const SERVICES: { id: string; label: string; Icon: ServiceIconComponent }[] = [
+  { id: 'electricity', label: 'Electricity', Icon: ElectricityIcon },
+  { id: 'airtime',     label: 'Airtime',     Icon: AirtimeIcon     },
+  { id: 'data',        label: 'Data',        Icon: DataIcon        },
+  { id: 'tv',          label: 'Cable TV',    Icon: CableTVIcon     },
+  { id: 'betting',     label: 'Betting',     Icon: BettingIcon     },
+  { id: 'education',   label: 'Education',   Icon: EducationIcon   },
+];
 
 const TXS = [
   { id:'1', name:'Electricity',       sub:'AEDC  905 783 9231',  amt:'₦5,000', date:'Today, 08:15 AM',      lbl:'AEDC', bg:'#e8f0ff', fg:'#014dd4' },
@@ -1730,17 +1744,17 @@ function HomeTab({
 
           {/* Deposit + Transfer */}
           <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
-            {[
-              { lbl: 'Deposit',  icon: 'arrow-down-circle-outline',    fn: onShowAddMoney  },
-              { lbl: 'Transfer', icon: 'arrow-forward-circle-outline',  fn: onShowTransfer  },
-            ].map(a => (
+            {([
+              { lbl: 'Deposit',  Icon: DepositIcon,  fn: onShowAddMoney },
+              { lbl: 'Transfer', Icon: TransferIcon, fn: onShowTransfer },
+            ] as { lbl: string; Icon: ServiceIconComponent; fn: () => void }[]).map(a => (
               <Pressable key={a.lbl} onPress={a.fn}
                 style={({ pressed }) => [{
                   flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
                   gap: 8, borderRadius: 28, borderWidth: 1.5, borderColor: C.primary,
                   paddingVertical: 13, opacity: pressed ? 0.75 : 1,
                 }]}>
-                <Ionicons name={a.icon as any} size={18} color={C.primary} />
+                <a.Icon size={18} color={C.primary} strokeWidth={1.8} />
                 <Text style={{ fontFamily: C.bold, fontSize: 15, color: C.primary }}>{a.lbl}</Text>
               </Pressable>
             ))}
@@ -1759,7 +1773,7 @@ function HomeTab({
                     width: 52, height: 52, borderRadius: 16, backgroundColor: C.bg,
                     alignItems: 'center', justifyContent: 'center', marginBottom: 8,
                   }}>
-                    <Ionicons name={s.icon as any} size={24} color={C.primary} />
+                    <s.Icon size={24} color={C.primary} strokeWidth={1.6} />
                   </View>
                   <Text style={{ fontFamily: C.regular, fontSize: 12, color: C.text }}>{s.label}</Text>
                 </Pressable>
