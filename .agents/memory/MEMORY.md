@@ -1,0 +1,4 @@
+- [Design B architecture](design-b-arch.md) — DesignBApp in components/, not app/ (Expo Router requires default export from app/ files)
+- [Figma export clipping](figma-export-clip.md) — Full-frame Figma exports must be top-clipped; resizeMode=stretch + absolute top:0 to avoid double-UI bug
+- [Expo tunnel mode](expo-tunnel.md) — Switch workflow to expo start --tunnel (no --web) for Expo Go QR scanning; port mapping not needed
+- [Figma rate limits](figma-rate-limits.md) — Figma REST API 429s clear after ~90s; batch all node fetches into one call with comma-separated IDs
