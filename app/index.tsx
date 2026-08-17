@@ -22,6 +22,7 @@ import { useColors, type DesignVariant } from '@/hooks/useColors';
 import { DesignBApp } from '@/components/DesignBApp';
 import {
   AirtimeIcon, BettingIcon, CableTVIcon, DataIcon, EducationIcon, ElectricityIcon,
+  CardsNavIcon, HistoryNavIcon, HomeNavIcon, ProfileNavIcon, RewardsNavIcon,
 } from '@/components/icons/DrcsIcons';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 
@@ -379,7 +380,7 @@ function AuthScreen({
   );
 }
 
-type HomeTab = 'Home' | 'Rewards' | 'Finance' | 'Cards' | 'Me';
+type HomeTab = 'Home' | 'Rewards' | 'History' | 'Cards' | 'Profile';
 
 type HomeAction = {
   label: string;
@@ -403,12 +404,13 @@ const homeServices: ServiceItem[] = [
   { id:'education',   label:'Education',   Icon: EducationIcon   },
 ];
 
-const homeTabs: { label: HomeTab; icon: IconName }[] = [
-  { label: 'Home', icon: 'home' },
-  { label: 'Rewards', icon: 'gift-outline' },
-  { label: 'Finance', icon: 'wallet-outline' },
-  { label: 'Cards', icon: 'card-outline' },
-  { label: 'Me', icon: 'person-outline' },
+type ANavIconComponent = React.ComponentType<{size?:number;color?:string;strokeWidth?:number}>;
+const homeTabs: { label: HomeTab; Icon: ANavIconComponent }[] = [
+  { label: 'Home',    Icon: HomeNavIcon    },
+  { label: 'Rewards', Icon: RewardsNavIcon },
+  { label: 'History', Icon: HistoryNavIcon },
+  { label: 'Cards',   Icon: CardsNavIcon   },
+  { label: 'Profile', Icon: ProfileNavIcon },
 ];
 
 type PromoSlide = {
@@ -1766,35 +1768,28 @@ function HomeScreen({
         ))}
       </ScrollView>
 
-      <View style={[styles.bottomNav, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        {homeTabs.map((tab) => {
-          const isActive = activeTab === tab.label;
+      <View style={{
+        flexDirection: 'row', backgroundColor: colors.card,
+        paddingBottom: Math.max(insets.bottom, 6),
+        paddingTop: 8, paddingHorizontal: 4,
+        borderTopWidth: 1, borderTopColor: colors.border,
+      }}>
+        {homeTabs.map(tab => {
+          const on = activeTab === tab.label;
           return (
-            <Pressable
-              key={tab.label}
-              accessibilityRole="button"
-              accessibilityLabel={tab.label}
+            <Pressable key={tab.label}
+              accessibilityRole="button" accessibilityLabel={tab.label}
               onPress={() => handleTabPress(tab.label)}
-              style={({ pressed }) => [styles.bottomNavItem, pressed && styles.pressed]}
-            >
-              <View
-                style={[
-                  styles.bottomNavIcon,
-                  isActive && { backgroundColor: colors.brandPrimaryLight },
-                ]}
-              >
-                <Ionicons
-                  name={tab.icon}
-                  size={21}
-                  color={isActive ? colors.primary : colors.grayGray1}
-                />
+              style={{ flex: 1, alignItems: 'center' }}>
+              <View style={{
+                width: 46, height: 34, borderRadius: 12,
+                backgroundColor: on ? colors.primary : 'transparent',
+                alignItems: 'center', justifyContent: 'center', marginBottom: 2,
+              }}>
+                <tab.Icon size={20} color={on ? '#fff' : colors.grayGray1} strokeWidth={1.7} />
               </View>
-              <Text
-                style={[
-                  styles.bottomNavLabel,
-                  { color: isActive ? colors.primary : colors.grayGray1 },
-                ]}
-              >
+              <Text style={{ fontFamily: colors.fontBodyMedium, fontSize: 10, lineHeight: 13,
+                color: on ? colors.primary : colors.grayGray1 }}>
                 {tab.label}
               </Text>
             </Pressable>
