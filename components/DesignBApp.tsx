@@ -613,7 +613,7 @@ function TelecomPicker({
         <View style={{
           backgroundColor: C.primaryDark,
           paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 44),
-          paddingBottom: 24, paddingHorizontal: 20,
+          paddingBottom: 56, paddingHorizontal: 20,
         }}>
           <Image source={require('../assets/images/design-b/logo-hex.png')}
             style={{ position: 'absolute', right: 16, top: ins.top + 20, width: 140, height: 140, opacity: 0.1 }}
@@ -813,7 +813,7 @@ function ServiceFormScreen({
       <View style={{
         backgroundColor: isAirtime || isData ? C.primaryDark : C.primary,
         paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 44),
-        paddingBottom: 36, paddingHorizontal: 20,
+        paddingBottom: 56, paddingHorizontal: 20,
       }}>
         {(isAirtime || isData) && (
           <Image source={require('../assets/images/design-b/logo-hex.png')}
