@@ -1288,6 +1288,152 @@ function SendToBankScreen({ onBack, onProceed }: {
   );
 }
 
+// ─── 5f. Education picker & form ─────────────────────────────────────────────
+const EDUCATION_BODIES = [
+  { id: 'waec',   label: 'WAEC',   sub: 'West African Examinations Council',       color: '#003087', tc: '#fff' },
+  { id: 'jamb',   label: 'JAMB',   sub: 'Joint Admissions & Matriculation Board',  color: '#2E7D32', tc: '#fff' },
+  { id: 'neco',   label: 'NECO',   sub: 'National Examinations Council',           color: '#B71C1C', tc: '#fff' },
+  { id: 'nabteb', label: 'NABTEB', sub: 'National Business & Technical Exams',     color: '#E65100', tc: '#fff' },
+] as const;
+
+function EducationPickerScreen({ onBack, onSelect }: {
+  onBack: () => void;
+  onSelect: (id: string, label: string) => void;
+}) {
+  const ins = useSafeAreaInsets();
+  return (
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <StatusBar barStyle="dark-content" />
+      <View style={{
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+        paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 44),
+        paddingHorizontal: 20, paddingBottom: 16,
+      }}>
+        <Pressable onPress={onBack} style={{ position: 'absolute', left: 20 }}>
+          <Ionicons name="chevron-back" size={24} color={C.primary} />
+        </Pressable>
+        <Text style={{ fontFamily: C.bold, fontSize: 18, color: C.text }}>Select Exam Body</Text>
+      </View>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8 }}>
+        {EDUCATION_BODIES.map(b => (
+          <Pressable key={b.id} onPress={() => { Haptics.selectionAsync(); onSelect(b.id, b.label); }}
+            style={({ pressed }) => [{
+              flexDirection: 'row', alignItems: 'center', backgroundColor: C.card,
+              borderRadius: 18, padding: 16, marginBottom: 12, opacity: pressed ? 0.8 : 1,
+            }]}>
+            <View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: b.color,
+              alignItems: 'center', justifyContent: 'center', marginRight: 16 }}>
+              <Text style={{ fontFamily: C.bold, fontSize: 11, color: b.tc }}>{b.label}</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontFamily: C.bold, fontSize: 16, color: C.text }}>{b.label}</Text>
+              <Text style={{ fontFamily: C.regular, fontSize: 12, color: C.subtext, marginTop: 2 }}>{b.sub}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={C.label} />
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
+
+function EducationFormScreen({ bodyId, bodyLabel, onBack, onProceed }: {
+  bodyId: string; bodyLabel: string;
+  onBack: () => void;
+  onProceed: (regNo: string, examYear: string, amount: string) => void;
+}) {
+  const ins = useSafeAreaInsets();
+  const [regNo,    setRegNo]    = useState('');
+  const [examYear, setExamYear] = useState('2025');
+  const [amount,   setAmount]   = useState('');
+
+  const bodyMeta  = EDUCATION_BODIES.find(b => b.id === bodyId);
+  const canProceed = regNo.trim().length >= 6 && examYear.length === 4 && amount.length > 0;
+  const inp = {
+    backgroundColor: C.inputBg, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 13,
+    fontFamily: C.regular, fontSize: 15, color: C.text, borderWidth: 1, borderColor: C.divider,
+  };
+  const YEARS = ['2023', '2024', '2025', '2026'];
+
+  return (
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
+      <StatusBar barStyle="light-content" backgroundColor={C.primary} />
+      <View style={{
+        backgroundColor: C.primary,
+        paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 44),
+        paddingBottom: 36, paddingHorizontal: 20,
+      }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+          <Pressable onPress={onBack} hitSlop={12}>
+            <Ionicons name="chevron-back" size={24} color="#fff" />
+          </Pressable>
+          <Text style={{ fontFamily: C.bold, fontSize: 18, color: '#fff', marginLeft: 8, flex: 1 }}>
+            {bodyLabel} Payment
+          </Text>
+          <View style={{ width: 40, height: 40, borderRadius: 12,
+            backgroundColor: bodyMeta?.color ?? '#003087',
+            alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontFamily: C.bold, fontSize: 10, color: bodyMeta?.tc ?? '#fff' }}>{bodyLabel}</Text>
+          </View>
+        </View>
+      </View>
+
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingTop: 0 }}
+        keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <View style={{ backgroundColor: C.card, borderRadius: 24, padding: 24, marginTop: -20, marginBottom: 24,
+          shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, elevation: 4 }}>
+
+          <Text style={{ fontFamily: C.bold, fontSize: 13, color: C.subtext, marginBottom: 8 }}>
+            Registration / Candidate Number
+          </Text>
+          <TextInput value={regNo} onChangeText={setRegNo}
+            placeholder="Enter reg / candidate number" placeholderTextColor={C.label}
+            autoCapitalize="characters" maxLength={20}
+            style={{ ...inp, marginBottom: 18 }} />
+
+          <Text style={{ fontFamily: C.bold, fontSize: 13, color: C.subtext, marginBottom: 8 }}>Exam Year</Text>
+          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 18 }}>
+            {YEARS.map(y => (
+              <Pressable key={y} onPress={() => setExamYear(y)}
+                style={({ pressed }) => [{
+                  flex: 1, paddingVertical: 12, borderRadius: 12, alignItems: 'center',
+                  backgroundColor: examYear === y ? C.primary : C.inputBg,
+                  borderWidth: 1, borderColor: examYear === y ? C.primary : C.divider,
+                  opacity: pressed ? 0.8 : 1,
+                }]}>
+                <Text style={{ fontFamily: C.bold, fontSize: 14,
+                  color: examYear === y ? '#fff' : C.text }}>{y}</Text>
+              </Pressable>
+            ))}
+          </View>
+
+          <Text style={{ fontFamily: C.bold, fontSize: 13, color: C.subtext, marginBottom: 8 }}>Amount (₦)</Text>
+          <TextInput value={amount} onChangeText={t => setAmount(t.replace(/\D/g, ''))}
+            placeholder="Enter amount" placeholderTextColor={C.label} keyboardType="numeric"
+            style={{ ...inp, marginBottom: 20 }} />
+
+          <Btn label="Proceed" onPress={() => onProceed(regNo.trim(), examYear, amount)} disabled={!canProceed} />
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+function buildEducationReceipt(body: string, regNo: string, examYear: string, amount: string): ReceiptData {
+  return {
+    status: 'success', type: 'Education',
+    amount: `₦${Number(amount).toLocaleString()}`,
+    details: [
+      { label: 'Exam Body',           value: body },
+      { label: 'Reg / Candidate No.', value: regNo },
+      { label: 'Exam Year',           value: examYear },
+      { label: 'Amount',              value: `₦${Number(amount).toLocaleString()}` },
+      { label: 'Transaction No.',     value: makeTxRef() },
+      { label: 'Transaction Date',    value: nowStr() },
+    ],
+  };
+}
+
 // ─── 6. Home tab ──────────────────────────────────────────────────────────────
 const SERVICES = [
   { id: 'electricity', label: 'Electricity', icon: 'flash-outline'          },
@@ -1321,11 +1467,12 @@ function LoadingOverlay() {
 const StyleFill = { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0 };
 
 function HomeTab({
-  onShowReceipt, onOpenPicker, onOpenTVPicker, onShowPin, onShowAddMoney, onShowTransfer,
+  onShowReceipt, onOpenPicker, onOpenTVPicker, onOpenEducationPicker, onShowPin, onShowAddMoney, onShowTransfer,
 }: {
   onShowReceipt: (d: ReceiptData) => void;
   onOpenPicker: (svc: string) => void;
   onOpenTVPicker: () => void;
+  onOpenEducationPicker: () => void;
   onShowPin: () => void;
   onShowAddMoney: () => void;
   onShowTransfer: () => void;
@@ -1341,7 +1488,7 @@ function HomeTab({
     } else if (id === 'tv') {
       onOpenTVPicker();
     } else if (id === 'education') {
-      onShowPin(); // placeholder — full education flow in a future task
+      onOpenEducationPicker();
     } else {
       onShowPin();
     }
@@ -1831,10 +1978,11 @@ function buildBankReceipt(accountNo: string, bankName: string, accountName: stri
 
 // ─── Main app shell ───────────────────────────────────────────────────────────
 type BPending =
-  | { kind:'service';  payload: FormPayload }
-  | { kind:'tv';       provider:string; smartCard:string; bouquet:string; price:string }
-  | { kind:'drcs';     username:string; amount:string; note:string }
-  | { kind:'bank';     accountNo:string; bankName:string; accountName:string; amount:string };
+  | { kind:'service';   payload: FormPayload }
+  | { kind:'tv';        provider:string; smartCard:string; bouquet:string; price:string }
+  | { kind:'education'; body:string; regNo:string; examYear:string; amount:string }
+  | { kind:'drcs';      username:string; amount:string; note:string }
+  | { kind:'bank';      accountNo:string; bankName:string; accountName:string; amount:string };
 
 function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
   const ins = useSafeAreaInsets();
@@ -1851,6 +1999,10 @@ function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
   // TV flow
   const [tvPicker,        setTvPicker]        = useState(false);
   const [tvProvider,      setTvProvider]      = useState<{id:string;label:string}|null>(null);
+
+  // Education flow
+  const [educationPicker, setEducationPicker] = useState(false);
+  const [educationBody,   setEducationBody]   = useState<{id:string;label:string}|null>(null);
 
   // Money flows
   const [addMoney,        setAddMoney]        = useState(false);
@@ -1870,10 +2022,11 @@ function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
     setProcessing(true);
     setTimeout(() => {
       setProcessing(false);
-      if (p.kind==='service') setReceipt(buildReceipt(p.payload));
-      else if (p.kind==='tv')   setReceipt(buildTVReceipt(p.provider, p.smartCard, p.bouquet, p.price));
-      else if (p.kind==='drcs') setReceipt(buildDRCSReceipt(p.username, p.amount, p.note));
-      else if (p.kind==='bank') setReceipt(buildBankReceipt(p.accountNo, p.bankName, p.accountName, p.amount));
+      if (p.kind==='service')   setReceipt(buildReceipt(p.payload));
+      else if (p.kind==='tv')        setReceipt(buildTVReceipt(p.provider, p.smartCard, p.bouquet, p.price));
+      else if (p.kind==='education') setReceipt(buildEducationReceipt(p.body, p.regNo, p.examYear, p.amount));
+      else if (p.kind==='drcs')      setReceipt(buildDRCSReceipt(p.username, p.amount, p.note));
+      else if (p.kind==='bank')      setReceipt(buildBankReceipt(p.accountNo, p.bankName, p.accountName, p.amount));
     }, 1600);
   };
 
@@ -1901,6 +2054,19 @@ function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
               onBack={() => setTvProvider(null)}
               onProceed={(sc,bq,px) => { setTvProvider(null); setTvPicker(false);
                 openPin({ kind:'tv', provider:tvProvider.label, smartCard:sc, bouquet:bq, price:px }); }} />;
+
+  // Education flows
+  if (educationPicker && !educationBody)
+    return <EducationPickerScreen onBack={() => setEducationPicker(false)}
+              onSelect={(id,label) => setEducationBody({id,label})} />;
+  if (educationPicker && educationBody)
+    return <EducationFormScreen bodyId={educationBody.id} bodyLabel={educationBody.label}
+              onBack={() => setEducationBody(null)}
+              onProceed={(regNo,examYear,amount) => {
+                const b = educationBody;
+                setEducationBody(null); setEducationPicker(false);
+                openPin({ kind:'education', body:b.label, regNo, examYear, amount });
+              }} />;
 
   // Money flows
   if (addMoney) return <AddMoneyScreen onBack={() => setAddMoney(false)} onDone={() => setAddMoney(false)} />;
@@ -1963,6 +2129,7 @@ function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
             onShowReceipt={setReceipt}
             onOpenPicker={svc => setPicker(svc)}
             onOpenTVPicker={() => setTvPicker(true)}
+            onOpenEducationPicker={() => setEducationPicker(true)}
             onShowPin={() => setPinOpen(true)}
             onShowAddMoney={() => setAddMoney(true)}
             onShowTransfer={() => setTransferPicker(true)}

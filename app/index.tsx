@@ -391,10 +391,11 @@ const homeActions: HomeAction[] = [
 ];
 
 const homeServices: HomeAction[] = [
-  { label: 'Airtime', icon: 'phone-portrait-outline', tone: 'primary' },
-  { label: 'Data', icon: 'wifi-outline', tone: 'secondary' },
-  { label: 'Electricity', icon: 'flash-outline', tone: 'accent' },
-  { label: 'TV', icon: 'tv-outline', tone: 'primary' },
+  { label: 'Airtime',    icon: 'phone-portrait-outline', tone: 'primary'   },
+  { label: 'Data',       icon: 'wifi-outline',           tone: 'secondary' },
+  { label: 'Electricity',icon: 'flash-outline',          tone: 'accent'    },
+  { label: 'TV',         icon: 'tv-outline',             tone: 'primary'   },
+  { label: 'Education',  icon: 'school-outline',         tone: 'secondary' },
 ];
 
 const homeTabs: { label: HomeTab; icon: IconName }[] = [
@@ -463,6 +464,8 @@ type AFlow =
   | { kind: 'serviceForm';   service: string; network: string }
   | { kind: 'tvPicker' }
   | { kind: 'tvForm';        providerId: string; providerLabel: string }
+  | { kind: 'educationPicker' }
+  | { kind: 'educationForm';  bodyId: string; bodyLabel: string }
   | { kind: 'sendToDRCS' }
   | { kind: 'sendToBank' }
   | { kind: 'addMoney' }
@@ -494,6 +497,12 @@ const A_TV_BOUQUETS: Record<string,{name:string;price:string;naira:number}[]> = 
 };
 const A_AIRTIME_QUICK = ['₦50','₦100','₦200','₦500','₦1,000'];
 const A_BANKS = ['Access Bank','GTBank','First Bank','Zenith Bank','UBA','Fidelity Bank','Sterling Bank','Kuda Bank','OPay','PalmPay'];
+const A_EDUCATION_BODIES = [
+  { id:'waec',   label:'WAEC',   sub:'West African Examinations Council',      color:'#003087', tc:'#fff' },
+  { id:'jamb',   label:'JAMB',   sub:'Joint Admissions & Matriculation Board', color:'#2E7D32', tc:'#fff' },
+  { id:'neco',   label:'NECO',   sub:'National Examinations Council',          color:'#B71C1C', tc:'#fff' },
+  { id:'nabteb', label:'NABTEB', sub:'National Business & Technical Exams',    color:'#E65100', tc:'#fff' },
+];
 const A_RECENT_TXS = [
   { id:'1', title:'Airtime Top-up',    sub:'MTN  0812 345 6789', amt:'-₦500',   date:'Today, 10:42 AM',      icon:'phone-portrait-outline' as const },
   { id:'2', title:'Electricity Bill',  sub:'AEDC  0905 783 9231',amt:'-₦5,000', date:'Today, 08:15 AM',      icon:'flash-outline'           as const },
@@ -999,6 +1008,113 @@ function ATransferPickerScreen({ colors, onBack, onToDRCS, onToBank }: {
   );
 }
 
+function AEducationPickerScreen({ colors, onBack, onSelect }: {
+  colors: AColors; onBack: () => void;
+  onSelect: (id: string, label: string) => void;
+}) {
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <AHeader title="Select Exam Body" onBack={onBack} colors={colors} />
+      <ScrollView contentContainerStyle={{ padding: 20 }}>
+        {A_EDUCATION_BODIES.map(b => (
+          <Pressable key={b.id} onPress={() => onSelect(b.id, b.label)}
+            style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', backgroundColor:colors.card,
+              borderRadius:16, padding:16, marginBottom:12, borderWidth:1, borderColor:colors.border,
+              opacity:pressed?0.8:1 }]}>
+            <View style={{ width:44, height:44, borderRadius:12, backgroundColor:b.color,
+              alignItems:'center', justifyContent:'center', marginRight:14 }}>
+              <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:10, color:b.tc }}>{b.label}</Text>
+            </View>
+            <View style={{ flex:1 }}>
+              <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.grayBlack }}>{b.label}</Text>
+              <Text style={{ fontFamily:colors.fontBody, fontSize:12, color:colors.grayGray1, marginTop:2 }}>{b.sub}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.grayGray1} />
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
+
+function AEducationFormScreen({ bodyId, bodyLabel, colors, onBack, onProceed }: {
+  bodyId: string; bodyLabel: string; colors: AColors;
+  onBack: () => void;
+  onProceed: (regNo: string, examYear: string, amount: string) => void;
+}) {
+  const [regNo,    setRegNo]    = useState('');
+  const [examYear, setExamYear] = useState('2025');
+  const [amount,   setAmount]   = useState('');
+  const bodyMeta   = A_EDUCATION_BODIES.find(b => b.id === bodyId);
+  const canProceed = regNo.trim().length >= 6 && examYear.length === 4 && amount.length > 0;
+  const YEARS      = ['2023','2024','2025','2026'];
+  const inputSt    = {
+    fontFamily:colors.fontBody, fontSize:15, color:colors.grayBlack, borderWidth:1,
+    borderColor:colors.border, borderRadius:12, paddingHorizontal:14, paddingVertical:12,
+    backgroundColor:colors.card,
+  };
+  return (
+    <View style={{ flex:1, backgroundColor:colors.background }}>
+      <AHeader title={`${bodyLabel} Payment`} onBack={onBack} colors={colors} />
+      <ScrollView contentContainerStyle={{ padding:20 }} keyboardShouldPersistTaps="handled">
+        {/* Body badge */}
+        <View style={{ flexDirection:'row', alignItems:'center', backgroundColor:colors.card,
+          borderRadius:16, padding:16, borderWidth:1, borderColor:colors.border, marginBottom:20 }}>
+          <View style={{ width:44, height:44, borderRadius:12, backgroundColor:bodyMeta?.color??'#003087',
+            alignItems:'center', justifyContent:'center', marginRight:14 }}>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:10, color:bodyMeta?.tc??'#fff' }}>{bodyLabel}</Text>
+          </View>
+          <View style={{ flex:1 }}>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.grayBlack }}>{bodyLabel}</Text>
+            <Text style={{ fontFamily:colors.fontBody, fontSize:12, color:colors.grayGray1, marginTop:2 }}>
+              {bodyMeta?.sub ?? ''}
+            </Text>
+          </View>
+        </View>
+
+        <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>
+          Registration / Candidate Number
+        </Text>
+        <TextInput value={regNo} onChangeText={setRegNo}
+          placeholder="Enter reg / candidate number" placeholderTextColor={colors.grayGray1}
+          autoCapitalize="characters" maxLength={20} style={[inputSt, { marginBottom:18 }]} />
+
+        <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>
+          Exam Year
+        </Text>
+        <View style={{ flexDirection:'row', gap:10, marginBottom:18 }}>
+          {YEARS.map(y => (
+            <Pressable key={y} onPress={() => setExamYear(y)}
+              style={({ pressed }) => [{
+                flex:1, paddingVertical:12, borderRadius:12, alignItems:'center',
+                backgroundColor: examYear===y ? colors.primary : colors.card,
+                borderWidth:1, borderColor: examYear===y ? colors.primary : colors.border,
+                opacity: pressed?0.8:1,
+              }]}>
+              <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:14,
+                color: examYear===y ? colors.primaryForeground : colors.grayBlack }}>{y}</Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>
+          Amount (₦)
+        </Text>
+        <TextInput value={amount} onChangeText={t => setAmount(t.replace(/\D/g,''))}
+          placeholder="Enter amount" placeholderTextColor={colors.grayGray1}
+          keyboardType="numeric" style={[inputSt, { marginBottom:24 }]} />
+
+        <Pressable onPress={() => onProceed(regNo.trim(), examYear, amount)} disabled={!canProceed}
+          style={({ pressed }) => [{ backgroundColor: canProceed ? colors.primary : colors.grayGray4,
+            borderRadius:14, paddingVertical:15, alignItems:'center', opacity:pressed?0.85:1 }]}>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16,
+            color:colors.primaryForeground }}>Proceed</Text>
+        </Pressable>
+      </ScrollView>
+    </View>
+  );
+}
+
 // ─── A: Receipt builder ────────────────────────────────────────────────────────
 function buildAReceipt(flow: AFlow, extra: Record<string,string> = {}): AReceiptData {
   const ref = aTxRef(), ts = aNow();
@@ -1151,6 +1267,28 @@ function HomeScreen({
         const f = flow;
         showPin(() => showReceipt(buildAReceipt({ kind:'tvForm', providerId:f.providerId, providerLabel:f.providerLabel },
           { provider:f.providerLabel, smartCard:sc, bouquet:bq, price:px })));
+      }} />;
+
+  if (flow?.kind === 'educationPicker')
+    return <AEducationPickerScreen colors={colors} onBack={closeFlow}
+      onSelect={(id,label) => setFlow({ kind:'educationForm', bodyId:id, bodyLabel:label })} />;
+
+  if (flow?.kind === 'educationForm')
+    return <AEducationFormScreen bodyId={flow.bodyId} bodyLabel={flow.bodyLabel} colors={colors}
+      onBack={() => setFlow({ kind:'educationPicker' })}
+      onProceed={(regNo,examYear,amount) => {
+        const f = flow;
+        showPin(() => showReceipt({
+          status:'success', title:'Education Payment', amount:`₦${Number(amount).toLocaleString()}`,
+          rows:[
+            { label:'Exam Body',           value:f.bodyLabel },
+            { label:'Reg / Candidate No.', value:regNo },
+            { label:'Exam Year',           value:examYear },
+            { label:'Amount',              value:`₦${Number(amount).toLocaleString()}` },
+            { label:'Transaction No.',     value:aTxRef() },
+            { label:'Transaction Date',    value:aNow() },
+          ],
+        }));
       }} />;
 
   if (flow?.kind === 'sendToDRCS')
@@ -1372,6 +1510,8 @@ function HomeScreen({
                   openFlow({ kind: 'telecomPicker', service: service.label });
                 else if (service.label === 'TV')
                   openFlow({ kind: 'tvPicker' });
+                else if (service.label === 'Education')
+                  openFlow({ kind: 'educationPicker' });
                 else
                   showNotice(`${service.label} service selected.`);
               }}
