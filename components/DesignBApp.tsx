@@ -103,36 +103,168 @@ const TV_BOUQUETS: Record<string, { name: string; price: string; naira: number }
 };
 
 // ─── Data plans per network ──────────────────────────────────────────────────
-const DATA_PLANS: Record<string, { size: string; validity: string; price: string; naira: number }[]> = {
-  MTN: [
-    { size: '500MB', validity: '1 Day',   price: '₦200',   naira: 200   },
-    { size: '1GB',   validity: '7 Days',  price: '₦500',   naira: 500   },
-    { size: '2GB',   validity: '30 Days', price: '₦1,000', naira: 1000  },
-    { size: '5GB',   validity: '30 Days', price: '₦2,000', naira: 2000  },
-    { size: '10GB',  validity: '30 Days', price: '₦3,000', naira: 3000  },
-  ],
-  Airtel: [
-    { size: '300MB', validity: '1 Day',   price: '₦200',   naira: 200   },
-    { size: '1GB',   validity: '7 Days',  price: '₦500',   naira: 500   },
-    { size: '3GB',   validity: '30 Days', price: '₦1,000', naira: 1000  },
-    { size: '6GB',   validity: '30 Days', price: '₦2,000', naira: 2000  },
-    { size: '15GB',  validity: '30 Days', price: '₦3,000', naira: 3000  },
-  ],
-  Glo: [
-    { size: '1GB',   validity: '1 Day',   price: '₦300',   naira: 300   },
-    { size: '2GB',   validity: '7 Days',  price: '₦500',   naira: 500   },
-    { size: '5GB',   validity: '30 Days', price: '₦1,500', naira: 1500  },
-    { size: '10GB',  validity: '30 Days', price: '₦2,500', naira: 2500  },
-    { size: '20GB',  validity: '30 Days', price: '₦4,000', naira: 4000  },
-  ],
-  '9Mobile': [
-    { size: '500MB', validity: '1 Day',   price: '₦150',   naira: 150   },
-    { size: '1.5GB', validity: '7 Days',  price: '₦500',   naira: 500   },
-    { size: '3GB',   validity: '30 Days', price: '₦1,000', naira: 1000  },
-    { size: '7.5GB', validity: '30 Days', price: '₦2,000', naira: 2000  },
-    { size: '12GB',  validity: '30 Days', price: '₦3,000', naira: 3000  },
-  ],
+type DataPlan = { size: string; validity: string; price: string; naira: number };
+type DataCategory = 'Daily' | 'Weekly' | 'Monthly' | 'SMS' | 'Gift' | 'Corporate' | 'SM2';
+const DATA_CATEGORIES: DataCategory[] = ['Daily','Weekly','Monthly','SMS','Gift','Corporate','SM2'];
+
+const DATA_PLANS: Record<string, Record<DataCategory, DataPlan[]>> = {
+  MTN: {
+    Daily:     [
+      { size:'500MB', validity:'1 Day',  price:'₦200',   naira:200  },
+      { size:'1GB',   validity:'1 Day',  price:'₦350',   naira:350  },
+      { size:'2GB',   validity:'1 Day',  price:'₦500',   naira:500  },
+    ],
+    Weekly:    [
+      { size:'1GB',   validity:'7 Days', price:'₦500',   naira:500  },
+      { size:'3GB',   validity:'7 Days', price:'₦1,000', naira:1000 },
+      { size:'5GB',   validity:'7 Days', price:'₦1,500', naira:1500 },
+    ],
+    Monthly:   [
+      { size:'5GB',   validity:'30 Days',price:'₦2,000', naira:2000 },
+      { size:'10GB',  validity:'30 Days',price:'₦3,000', naira:3000 },
+      { size:'20GB',  validity:'30 Days',price:'₦5,000', naira:5000 },
+      { size:'50GB',  validity:'30 Days',price:'₦10,000',naira:10000},
+    ],
+    SMS:       [
+      { size:'50 SMS',  validity:'1 Day',  price:'₦10',  naira:10  },
+      { size:'100 SMS', validity:'7 Days', price:'₦20',  naira:20  },
+      { size:'250 SMS', validity:'30 Days',price:'₦50',  naira:50  },
+    ],
+    Gift:      [
+      { size:'1GB',   validity:'7 Days', price:'₦500',   naira:500  },
+      { size:'2GB',   validity:'30 Days',price:'₦1,000', naira:1000 },
+      { size:'5GB',   validity:'30 Days',price:'₦2,000', naira:2000 },
+    ],
+    Corporate: [
+      { size:'5GB',   validity:'30 Days',price:'₦1,800', naira:1800 },
+      { size:'10GB',  validity:'30 Days',price:'₦2,800', naira:2800 },
+      { size:'20GB',  validity:'30 Days',price:'₦4,500', naira:4500 },
+    ],
+    SM2:       [
+      { size:'200MB', validity:'1 Day',  price:'₦100',   naira:100  },
+      { size:'500MB', validity:'7 Days', price:'₦200',   naira:200  },
+      { size:'1GB',   validity:'30 Days',price:'₦350',   naira:350  },
+    ],
+  },
+  Airtel: {
+    Daily:     [
+      { size:'300MB', validity:'1 Day',  price:'₦200',   naira:200  },
+      { size:'1GB',   validity:'1 Day',  price:'₦350',   naira:350  },
+      { size:'2GB',   validity:'1 Day',  price:'₦500',   naira:500  },
+    ],
+    Weekly:    [
+      { size:'1GB',   validity:'7 Days', price:'₦500',   naira:500  },
+      { size:'3GB',   validity:'7 Days', price:'₦1,000', naira:1000 },
+      { size:'6GB',   validity:'7 Days', price:'₦1,500', naira:1500 },
+    ],
+    Monthly:   [
+      { size:'6GB',   validity:'30 Days',price:'₦2,000', naira:2000 },
+      { size:'15GB',  validity:'30 Days',price:'₦3,000', naira:3000 },
+      { size:'30GB',  validity:'30 Days',price:'₦5,000', naira:5000 },
+    ],
+    SMS:       [
+      { size:'50 SMS',  validity:'1 Day',  price:'₦10',  naira:10  },
+      { size:'100 SMS', validity:'7 Days', price:'₦25',  naira:25  },
+      { size:'300 SMS', validity:'30 Days',price:'₦55',  naira:55  },
+    ],
+    Gift:      [
+      { size:'1GB',   validity:'7 Days', price:'₦500',   naira:500  },
+      { size:'3GB',   validity:'30 Days',price:'₦1,000', naira:1000 },
+      { size:'6GB',   validity:'30 Days',price:'₦2,000', naira:2000 },
+    ],
+    Corporate: [
+      { size:'6GB',   validity:'30 Days',price:'₦1,800', naira:1800 },
+      { size:'15GB',  validity:'30 Days',price:'₦2,800', naira:2800 },
+      { size:'30GB',  validity:'30 Days',price:'₦4,500', naira:4500 },
+    ],
+    SM2:       [
+      { size:'200MB', validity:'1 Day',  price:'₦100',   naira:100  },
+      { size:'500MB', validity:'7 Days', price:'₦200',   naira:200  },
+      { size:'1GB',   validity:'30 Days',price:'₦400',   naira:400  },
+    ],
+  },
+  Glo: {
+    Daily:     [
+      { size:'1GB',   validity:'1 Day',  price:'₦300',   naira:300  },
+      { size:'2GB',   validity:'1 Day',  price:'₦500',   naira:500  },
+      { size:'3GB',   validity:'1 Day',  price:'₦700',   naira:700  },
+    ],
+    Weekly:    [
+      { size:'2GB',   validity:'7 Days', price:'₦500',   naira:500  },
+      { size:'5GB',   validity:'7 Days', price:'₦1,000', naira:1000 },
+      { size:'10GB',  validity:'7 Days', price:'₦2,000', naira:2000 },
+    ],
+    Monthly:   [
+      { size:'5GB',   validity:'30 Days',price:'₦1,500', naira:1500 },
+      { size:'10GB',  validity:'30 Days',price:'₦2,500', naira:2500 },
+      { size:'20GB',  validity:'30 Days',price:'₦4,000', naira:4000 },
+      { size:'50GB',  validity:'30 Days',price:'₦8,000', naira:8000 },
+    ],
+    SMS:       [
+      { size:'50 SMS',  validity:'1 Day',  price:'₦10',  naira:10  },
+      { size:'150 SMS', validity:'7 Days', price:'₦25',  naira:25  },
+      { size:'400 SMS', validity:'30 Days',price:'₦55',  naira:55  },
+    ],
+    Gift:      [
+      { size:'2GB',   validity:'7 Days', price:'₦500',   naira:500  },
+      { size:'5GB',   validity:'30 Days',price:'₦1,500', naira:1500 },
+      { size:'10GB',  validity:'30 Days',price:'₦2,500', naira:2500 },
+    ],
+    Corporate: [
+      { size:'5GB',   validity:'30 Days',price:'₦1,400', naira:1400 },
+      { size:'10GB',  validity:'30 Days',price:'₦2,200', naira:2200 },
+      { size:'20GB',  validity:'30 Days',price:'₦3,800', naira:3800 },
+    ],
+    SM2:       [
+      { size:'200MB', validity:'1 Day',  price:'₦100',   naira:100  },
+      { size:'500MB', validity:'7 Days', price:'₦200',   naira:200  },
+      { size:'1.5GB', validity:'30 Days',price:'₦400',   naira:400  },
+    ],
+  },
+  '9Mobile': {
+    Daily:     [
+      { size:'500MB', validity:'1 Day',  price:'₦150',   naira:150  },
+      { size:'1GB',   validity:'1 Day',  price:'₦300',   naira:300  },
+      { size:'2GB',   validity:'1 Day',  price:'₦500',   naira:500  },
+    ],
+    Weekly:    [
+      { size:'1.5GB', validity:'7 Days', price:'₦500',   naira:500  },
+      { size:'3GB',   validity:'7 Days', price:'₦1,000', naira:1000 },
+      { size:'5GB',   validity:'7 Days', price:'₦1,500', naira:1500 },
+    ],
+    Monthly:   [
+      { size:'3GB',   validity:'30 Days',price:'₦1,000', naira:1000 },
+      { size:'7.5GB', validity:'30 Days',price:'₦2,000', naira:2000 },
+      { size:'12GB',  validity:'30 Days',price:'₦3,000', naira:3000 },
+    ],
+    SMS:       [
+      { size:'50 SMS',  validity:'1 Day',  price:'₦10',  naira:10  },
+      { size:'100 SMS', validity:'7 Days', price:'₦20',  naira:20  },
+      { size:'200 SMS', validity:'30 Days',price:'₦45',  naira:45  },
+    ],
+    Gift:      [
+      { size:'1.5GB', validity:'7 Days', price:'₦500',   naira:500  },
+      { size:'3GB',   validity:'30 Days',price:'₦1,000', naira:1000 },
+      { size:'7.5GB', validity:'30 Days',price:'₦2,000', naira:2000 },
+    ],
+    Corporate: [
+      { size:'3GB',   validity:'30 Days',price:'₦900',   naira:900  },
+      { size:'7.5GB', validity:'30 Days',price:'₦1,800', naira:1800 },
+      { size:'12GB',  validity:'30 Days',price:'₦2,700', naira:2700 },
+    ],
+    SM2:       [
+      { size:'150MB', validity:'1 Day',  price:'₦80',    naira:80   },
+      { size:'400MB', validity:'7 Days', price:'₦180',   naira:180  },
+      { size:'1GB',   validity:'30 Days',price:'₦350',   naira:350  },
+    ],
+  },
 };
+
+/** Flatten all categories of a network into one array (for receipt lookups) */
+function flatDataPlans(network: string): DataPlan[] {
+  const net = DATA_PLANS[network] ?? DATA_PLANS['MTN'];
+  return DATA_CATEGORIES.flatMap(cat => net[cat]);
+}
 
 
 const AIRTIME_QUICK = ['₦50', '₦100', '₦200', '₦500', '₦1,000'];
@@ -733,10 +865,11 @@ function ServiceFormScreen({
   onProceed: (payload: FormPayload) => void;
 }) {
   const ins = useSafeAreaInsets();
-  const [phone,      setPhone]      = useState('');
-  const [amount,     setAmount]     = useState('');
-  const [plan,       setPlan]       = useState<string | null>(null);
-  const [meterType,  setMeterType]  = useState<'Prepaid'|'Postpaid'>('Prepaid');
+  const [phone,        setPhone]        = useState('');
+  const [amount,       setAmount]       = useState('');
+  const [plan,         setPlan]         = useState<string | null>(null);
+  const [planCategory, setPlanCategory] = useState<DataCategory>('Daily');
+  const [meterType,    setMeterType]    = useState<'Prepaid'|'Postpaid'>('Prepaid');
   const [recentBeneficiaries, setRecentBeneficiaries] = useState<Beneficiary[]>([]);
 
   const isAirtime     = serviceLabel === 'Airtime';
@@ -744,7 +877,8 @@ function ServiceFormScreen({
   const isElectricity = serviceLabel === 'Electricity';
   const showBeneficiaries = isAirtime || isData;
 
-  const plans = DATA_PLANS[network] ?? DATA_PLANS['MTN'];
+  const networkPlans = DATA_PLANS[network] ?? DATA_PLANS['MTN'];
+  const plans        = networkPlans[planCategory];
 
   // network badge/logo (same logic as TelecomPicker)
   const telecomMeta = TELECOMS.find(t => t.label === network);
@@ -1017,33 +1151,61 @@ function ServiceFormScreen({
 
           {/* DATA: plan list */}
           {isData && (
-            <Row label="Select Data Plan">
-              <>
+            <View style={{ marginBottom: 18 }}>
+              <Text style={{ fontFamily: C.bold, fontSize: 13, color: C.subtext, marginBottom: 10 }}>
+                Select Data Plan
+              </Text>
+
+              {/* Category tabs */}
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}
+                style={{ marginBottom: 14 }} contentContainerStyle={{ gap: 8, paddingRight: 4 }}>
+                {DATA_CATEGORIES.map(cat => {
+                  const active = planCategory === cat;
+                  return (
+                    <Pressable key={cat} onPress={() => { Haptics.selectionAsync(); setPlanCategory(cat); setPlan(null); }}
+                      style={({ pressed }) => [{
+                        paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
+                        backgroundColor: active ? C.primaryDark : C.inputBg,
+                        borderWidth: active ? 0 : 1, borderColor: C.border,
+                        opacity: pressed ? 0.75 : 1,
+                      }]}>
+                      <Text style={{ fontFamily: C.bold, fontSize: 12,
+                        color: active ? '#fff' : C.subtext }}>{cat}</Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+
+              {/* 3-column grid */}
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {plans.map(p => {
                   const key = `${p.size}/${p.validity}`;
                   const active = plan === key;
                   return (
                     <Pressable key={key} onPress={() => { Haptics.selectionAsync(); setPlan(key); }}
                       style={({ pressed }) => [{
-                        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-                        backgroundColor: active ? '#eaf0ff' : C.inputBg,
-                        borderRadius: 14, padding: 16, marginBottom: 10,
-                        borderWidth: active ? 1.5 : 0, borderColor: C.primary,
+                        width: '31%', borderRadius: 14, padding: 12, alignItems: 'center',
+                        backgroundColor: active ? C.primaryDark : C.inputBg,
+                        borderWidth: active ? 0 : 1, borderColor: C.border,
                         opacity: pressed ? 0.8 : 1,
                       }]}>
-                      <View>
-                        <Text style={{ fontFamily: C.bold, fontSize: 16, color: C.text }}>{p.size}</Text>
-                        <Text style={{ fontFamily: C.regular, fontSize: 12, color: C.subtext, marginTop: 2 }}>{p.validity}</Text>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        <Text style={{ fontFamily: C.bold, fontSize: 16, color: C.primary }}>{p.price}</Text>
-                        {active && <Ionicons name="checkmark-circle" size={20} color={C.primary} />}
+                      <Text style={{ fontFamily: C.bold, fontSize: 15,
+                        color: active ? '#fff' : C.text, textAlign: 'center' }}>{p.size}</Text>
+                      <Text style={{ fontFamily: C.regular, fontSize: 10, marginTop: 3,
+                        color: active ? 'rgba(255,255,255,0.75)' : C.subtext, textAlign: 'center' }}>
+                        {p.validity}
+                      </Text>
+                      <View style={{ marginTop: 8, paddingHorizontal: 8, paddingVertical: 4,
+                        backgroundColor: active ? 'rgba(255,255,255,0.18)' : C.primary + '18',
+                        borderRadius: 8 }}>
+                        <Text style={{ fontFamily: C.bold, fontSize: 12,
+                          color: active ? '#fff' : C.primary }}>{p.price}</Text>
                       </View>
                     </Pressable>
                   );
                 })}
-              </>
-            </Row>
+              </View>
+            </View>
           )}
 
           {/* ELECTRICITY: amount + meter type */}
@@ -2134,7 +2296,7 @@ function buildReceipt(tx: FormPayload): ReceiptData {
   }
   if (tx.serviceLabel === 'Data') {
     const [size, validity] = (tx.plan ?? '').split('/');
-    const planMeta = (DATA_PLANS[tx.network] ?? DATA_PLANS['MTN']).find(
+    const planMeta = flatDataPlans(tx.network).find(
       p => `${p.size}/${p.validity}` === tx.plan
     );
     return {
