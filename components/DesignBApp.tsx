@@ -607,19 +607,37 @@ function TelecomPicker({
   const ins = useSafeAreaInsets();
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <StatusBar barStyle="dark-content" />
-      {/* Header */}
-      <View style={{
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-        paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 44), paddingHorizontal: 20, paddingBottom: 16,
-      }}>
-        <Pressable onPress={onBack} style={{ position: 'absolute', left: 20 }}>
-          <Ionicons name="chevron-back" size={24} color={C.primary} />
-        </Pressable>
-        <Text style={{ fontFamily: C.bold, fontSize: 18, color: C.text }}>
-          {serviceLabel === 'Electricity' ? 'Select DisCo' : `Select Network — ${serviceLabel}`}
-        </Text>
-      </View>
+      <StatusBar barStyle={serviceLabel === 'Electricity' ? 'dark-content' : 'light-content'} />
+      {/* Header — dark blue with hex watermark for Airtime/Data; plain for Electricity */}
+      {serviceLabel !== 'Electricity' ? (
+        <View style={{
+          backgroundColor: C.primaryDark,
+          paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 44),
+          paddingBottom: 24, paddingHorizontal: 20,
+        }}>
+          <Image source={require('../assets/images/design-b/logo-hex.png')}
+            style={{ position: 'absolute', right: 16, top: ins.top + 20, width: 140, height: 140, opacity: 0.1 }}
+            resizeMode="contain" />
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Pressable onPress={onBack} hitSlop={12}>
+              <Ionicons name="chevron-back" size={24} color="#fff" />
+            </Pressable>
+            <Text style={{ fontFamily: C.bold, fontSize: 18, color: '#fff', marginLeft: 8 }}>
+              {`Select Network — ${serviceLabel}`}
+            </Text>
+          </View>
+        </View>
+      ) : (
+        <View style={{
+          flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+          paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 44), paddingHorizontal: 20, paddingBottom: 16,
+        }}>
+          <Pressable onPress={onBack} style={{ position: 'absolute', left: 20 }}>
+            <Ionicons name="chevron-back" size={24} color={C.primary} />
+          </Pressable>
+          <Text style={{ fontFamily: C.bold, fontSize: 18, color: C.text }}>Select DisCo</Text>
+        </View>
+      )}
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8 }}>
         {serviceLabel === 'Electricity'
@@ -791,12 +809,17 @@ function ServiceFormScreen({
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
       <StatusBar barStyle="light-content" backgroundColor={C.primary} />
 
-      {/* Blue header */}
+      {/* Blue header — primaryDark + hex watermark for Airtime/Data */}
       <View style={{
-        backgroundColor: C.primary,
+        backgroundColor: isAirtime || isData ? C.primaryDark : C.primary,
         paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 44),
         paddingBottom: 36, paddingHorizontal: 20,
       }}>
+        {(isAirtime || isData) && (
+          <Image source={require('../assets/images/design-b/logo-hex.png')}
+            style={{ position: 'absolute', right: 16, top: ins.top + 20, width: 140, height: 140, opacity: 0.1 }}
+            resizeMode="contain" />
+        )}
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
           <Pressable onPress={onBack} hitSlop={12}>
             <Ionicons name="chevron-back" size={24} color="#fff" />
