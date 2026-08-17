@@ -448,6 +448,609 @@ const promoSlides: PromoSlide[] = [
   },
 ];
 
+// ─── A: Flow types & shared data ──────────────────────────────────────────────
+interface AReceiptData {
+  status: 'success' | 'failed';
+  title: string;
+  amount: string;
+  rows: { label: string; value: string }[];
+}
+
+type AFlow =
+  | null
+  | { kind: 'telecomPicker'; service: string }
+  | { kind: 'serviceForm';   service: string; network: string }
+  | { kind: 'tvPicker' }
+  | { kind: 'tvForm';        providerId: string; providerLabel: string }
+  | { kind: 'sendToDRCS' }
+  | { kind: 'sendToBank' }
+  | { kind: 'addMoney' }
+  | { kind: 'pin';    onConfirm: () => void }
+  | { kind: 'receipt'; data: AReceiptData };
+
+const A_TELECOMS = [
+  { id:'mtn',     label:'MTN',    color:'#ffcc00', tc:'#000' },
+  { id:'airtel',  label:'Airtel', color:'#e8001c', tc:'#fff' },
+  { id:'glo',     label:'Glo',    color:'#0a8234', tc:'#fff' },
+  { id:'9mobile', label:'9Mobile',color:'#006b50', tc:'#fff' },
+];
+const A_DISCOS = ['AEDC','IKEDC','EKEDC','KANO Electricity'];
+const A_DATA_PLANS: Record<string,{size:string;validity:string;price:string;naira:number}[]> = {
+  MTN:     [{size:'500MB',validity:'1 Day',price:'₦200',naira:200},{size:'1GB',validity:'7 Days',price:'₦500',naira:500},{size:'2GB',validity:'30 Days',price:'₦1,000',naira:1000},{size:'5GB',validity:'30 Days',price:'₦2,000',naira:2000},{size:'10GB',validity:'30 Days',price:'₦3,000',naira:3000}],
+  Airtel:  [{size:'300MB',validity:'1 Day',price:'₦200',naira:200},{size:'1GB',validity:'7 Days',price:'₦500',naira:500},{size:'3GB',validity:'30 Days',price:'₦1,000',naira:1000},{size:'6GB',validity:'30 Days',price:'₦2,000',naira:2000},{size:'15GB',validity:'30 Days',price:'₦3,000',naira:3000}],
+  Glo:     [{size:'1GB',validity:'1 Day',price:'₦300',naira:300},{size:'2GB',validity:'7 Days',price:'₦500',naira:500},{size:'5GB',validity:'30 Days',price:'₦1,500',naira:1500},{size:'10GB',validity:'30 Days',price:'₦2,500',naira:2500},{size:'20GB',validity:'30 Days',price:'₦4,000',naira:4000}],
+  '9Mobile':[{size:'500MB',validity:'1 Day',price:'₦150',naira:150},{size:'1.5GB',validity:'7 Days',price:'₦500',naira:500},{size:'3GB',validity:'30 Days',price:'₦1,000',naira:1000},{size:'7.5GB',validity:'30 Days',price:'₦2,000',naira:2000},{size:'12GB',validity:'30 Days',price:'₦3,000',naira:3000}],
+};
+const A_TV_PROVIDERS = [
+  { id:'dstv',      label:'DSTV',      color:'#0065BD', tc:'#fff' },
+  { id:'gotv',      label:'GOTV',      color:'#E8001C', tc:'#fff' },
+  { id:'startimes', label:'StarTimes', color:'#D4111E', tc:'#fff' },
+];
+const A_TV_BOUQUETS: Record<string,{name:string;price:string;naira:number}[]> = {
+  dstv:      [{name:'Padi',price:'₦2,500',naira:2500},{name:'Yanga',price:'₦3,500',naira:3500},{name:'Confam',price:'₦6,200',naira:6200},{name:'Compact',price:'₦10,500',naira:10500},{name:'Premium',price:'₦29,500',naira:29500}],
+  gotv:      [{name:'GOTV Lite',price:'₦410',naira:410},{name:'GOTV Smallie',price:'₦1,575',naira:1575},{name:'GOTV Jolli',price:'₦2,460',naira:2460},{name:'GOTV Jinja',price:'₦3,300',naira:3300},{name:'GOTV Max',price:'₦4,850',naira:4850}],
+  startimes: [{name:'Nova',price:'₦1,700',naira:1700},{name:'Basic',price:'₦2,200',naira:2200},{name:'Smart',price:'₦2,800',naira:2800},{name:'Classic',price:'₦2,500',naira:2500},{name:'Super',price:'₦4,200',naira:4200}],
+};
+const A_AIRTIME_QUICK = ['₦50','₦100','₦200','₦500','₦1,000'];
+const A_BANKS = ['Access Bank','GTBank','First Bank','Zenith Bank','UBA','Fidelity Bank','Sterling Bank','Kuda Bank','OPay','PalmPay'];
+const A_RECENT_TXS = [
+  { id:'1', title:'Airtime Top-up',    sub:'MTN  0812 345 6789', amt:'-₦500',   date:'Today, 10:42 AM',      icon:'phone-portrait-outline' as const },
+  { id:'2', title:'Electricity Bill',  sub:'AEDC  0905 783 9231',amt:'-₦5,000', date:'Today, 08:15 AM',      icon:'flash-outline'           as const },
+  { id:'3', title:'Data Bundle',       sub:'Glo  0812 345 6789', amt:'-₦1,000', date:'Yesterday, 03:30 PM',  icon:'wifi-outline'            as const },
+  { id:'4', title:'DSTV Subscription', sub:'SmartCard: 9012345', amt:'-₦10,500',date:'Jan 28, 2026',          icon:'tv-outline'              as const },
+];
+
+function aTxRef() { return Math.floor(Math.random()*9e15).toString().slice(0,16); }
+function aNow() {
+  const n = new Date();
+  return n.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})
+    + '  ' + n.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+// ─── A: Sub-screen components ─────────────────────────────────────────────────
+type AColors = ReturnType<typeof useColors>;
+
+function AHeader({ title, onBack, colors }: { title:string; onBack:()=>void; colors:AColors }) {
+  const ins = useSafeAreaInsets();
+  return (
+    <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center',
+      paddingTop:ins.top+(Platform.OS==='web'?67:14), paddingHorizontal:20, paddingBottom:16,
+      backgroundColor:colors.card, borderBottomWidth:1, borderBottomColor:colors.border }}>
+      <Pressable onPress={onBack} style={{ position:'absolute', left:20 }} hitSlop={12}>
+        <Ionicons name="chevron-back" size={24} color={colors.primary} />
+      </Pressable>
+      <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:17, color:colors.grayBlack }}>{title}</Text>
+    </View>
+  );
+}
+
+function ATelecomPickerScreen({ service, colors, onBack, onSelect }: {
+  service:string; colors:AColors; onBack:()=>void; onSelect:(network:string)=>void;
+}) {
+  const networks = service==='Electricity' ? A_DISCOS.map(d=>({id:d,label:d,color:'#1e3a8a',tc:'#fff'})) : A_TELECOMS;
+  return (
+    <View style={{ flex:1, backgroundColor:colors.background }}>
+      <AHeader title={`Select Network — ${service}`} onBack={onBack} colors={colors} />
+      <ScrollView contentContainerStyle={{ padding:20 }}>
+        {networks.map(n => (
+          <Pressable key={n.id} onPress={() => onSelect(n.label)}
+            style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', backgroundColor:colors.card,
+              borderRadius:16, padding:16, marginBottom:12, borderWidth:1, borderColor:colors.border,
+              opacity:pressed?0.8:1 }]}>
+            <View style={{ width:44, height:44, borderRadius:22, backgroundColor:n.color,
+              alignItems:'center', justifyContent:'center', marginRight:14 }}>
+              <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:10, color:n.tc }}>{n.label.slice(0,4)}</Text>
+            </View>
+            <Text style={{ flex:1, fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.grayBlack }}>{n.label}</Text>
+            <Ionicons name="chevron-forward" size={18} color={colors.grayGray1} />
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
+
+function AServiceFormScreen({ service, network, colors, onBack, onProceed }: {
+  service:string; network:string; colors:AColors;
+  onBack:()=>void;
+  onProceed:(data:{phone:string;amount:string;plan?:string;meterType?:string})=>void;
+}) {
+  const [phone,    setPhone]    = useState('');
+  const [amount,   setAmount]   = useState('');
+  const [plan,     setPlan]     = useState<string|null>(null);
+  const [meterType,setMeterType]= useState<'Prepaid'|'Postpaid'>('Prepaid');
+  const isAirtime = service==='Airtime', isData=service==='Data', isElec=service==='Electricity';
+  const plans = A_DATA_PLANS[network] ?? A_DATA_PLANS['MTN'];
+  const canGo = isData ? phone.length>=11&&!!plan : phone.length>=(isElec?11:11)&&amount.length>0;
+  const inp:object = { backgroundColor:colors.background, borderRadius:12, height:50, paddingHorizontal:14,
+    fontFamily:colors.fontBody, fontSize:15, color:colors.grayBlack, borderWidth:1, borderColor:colors.border };
+  return (
+    <KeyboardAwareScrollViewCompat style={{ flex:1, backgroundColor:colors.background }}>
+      <AHeader title={`${network} ${service}`} onBack={onBack} colors={colors} />
+      <View style={{ padding:20, gap:16 }}>
+        <View>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>
+            {isElec?'Meter Number':'Phone Number'}
+          </Text>
+          <TextInput value={phone} onChangeText={setPhone}
+            placeholder={isElec?'Enter meter number':'080 XXXX XXXX'}
+            placeholderTextColor={colors.grayGray1} keyboardType={isElec?'numeric':'phone-pad'}
+            maxLength={isElec?13:11} style={inp} />
+        </View>
+        {isAirtime && (
+          <View>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>Amount</Text>
+            <View style={{ flexDirection:'row', flexWrap:'wrap', gap:8, marginBottom:10 }}>
+              {A_AIRTIME_QUICK.map(q => {
+                const raw=q.replace('₦','').replace(',',''); const active=amount===raw;
+                return (
+                  <Pressable key={q} onPress={() => setAmount(raw)}
+                    style={({ pressed }) => [{ paddingHorizontal:14, paddingVertical:9, borderRadius:20,
+                      backgroundColor:active?colors.primary:colors.card, borderWidth:1, borderColor:colors.primary,
+                      opacity:pressed?0.75:1 }]}>
+                    <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:active?colors.primaryForeground:colors.primary }}>{q}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <TextInput value={amount} onChangeText={t=>setAmount(t.replace(/\D/g,''))}
+              placeholder="Or enter custom amount (₦)" placeholderTextColor={colors.grayGray1}
+              keyboardType="numeric" style={inp} />
+          </View>
+        )}
+        {isData && (
+          <View>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>Select Plan</Text>
+            {plans.map(p => {
+              const key=`${p.size}/${p.validity}`, active=plan===key;
+              return (
+                <Pressable key={key} onPress={() => setPlan(key)}
+                  style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', justifyContent:'space-between',
+                    backgroundColor:active?colors.brandPrimaryLight:colors.card, borderRadius:12, padding:14, marginBottom:8,
+                    borderWidth:active?1.5:1, borderColor:active?colors.primary:colors.border, opacity:pressed?0.8:1 }]}>
+                  <View>
+                    <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.grayBlack }}>{p.size}</Text>
+                    <Text style={{ fontFamily:colors.fontBody, fontSize:12, color:colors.grayGray1 }}>{p.validity}</Text>
+                  </View>
+                  <View style={{ flexDirection:'row', alignItems:'center', gap:8 }}>
+                    <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.primary }}>{p.price}</Text>
+                    {active && <Ionicons name="checkmark-circle" size={18} color={colors.primary} />}
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
+        {isElec && (
+          <>
+            <View>
+              <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>Amount (₦)</Text>
+              <TextInput value={amount} onChangeText={t=>setAmount(t.replace(/\D/g,''))}
+                placeholder="Enter amount" placeholderTextColor={colors.grayGray1} keyboardType="numeric" style={inp} />
+            </View>
+            <View>
+              <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>Meter Type</Text>
+              <View style={{ flexDirection:'row', gap:12 }}>
+                {(['Prepaid','Postpaid'] as const).map(mt => (
+                  <Pressable key={mt} onPress={() => setMeterType(mt)}
+                    style={[{ flex:1, paddingVertical:13, borderRadius:12, alignItems:'center',
+                      backgroundColor:meterType===mt?colors.primary:colors.card,
+                      borderWidth:1, borderColor:colors.primary }]}>
+                    <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:14,
+                      color:meterType===mt?colors.primaryForeground:colors.primary }}>{mt}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          </>
+        )}
+        <Pressable onPress={() => { if(canGo) onProceed({phone,amount,plan:plan??undefined,meterType}); }}
+          style={({ pressed }) => [{ backgroundColor:canGo?colors.primary:colors.grayGray4,
+            borderRadius:26, minHeight:52, alignItems:'center', justifyContent:'center',
+            opacity:pressed?0.82:1 }]}>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Proceed</Text>
+        </Pressable>
+      </View>
+    </KeyboardAwareScrollViewCompat>
+  );
+}
+
+function ATVPickerScreen({ colors, onBack, onSelect }: {
+  colors:AColors; onBack:()=>void; onSelect:(id:string,label:string)=>void;
+}) {
+  return (
+    <View style={{ flex:1, backgroundColor:colors.background }}>
+      <AHeader title="Cable TV Subscription" onBack={onBack} colors={colors} />
+      <ScrollView contentContainerStyle={{ padding:20 }}>
+        {A_TV_PROVIDERS.map(p => (
+          <Pressable key={p.id} onPress={() => onSelect(p.id, p.label)}
+            style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', backgroundColor:colors.card,
+              borderRadius:16, padding:16, marginBottom:12, borderWidth:1, borderColor:colors.border,
+              opacity:pressed?0.8:1 }]}>
+            <View style={{ width:44, height:44, borderRadius:22, backgroundColor:p.color,
+              alignItems:'center', justifyContent:'center', marginRight:14 }}>
+              <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:10, color:p.tc }}>{p.label.slice(0,4)}</Text>
+            </View>
+            <Text style={{ flex:1, fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.grayBlack }}>{p.label}</Text>
+            <Ionicons name="chevron-forward" size={18} color={colors.grayGray1} />
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
+
+function ATVFormScreen({ providerId, providerLabel, colors, onBack, onProceed }: {
+  providerId:string; providerLabel:string; colors:AColors;
+  onBack:()=>void; onProceed:(sc:string,bq:string,px:string)=>void;
+}) {
+  const [smartCard,  setSmartCard] = useState('');
+  const [bouquet,    setBouquet]   = useState<string|null>(null);
+  const [bouquetPx,  setBouquetPx] = useState('');
+  const plans = A_TV_BOUQUETS[providerId] ?? A_TV_BOUQUETS['gotv'];
+  const inp:object = { backgroundColor:colors.background, borderRadius:12, height:50, paddingHorizontal:14,
+    fontFamily:colors.fontBody, fontSize:15, color:colors.grayBlack, borderWidth:1, borderColor:colors.border };
+  return (
+    <KeyboardAwareScrollViewCompat style={{ flex:1, backgroundColor:colors.background }}>
+      <AHeader title={`${providerLabel} Subscription`} onBack={onBack} colors={colors} />
+      <View style={{ padding:20, gap:16 }}>
+        <View>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>Smart Card / IUC Number</Text>
+          <TextInput value={smartCard} onChangeText={setSmartCard} placeholder="Enter smart card number"
+            placeholderTextColor={colors.grayGray1} keyboardType="numeric" maxLength={12} style={inp} />
+        </View>
+        <View>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>Select Bouquet</Text>
+          {plans.map(p => {
+            const active=bouquet===p.name;
+            return (
+              <Pressable key={p.name} onPress={() => { setBouquet(p.name); setBouquetPx(p.price); }}
+                style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', justifyContent:'space-between',
+                  backgroundColor:active?colors.brandPrimaryLight:colors.card, borderRadius:12, padding:14, marginBottom:8,
+                  borderWidth:active?1.5:1, borderColor:active?colors.primary:colors.border, opacity:pressed?0.8:1 }]}>
+                <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.grayBlack }}>{p.name}</Text>
+                <View style={{ flexDirection:'row', alignItems:'center', gap:8 }}>
+                  <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.primary }}>{p.price}</Text>
+                  {active && <Ionicons name="checkmark-circle" size={18} color={colors.primary} />}
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+        <Pressable onPress={() => { if(smartCard.length>=6&&bouquet) onProceed(smartCard,bouquet,bouquetPx); }}
+          style={({ pressed }) => [{ backgroundColor:(smartCard.length>=6&&bouquet)?colors.primary:colors.grayGray4,
+            borderRadius:26, minHeight:52, alignItems:'center', justifyContent:'center', opacity:pressed?0.82:1 }]}>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Proceed</Text>
+        </Pressable>
+      </View>
+    </KeyboardAwareScrollViewCompat>
+  );
+}
+
+function ASendToDRCSScreen({ colors, onBack, onProceed }: {
+  colors:AColors; onBack:()=>void;
+  onProceed:(p:{username:string;amount:string;note:string})=>void;
+}) {
+  const [username,setUsername]=useState('');
+  const [amount,  setAmount]  =useState('');
+  const [note,    setNote]    =useState('');
+  const inp:object = { backgroundColor:colors.background, borderRadius:12, height:50, paddingHorizontal:14,
+    fontFamily:colors.fontBody, fontSize:15, color:colors.grayBlack, borderWidth:1, borderColor:colors.border };
+  return (
+    <KeyboardAwareScrollViewCompat style={{ flex:1, backgroundColor:colors.background }}>
+      <AHeader title="Send to DRCS User" onBack={onBack} colors={colors} />
+      <View style={{ padding:20, gap:16 }}>
+        {[
+          {label:'DRCS Username',ph:'Enter username or phone',val:username,set:setUsername,kb:'default'  as const},
+          {label:'Amount (₦)',  ph:'Enter amount',           val:amount,  set:(t:string)=>setAmount(t.replace(/\D/g,'')),kb:'numeric' as const},
+          {label:'Note (optional)',ph:'What is this for?',  val:note,    set:setNote,    kb:'default'  as const},
+        ].map(f => (
+          <View key={f.label}>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>{f.label}</Text>
+            <TextInput value={f.val} onChangeText={f.set} placeholder={f.ph}
+              placeholderTextColor={colors.grayGray1} keyboardType={f.kb} style={inp} />
+          </View>
+        ))}
+        <Pressable onPress={() => { if(username.length>=3&&amount) onProceed({username,amount,note}); }}
+          style={({ pressed }) => [{ backgroundColor:(username.length>=3&&amount)?colors.primary:colors.grayGray4,
+            borderRadius:26, minHeight:52, alignItems:'center', justifyContent:'center', opacity:pressed?0.82:1 }]}>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Proceed</Text>
+        </Pressable>
+      </View>
+    </KeyboardAwareScrollViewCompat>
+  );
+}
+
+function ASendToBankScreen({ colors, onBack, onProceed }: {
+  colors:AColors; onBack:()=>void;
+  onProceed:(p:{accountNo:string;bankName:string;accountName:string;amount:string})=>void;
+}) {
+  const [accountNo,  setAccountNo]  = useState('');
+  const [bankName,   setBankName]   = useState('');
+  const [amount,     setAmount]     = useState('');
+  const [showBanks,  setShowBanks]  = useState(false);
+  const accountName = 'John Doe'; // simulated lookup
+  const canGo = accountNo.length===10 && bankName && amount.length>0;
+  const inp:object = { backgroundColor:colors.background, borderRadius:12, height:50, paddingHorizontal:14,
+    fontFamily:colors.fontBody, fontSize:15, color:colors.grayBlack, borderWidth:1, borderColor:colors.border };
+  return (
+    <KeyboardAwareScrollViewCompat style={{ flex:1, backgroundColor:colors.background }}>
+      <AHeader title="Send to Bank" onBack={onBack} colors={colors} />
+      <View style={{ padding:20, gap:16 }}>
+        <View>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>Account Number</Text>
+          <TextInput value={accountNo} onChangeText={t=>setAccountNo(t.replace(/\D/g,'').slice(0,10))}
+            placeholder="10-digit account number" placeholderTextColor={colors.grayGray1} keyboardType="numeric" style={inp} />
+        </View>
+        <View>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>Bank</Text>
+          <Pressable onPress={() => setShowBanks(s=>!s)}
+            style={[inp, { justifyContent:'center' }]}>
+            <Text style={{ fontFamily:colors.fontBody, fontSize:15, color:bankName?colors.grayBlack:colors.grayGray1 }}>
+              {bankName||'Select bank'}
+            </Text>
+          </Pressable>
+          {showBanks && (
+            <View style={{ backgroundColor:colors.card, borderRadius:12, borderWidth:1, borderColor:colors.border, maxHeight:180, overflow:'hidden', marginTop:4 }}>
+              <ScrollView nestedScrollEnabled>
+                {A_BANKS.map(b => (
+                  <Pressable key={b} onPress={() => { setBankName(b); setShowBanks(false); }}
+                    style={({ pressed }) => [{ paddingHorizontal:14, paddingVertical:12,
+                      borderBottomWidth:1, borderBottomColor:colors.border, opacity:pressed?0.7:1,
+                      backgroundColor:b===bankName?colors.brandPrimaryLight:colors.card }]}>
+                    <Text style={{ fontFamily:b===bankName?colors.fontBodySemiBold:colors.fontBody,
+                      fontSize:14, color:colors.grayBlack }}>{b}</Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+        </View>
+        {accountNo.length===10 && bankName ? (
+          <View style={{ backgroundColor:colors.successLight, borderRadius:12, padding:12 }}>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.success }}>{accountName}</Text>
+          </View>
+        ) : null}
+        <View>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>Amount (₦)</Text>
+          <TextInput value={amount} onChangeText={t=>setAmount(t.replace(/\D/g,''))}
+            placeholder="Enter amount" placeholderTextColor={colors.grayGray1} keyboardType="numeric" style={inp} />
+        </View>
+        <Pressable onPress={() => { if(canGo) onProceed({accountNo,bankName,accountName,amount}); }}
+          style={({ pressed }) => [{ backgroundColor:canGo?colors.primary:colors.grayGray4,
+            borderRadius:26, minHeight:52, alignItems:'center', justifyContent:'center', opacity:pressed?0.82:1 }]}>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Proceed</Text>
+        </Pressable>
+      </View>
+    </KeyboardAwareScrollViewCompat>
+  );
+}
+
+function AAddMoneyScreen({ colors, onBack }: { colors:AColors; onBack:()=>void }) {
+  const ACCOUNT = { bank:'DRCS Microfinance Bank', name:'DRCS User', number:'1234567890' };
+  const [copied, setCopied] = useState(false);
+  return (
+    <View style={{ flex:1, backgroundColor:colors.background }}>
+      <AHeader title="Add Money" onBack={onBack} colors={colors} />
+      <ScrollView contentContainerStyle={{ padding:20 }}>
+        <View style={{ backgroundColor:colors.card, borderRadius:16, padding:20, borderWidth:1, borderColor:colors.border, marginBottom:20 }}>
+          <Text style={{ fontFamily:colors.fontBody, fontSize:14, color:colors.grayGray1, textAlign:'center', marginBottom:20 }}>
+            Transfer to the account below to fund your wallet
+          </Text>
+          {[{label:'Bank Name',value:ACCOUNT.bank},{label:'Account Name',value:ACCOUNT.name},{label:'Account No.',value:ACCOUNT.number}].map((r,i,arr) => (
+            <View key={r.label}>
+              <View style={{ flexDirection:'row', justifyContent:'space-between', paddingVertical:13 }}>
+                <Text style={{ fontFamily:colors.fontBody, fontSize:14, color:colors.grayGray1 }}>{r.label}</Text>
+                <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:14, color:colors.grayBlack }}>{r.value}</Text>
+              </View>
+              {i<arr.length-1 && <View style={{ height:1, backgroundColor:colors.border }} />}
+            </View>
+          ))}
+          <View style={{ height:16 }} />
+          <Pressable onPress={() => { setCopied(true); setTimeout(()=>setCopied(false),2000); }}
+            style={({ pressed }) => [{ backgroundColor:copied?colors.successLight:colors.primary,
+              borderRadius:26, minHeight:50, alignItems:'center', justifyContent:'center', opacity:pressed?0.82:1 }]}>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:15, color:copied?colors.success:colors.primaryForeground }}>
+              {copied?'Copied!':'Copy Account Number'}
+            </Text>
+          </Pressable>
+        </View>
+        <View style={{ backgroundColor:colors.brandPrimaryLight, borderRadius:14, padding:16 }}>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.primary, marginBottom:4 }}>Note</Text>
+          <Text style={{ fontFamily:colors.fontBody, fontSize:13, color:colors.grayBlack, lineHeight:20 }}>
+            Your wallet will be credited within minutes after transfer. Use your registered phone number as payment reference.
+          </Text>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+function APinModal({ colors, onClose, onSubmit }: { colors:AColors; onClose:()=>void; onSubmit:()=>void }) {
+  const [pin, setPin] = useState('');
+  const KEYS = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
+  const press = (k:string) => {
+    if (k==='⌫') { setPin(p=>p.slice(0,-1)); return; }
+    if (k==='' || pin.length>=4) return;
+    const next = pin+k;
+    setPin(next);
+    if (next.length===4) setTimeout(onSubmit, 180);
+  };
+  return (
+    <View style={{ flex:1, backgroundColor:colors.background, alignItems:'center', justifyContent:'center', padding:32 }}>
+      <Pressable onPress={onClose} style={{ position:'absolute', top:60, left:20 }} hitSlop={12}>
+        <Ionicons name="close" size={26} color={colors.grayBlack} />
+      </Pressable>
+      <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:22, color:colors.grayBlack, marginBottom:8 }}>Enter PIN</Text>
+      <Text style={{ fontFamily:colors.fontBody, fontSize:14, color:colors.grayGray1, marginBottom:32 }}>Confirm your transaction with your 4-digit PIN</Text>
+      <View style={{ flexDirection:'row', gap:16, marginBottom:40 }}>
+        {[0,1,2,3].map(i => (
+          <View key={i} style={{ width:18, height:18, borderRadius:9,
+            backgroundColor:i<pin.length?colors.primary:colors.grayGray4 }} />
+        ))}
+      </View>
+      <View style={{ width:'100%', flexDirection:'row', flexWrap:'wrap', gap:12, justifyContent:'center' }}>
+        {KEYS.map((k,i) => (
+          <Pressable key={i} onPress={() => press(k)}
+            style={({ pressed }) => [{ width:72, height:72, borderRadius:36,
+              backgroundColor:k===''?'transparent':pressed?colors.brandPrimaryLight:colors.card,
+              borderWidth:k===''?0:1, borderColor:colors.border,
+              alignItems:'center', justifyContent:'center' }]}>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:22, color:colors.grayBlack }}>{k}</Text>
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function AReceiptScreen({ data, colors, onClose, onRetry }: {
+  data:AReceiptData; colors:AColors; onClose:()=>void; onRetry:()=>void;
+}) {
+  const ins = useSafeAreaInsets();
+  const ok = data.status==='success';
+  return (
+    <View style={{ flex:1, backgroundColor:colors.primary }}>
+      <View style={{ alignItems:'center', paddingTop:ins.top+(Platform.OS==='web'?67:52), paddingBottom:32 }}>
+        <View style={{ width:64, height:64, borderRadius:32,
+          backgroundColor:ok?colors.success:'#ef4444',
+          alignItems:'center', justifyContent:'center', marginBottom:14 }}>
+          <Ionicons name={ok?'checkmark':'close'} size={34} color={colors.primaryForeground} />
+        </View>
+        <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.primaryForeground, marginBottom:8 }}>
+          {ok?'Transaction Successful':'Transaction Failed'}
+        </Text>
+        <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:34, color:colors.primaryForeground }}>{data.amount}</Text>
+      </View>
+      <View style={{ flex:1, backgroundColor:colors.card, borderTopLeftRadius:28, borderTopRightRadius:28,
+        paddingHorizontal:24, paddingTop:24 }}>
+        <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack, textAlign:'center', marginBottom:20 }}>
+          Transaction Details
+        </Text>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {data.rows.map((r,i) => (
+            <View key={i}>
+              <View style={{ flexDirection:'row', justifyContent:'space-between', paddingVertical:12 }}>
+                <Text style={{ fontFamily:colors.fontBody, fontSize:14, color:colors.grayGray1 }}>{r.label}</Text>
+                <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:14, color:colors.grayBlack, maxWidth:'58%', textAlign:'right' }}>{r.value}</Text>
+              </View>
+              {i<data.rows.length-1 && <View style={{ height:1, backgroundColor:colors.border }} />}
+            </View>
+          ))}
+        </ScrollView>
+        <View style={{ gap:10, paddingTop:16, paddingBottom:Math.max(ins.bottom,12) }}>
+          {ok ? (
+            <>
+              <View style={{ flexDirection:'row', gap:12 }}>
+                {[{icon:'download-outline',lbl:'Download'},{icon:'share-outline',lbl:'Share'}].map(b=>(
+                  <Pressable key={b.lbl} style={({ pressed }) => [{ flex:1, flexDirection:'row', gap:6,
+                    borderWidth:1.5, borderColor:colors.primary, borderRadius:26, paddingVertical:13,
+                    alignItems:'center', justifyContent:'center', opacity:pressed?0.75:1 }]}>
+                    <Ionicons name={b.icon as any} size={16} color={colors.primary} />
+                    <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.primary }}>{b.lbl}</Text>
+                  </Pressable>
+                ))}
+              </View>
+              <Pressable onPress={onClose} style={({ pressed }) => [{ backgroundColor:colors.primary,
+                borderRadius:26, minHeight:52, alignItems:'center', justifyContent:'center', opacity:pressed?0.82:1 }]}>
+                <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Done</Text>
+              </Pressable>
+            </>
+          ) : (
+            <Pressable onPress={onRetry} style={({ pressed }) => [{ backgroundColor:colors.primary,
+              borderRadius:26, minHeight:52, alignItems:'center', justifyContent:'center', opacity:pressed?0.82:1 }]}>
+              <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Try Again</Text>
+            </Pressable>
+          )}
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function ATransferPickerScreen({ colors, onBack, onToDRCS, onToBank }: {
+  colors:AColors; onBack:()=>void; onToDRCS:()=>void; onToBank:()=>void;
+}) {
+  return (
+    <View style={{ flex:1, backgroundColor:colors.background }}>
+      <AHeader title="Transfer Money" onBack={onBack} colors={colors} />
+      <View style={{ padding:20, gap:14 }}>
+        {[
+          { label:'To DRCS User', icon:'person-outline' as const, sub:'Send to any DRCS account', fn:onToDRCS },
+          { label:'To Bank',      icon:'business-outline' as const, sub:'Send to any Nigerian bank', fn:onToBank },
+        ].map(o => (
+          <Pressable key={o.label} onPress={o.fn}
+            style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', backgroundColor:colors.card,
+              borderRadius:16, padding:18, borderWidth:1, borderColor:colors.border, opacity:pressed?0.8:1 }]}>
+            <View style={{ width:44, height:44, borderRadius:22, backgroundColor:colors.brandPrimaryLight,
+              alignItems:'center', justifyContent:'center', marginRight:14 }}>
+              <Ionicons name={o.icon} size={22} color={colors.primary} />
+            </View>
+            <View style={{ flex:1 }}>
+              <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.grayBlack }}>{o.label}</Text>
+              <Text style={{ fontFamily:colors.fontBody, fontSize:12, color:colors.grayGray1, marginTop:2 }}>{o.sub}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.grayGray1} />
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+// ─── A: Receipt builder ────────────────────────────────────────────────────────
+function buildAReceipt(flow: AFlow, extra: Record<string,string> = {}): AReceiptData {
+  const ref = aTxRef(), ts = aNow();
+  if (flow?.kind==='serviceForm') {
+    const svc = flow.service;
+    const isData = svc==='Data';
+    const amt = isData ? (extra.planPrice||'') : `₦${Number(extra.amount||0).toLocaleString()}`;
+    return { status:'success', title:`${flow.network} ${svc}`, amount:amt, rows:[
+      { label:'Bill Type', value:`${flow.network} ${svc}` },
+      { label:svc==='Electricity'?'Meter Number':'Phone', value:extra.phone||'' },
+      ...(isData?[{label:'Data Plan',value:extra.plan||''},{label:'Validity',value:extra.validity||''}]:[]),
+      ...(svc==='Electricity'?[{label:'Meter Type',value:extra.meterType||'Prepaid'}]:[]),
+      { label:'Amount', value:amt },
+      { label:'Transaction No.', value:ref },
+      { label:'Transaction Date', value:ts },
+    ]};
+  }
+  if (flow?.kind==='tvForm') {
+    return { status:'success', title:`${extra.provider} Cable TV`, amount:extra.price||'', rows:[
+      { label:'Provider', value:extra.provider||'' },
+      { label:'Smart Card / IUC', value:extra.smartCard||'' },
+      { label:'Bouquet', value:extra.bouquet||'' },
+      { label:'Amount', value:extra.price||'' },
+      { label:'Transaction No.', value:ref },
+      { label:'Transaction Date', value:ts },
+    ]};
+  }
+  if (flow?.kind==='sendToDRCS') {
+    const fmt=`₦${Number(extra.amount||0).toLocaleString()}`;
+    return { status:'success', title:'DRCS Transfer', amount:fmt, rows:[
+      { label:'Transfer Type', value:'DRCS User' },
+      { label:'Recipient', value:`@${extra.username}` },
+      { label:'Amount', value:fmt },
+      { label:'Note', value:extra.note||'—' },
+      { label:'Transaction No.', value:ref },
+      { label:'Transaction Date', value:ts },
+    ]};
+  }
+  if (flow?.kind==='sendToBank') {
+    const fmt=`₦${Number(extra.amount||0).toLocaleString()}`;
+    return { status:'success', title:'Bank Transfer', amount:fmt, rows:[
+      { label:'Transfer Type', value:'Bank Transfer' },
+      { label:'Account Name', value:extra.accountName||'' },
+      { label:'Account Number', value:extra.accountNo||'' },
+      { label:'Bank', value:extra.bankName||'' },
+      { label:'Amount', value:fmt },
+      { label:'Transaction No.', value:ref },
+      { label:'Transaction Date', value:ts },
+    ]};
+  }
+  return { status:'success', title:'Transaction', amount:'₦0', rows:[{ label:'Transaction No.', value:ref }]};
+}
+
 function HomeScreen({
   theme,
   designVariant,
@@ -469,6 +1072,15 @@ function HomeScreen({
   const promoScrollRef = useRef<ScrollView>(null);
   const promoWidth = Math.max(SCREEN_WIDTH - 36, 280);
 
+  // ── Flow state ──────────────────────────────────────────────────────────────
+  const [flow,    setFlow]    = useState<AFlow>(null);
+  const [flowMeta,setFlowMeta]= useState<Record<string,string>>({});
+
+  const openFlow = (f: AFlow) => { setFlow(f); setFlowMeta({}); };
+  const closeFlow = () => { setFlow(null); setFlowMeta({}); };
+  const showPin   = (onConfirm: ()=>void) => setFlow({ kind:'pin', onConfirm });
+  const showReceipt = (r: AReceiptData)  => setFlow({ kind:'receipt', data:r });
+
   const showNotice = (message: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setNotice(message);
@@ -486,15 +1098,70 @@ function HomeScreen({
   useEffect(() => {
     const timer = setInterval(() => {
       const nextIndex = (promoIndex + 1) % promoSlides.length;
-      promoScrollRef.current?.scrollTo({
-        animated: true,
-        x: nextIndex * promoWidth,
-      });
+      promoScrollRef.current?.scrollTo({ animated: true, x: nextIndex * promoWidth });
       setPromoIndex(nextIndex);
     }, 5200);
-
     return () => clearInterval(timer);
   }, [promoIndex, promoWidth]);
+
+  // ── Flow screens (rendered instead of home when active) ─────────────────────
+  if (flow?.kind === 'receipt')
+    return <AReceiptScreen data={flow.data} colors={colors} onClose={closeFlow} onRetry={closeFlow} />;
+
+  if (flow?.kind === 'pin')
+    return <APinModal colors={colors} onClose={closeFlow} onSubmit={() => { const fn=flow.onConfirm; closeFlow(); fn(); }} />;
+
+  if (flow?.kind === 'telecomPicker')
+    return <ATelecomPickerScreen service={flow.service} colors={colors} onBack={closeFlow}
+      onSelect={network => setFlow({ kind:'serviceForm', service:flow.service, network })} />;
+
+  if (flow?.kind === 'serviceForm')
+    return <AServiceFormScreen service={flow.service} network={flow.network} colors={colors}
+      onBack={() => setFlow({ kind:'telecomPicker', service:flow.service })}
+      onProceed={data => {
+        const f = flow;
+        const plans = A_DATA_PLANS[f.network] ?? A_DATA_PLANS['MTN'];
+        const planMeta = f.service==='Data' ? plans.find(p=>`${p.size}/${p.validity}`===data.plan) : undefined;
+        showPin(() => showReceipt(buildAReceipt(f, {
+          phone:    data.phone,
+          amount:   data.amount,
+          plan:     data.plan ?? '',
+          validity: planMeta?.validity ?? '',
+          planPrice:planMeta?.price ?? '',
+          meterType:data.meterType ?? 'Prepaid',
+        })));
+      }} />;
+
+  if (flow?.kind === 'tvPicker')
+    return <ATVPickerScreen colors={colors} onBack={closeFlow}
+      onSelect={(id,label) => setFlow({ kind:'tvForm', providerId:id, providerLabel:label })} />;
+
+  if (flow?.kind === 'tvForm')
+    return <ATVFormScreen providerId={flow.providerId} providerLabel={flow.providerLabel} colors={colors}
+      onBack={() => setFlow({ kind:'tvPicker' })}
+      onProceed={(sc,bq,px) => {
+        const f = flow;
+        showPin(() => showReceipt(buildAReceipt({ kind:'tvForm', providerId:f.providerId, providerLabel:f.providerLabel },
+          { provider:f.providerLabel, smartCard:sc, bouquet:bq, price:px })));
+      }} />;
+
+  if (flow?.kind === 'sendToDRCS')
+    return <ASendToDRCSScreen colors={colors} onBack={closeFlow}
+      onProceed={p => showPin(() => showReceipt(buildAReceipt({ kind:'sendToDRCS' },
+        { username:p.username, amount:p.amount, note:p.note })))} />;
+
+  if (flow?.kind === 'sendToBank')
+    return <ASendToBankScreen colors={colors} onBack={closeFlow}
+      onProceed={p => showPin(() => showReceipt(buildAReceipt({ kind:'sendToBank' },
+        { accountNo:p.accountNo, bankName:p.bankName, accountName:p.accountName, amount:p.amount })))} />;
+
+  if (flow?.kind === 'addMoney')
+    return <AAddMoneyScreen colors={colors} onBack={closeFlow} />;
+
+  if ((flow as any)?.kind === 'transferPicker')
+    return <ATransferPickerScreen colors={colors} onBack={closeFlow}
+      onToDRCS={() => setFlow({ kind:'sendToDRCS' })}
+      onToBank={() => setFlow({ kind:'sendToBank' })} />;
 
   return (
     <View
@@ -637,7 +1304,13 @@ function HomeScreen({
               key={action.label}
               accessibilityRole="button"
               accessibilityLabel={action.label}
-              onPress={() => showNotice(`${action.label} selected.`)}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                if (action.label === 'To DRCS User') openFlow({ kind: 'sendToDRCS' });
+                else if (action.label === 'To Bank')  openFlow({ kind: 'sendToBank'  });
+                else if (action.label === 'Add Money') openFlow({ kind: 'addMoney'   });
+                else showNotice(`${action.label} selected.`);
+              }}
               style={({ pressed }) => [
                 styles.actionCard,
                 { backgroundColor: colors.card, borderColor: colors.border },
@@ -684,7 +1357,15 @@ function HomeScreen({
               key={service.label}
               accessibilityRole="button"
               accessibilityLabel={service.label}
-              onPress={() => showNotice(`${service.label} service selected.`)}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                if (service.label === 'Airtime' || service.label === 'Data' || service.label === 'Electricity')
+                  openFlow({ kind: 'telecomPicker', service: service.label });
+                else if (service.label === 'TV')
+                  openFlow({ kind: 'tvPicker' });
+                else
+                  showNotice(`${service.label} service selected.`);
+              }}
               style={({ pressed }) => [
                 styles.serviceCard,
                 { backgroundColor: colors.card, borderColor: colors.border },
@@ -880,18 +1561,18 @@ function HomeScreen({
             <Text style={[styles.homeSectionCaption, { color: colors.primary }]}>See all</Text>
           </Pressable>
         </View>
-        <View style={[styles.transactionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={[styles.transactionIcon, { backgroundColor: colors.successLight }]}>
-            <Ionicons name="arrow-up-outline" size={19} color={colors.success} />
+        {A_RECENT_TXS.map(tx => (
+          <View key={tx.id} style={[styles.transactionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={[styles.transactionIcon, { backgroundColor: colors.brandPrimaryLight }]}>
+              <Ionicons name={tx.icon} size={19} color={colors.primary} />
+            </View>
+            <View style={styles.transactionCopy}>
+              <Text style={[styles.transactionTitle, { color: colors.grayBlack }]}>{tx.title}</Text>
+              <Text style={[styles.transactionSubtitle, { color: colors.grayGray1 }]}>{tx.date}</Text>
+            </View>
+            <Text style={[styles.transactionAmount, { color: colors.grayBlack }]}>{tx.amt}</Text>
           </View>
-          <View style={styles.transactionCopy}>
-            <Text style={[styles.transactionTitle, { color: colors.grayBlack }]}>Data bundle</Text>
-            <Text style={[styles.transactionSubtitle, { color: colors.grayGray1 }]}>
-              Today, 10:42 AM
-            </Text>
-          </View>
-          <Text style={[styles.transactionAmount, { color: colors.grayBlack }]}>-₦2,000</Text>
-        </View>
+        ))}
       </ScrollView>
 
       <View style={[styles.bottomNav, { backgroundColor: colors.card, borderColor: colors.border }]}>

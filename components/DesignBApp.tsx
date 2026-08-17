@@ -58,6 +58,19 @@ interface ReceiptData {
   details: { label: string; value: string }[];
 }
 
+// ─── TV Providers & Bouquets ──────────────────────────────────────────────────
+const TV_PROVIDERS = [
+  { id: 'dstv',      label: 'DSTV',     color: '#0065BD', tc: '#fff' },
+  { id: 'gotv',      label: 'GOTV',     color: '#E8001C', tc: '#fff' },
+  { id: 'startimes', label: 'StarTimes',color: '#D4111E', tc: '#fff' },
+] as const;
+
+const TV_BOUQUETS: Record<string, { name: string; price: string; naira: number }[]> = {
+  dstv:      [{ name:'Padi',price:'₦2,500',naira:2500},{name:'Yanga',price:'₦3,500',naira:3500},{name:'Confam',price:'₦6,200',naira:6200},{name:'Compact',price:'₦10,500',naira:10500},{name:'Premium',price:'₦29,500',naira:29500}],
+  gotv:      [{ name:'GOTV Lite',price:'₦410',naira:410},{name:'GOTV Smallie',price:'₦1,575',naira:1575},{name:'GOTV Jolli',price:'₦2,460',naira:2460},{name:'GOTV Jinja',price:'₦3,300',naira:3300},{name:'GOTV Max',price:'₦4,850',naira:4850}],
+  startimes: [{ name:'Nova',price:'₦1,700',naira:1700},{name:'Basic',price:'₦2,200',naira:2200},{name:'Smart',price:'₦2,800',naira:2800},{name:'Classic',price:'₦2,500',naira:2500},{name:'Super',price:'₦4,200',naira:4200}],
+};
+
 // ─── Data plans per network ──────────────────────────────────────────────────
 const DATA_PLANS: Record<string, { size: string; validity: string; price: string; naira: number }[]> = {
   MTN: [
@@ -802,20 +815,281 @@ function ServiceFormScreen({
   );
 }
 
+// ─── 5c. Cable TV screens ─────────────────────────────────────────────────────
+function TVPickerScreen({ onBack, onSelect }: {
+  onBack: () => void;
+  onSelect: (providerId: string, providerLabel: string) => void;
+}) {
+  const ins = useSafeAreaInsets();
+  return (
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <StatusBar barStyle="dark-content" />
+      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center',
+        paddingTop: ins.top + (Platform.OS==='web'?67:14), paddingHorizontal:20, paddingBottom:16 }}>
+        <Pressable onPress={onBack} style={{ position:'absolute', left:20 }}>
+          <Ionicons name="chevron-back" size={24} color={C.primary} />
+        </Pressable>
+        <Text style={{ fontFamily:C.bold, fontSize:18, color:C.text }}>Cable TV Subscription</Text>
+      </View>
+      <ScrollView contentContainerStyle={{ paddingHorizontal:20, paddingTop:8 }}>
+        {TV_PROVIDERS.map(p => (
+          <Pressable key={p.id} onPress={() => { Haptics.selectionAsync(); onSelect(p.id, p.label); }}
+            style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', backgroundColor:C.card,
+              borderRadius:18, padding:16, marginBottom:12, opacity:pressed?0.8:1 }]}>
+            <View style={{ width:48, height:48, borderRadius:24, backgroundColor:p.color,
+              alignItems:'center', justifyContent:'center', marginRight:16 }}>
+              <Text style={{ fontFamily:C.bold, fontSize:11, color:p.tc }}>{p.label}</Text>
+            </View>
+            <View style={{ flex:1 }}>
+              <Text style={{ fontFamily:C.bold, fontSize:16, color:C.text }}>{p.label}</Text>
+              <Text style={{ fontFamily:C.regular, fontSize:12, color:C.subtext, marginTop:2 }}>Select a bouquet</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={C.label} />
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
+
+function TVFormScreen({ providerId, providerLabel, onBack, onProceed }: {
+  providerId: string; providerLabel: string;
+  onBack: () => void;
+  onProceed: (smartCard: string, bouquet: string, price: string) => void;
+}) {
+  const ins = useSafeAreaInsets();
+  const [smartCard,  setSmartCard]  = useState('');
+  const [bouquet,    setBouquet]    = useState<string | null>(null);
+  const [bouquetPx,  setBouquetPx]  = useState('');
+  const plans = TV_BOUQUETS[providerId] ?? TV_BOUQUETS['gotv'];
+  const prov  = TV_PROVIDERS.find(p => p.id === providerId);
+
+  return (
+    <KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':undefined} style={{ flex:1, backgroundColor:C.bg }}>
+      <StatusBar barStyle="light-content" backgroundColor={C.primary} />
+      <View style={{ backgroundColor:C.primary,
+        paddingTop:ins.top+(Platform.OS==='web'?67:14), paddingBottom:36, paddingHorizontal:20 }}>
+        <View style={{ flexDirection:'row', alignItems:'center', marginBottom:20 }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:C.bold, fontSize:18, color:'#fff', marginLeft:8, flex:1 }}>{providerLabel} Subscription</Text>
+          {prov && <View style={{ width:40, height:40, borderRadius:20, backgroundColor:prov.color,
+            alignItems:'center', justifyContent:'center' }}>
+            <Text style={{ fontFamily:C.bold, fontSize:9, color:prov.tc }}>{prov.label}</Text>
+          </View>}
+        </View>
+      </View>
+      <ScrollView contentContainerStyle={{ padding:20, paddingTop:0 }} keyboardShouldPersistTaps="handled">
+        <View style={{ backgroundColor:C.card, borderRadius:24, padding:24, marginTop:-20, marginBottom:24,
+          shadowColor:'#000', shadowOpacity:0.06, shadowRadius:12, elevation:4 }}>
+          <Text style={{ fontFamily:C.bold, fontSize:13, color:C.subtext, marginBottom:8 }}>Smart Card / IUC Number</Text>
+          <TextInput value={smartCard} onChangeText={setSmartCard}
+            placeholder="Enter smart card number" placeholderTextColor={C.label} keyboardType="numeric" maxLength={12}
+            style={{ backgroundColor:C.inputBg, borderRadius:14, height:52, paddingHorizontal:16,
+              fontFamily:C.regular, fontSize:15, color:C.text, marginBottom:20 }} />
+          <Text style={{ fontFamily:C.bold, fontSize:13, color:C.subtext, marginBottom:8 }}>Select Bouquet</Text>
+          {plans.map(p => {
+            const active = bouquet === p.name;
+            return (
+              <Pressable key={p.name} onPress={() => { Haptics.selectionAsync(); setBouquet(p.name); setBouquetPx(p.price); }}
+                style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', justifyContent:'space-between',
+                  backgroundColor:active?'#eaf0ff':C.inputBg, borderRadius:14, padding:16, marginBottom:10,
+                  borderWidth:active?1.5:0, borderColor:C.primary, opacity:pressed?0.8:1 }]}>
+                <Text style={{ fontFamily:C.bold, fontSize:15, color:C.text }}>{p.name}</Text>
+                <View style={{ flexDirection:'row', alignItems:'center', gap:8 }}>
+                  <Text style={{ fontFamily:C.bold, fontSize:15, color:C.primary }}>{p.price}</Text>
+                  {active && <Ionicons name="checkmark-circle" size={20} color={C.primary} />}
+                </View>
+              </Pressable>
+            );
+          })}
+          <View style={{ height:12 }} />
+          <Btn label="Proceed" onPress={() => onProceed(smartCard, bouquet!, bouquetPx)}
+            disabled={smartCard.length < 6 || !bouquet} />
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+// ─── 5d. Money flow screens ───────────────────────────────────────────────────
+function AddMoneyScreen({ onBack, onDone }: { onBack: () => void; onDone: () => void }) {
+  const ins = useSafeAreaInsets();
+  const ACCOUNT = { bank:'DRCS Microfinance Bank', name:'John Doe', number:'1234567890' };
+  const [copied, setCopied] = useState(false);
+  const copy = () => { setCopied(true); setTimeout(() => setCopied(false), 2000); };
+  return (
+    <View style={{ flex:1, backgroundColor:C.bg }}>
+      <StatusBar barStyle="light-content" backgroundColor={C.primary} />
+      <View style={{ backgroundColor:C.primary, paddingTop:ins.top+(Platform.OS==='web'?67:14),
+        paddingBottom:36, paddingHorizontal:20 }}>
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:C.bold, fontSize:18, color:'#fff', marginLeft:8 }}>Add Money</Text>
+        </View>
+      </View>
+      <ScrollView contentContainerStyle={{ padding:20, paddingTop:0 }}>
+        <View style={{ backgroundColor:C.card, borderRadius:24, padding:24, marginTop:-20,
+          shadowColor:'#000', shadowOpacity:0.06, shadowRadius:12, elevation:4 }}>
+          <Text style={{ fontFamily:C.regular, fontSize:14, color:C.subtext, textAlign:'center', marginBottom:20 }}>
+            Transfer to the account below to fund your wallet
+          </Text>
+          {[
+            { label:'Bank Name',    value:ACCOUNT.bank   },
+            { label:'Account Name', value:ACCOUNT.name   },
+            { label:'Account No.',  value:ACCOUNT.number },
+          ].map((r,i) => (
+            <View key={r.label}>
+              <View style={{ flexDirection:'row', justifyContent:'space-between', paddingVertical:14 }}>
+                <Text style={{ fontFamily:C.regular, fontSize:14, color:C.subtext }}>{r.label}</Text>
+                <Text style={{ fontFamily:C.bold, fontSize:14, color:C.text }}>{r.value}</Text>
+              </View>
+              {i < 2 && <View style={{ height:1, backgroundColor:C.divider }} />}
+            </View>
+          ))}
+          <View style={{ height:16 }} />
+          <Btn label={copied?'Copied!':'Copy Account Number'} onPress={copy}
+            variant={copied?'ghost':'primary'} style={copied?{ backgroundColor:C.success+'22' }:{}} />
+          <View style={{ height:10 }} />
+          <Btn label="Done" onPress={onDone} variant="outline" />
+        </View>
+        <View style={{ marginTop:20, padding:16, backgroundColor:C.primaryLight, borderRadius:16 }}>
+          <Text style={{ fontFamily:C.bold, fontSize:13, color:C.primary, marginBottom:4 }}>Note</Text>
+          <Text style={{ fontFamily:C.regular, fontSize:13, color:C.primaryDark, lineHeight:20 }}>
+            Your wallet will be credited within minutes after transfer.
+            Use your registered phone number as payment reference.
+          </Text>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+function SendToDRCSScreen({ onBack, onProceed }: {
+  onBack: () => void;
+  onProceed: (payload: { username: string; amount: string; note: string }) => void;
+}) {
+  const ins = useSafeAreaInsets();
+  const [username, setUsername] = useState('');
+  const [amount,   setAmount]   = useState('');
+  const [note,     setNote]     = useState('');
+  const canProceed = username.length >= 3 && amount.length > 0;
+  const inp: object = { backgroundColor:C.inputBg, borderRadius:14, height:52, paddingHorizontal:16,
+    fontFamily:C.regular, fontSize:15, color:C.text };
+  return (
+    <KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':undefined} style={{ flex:1, backgroundColor:C.bg }}>
+      <StatusBar barStyle="light-content" backgroundColor={C.primary} />
+      <View style={{ backgroundColor:C.primary, paddingTop:ins.top+(Platform.OS==='web'?67:14),
+        paddingBottom:36, paddingHorizontal:20 }}>
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:C.bold, fontSize:18, color:'#fff', marginLeft:8 }}>Send to DRCS User</Text>
+        </View>
+      </View>
+      <ScrollView contentContainerStyle={{ padding:20, paddingTop:0 }} keyboardShouldPersistTaps="handled">
+        <View style={{ backgroundColor:C.card, borderRadius:24, padding:24, marginTop:-20,
+          shadowColor:'#000', shadowOpacity:0.06, shadowRadius:12, elevation:4 }}>
+          {[
+            { label:'DRCS Username',   val:username, set:setUsername, ph:'Enter username or phone',   kb:'default'  as const },
+            { label:'Amount (₦)',       val:amount,   set:(t:string)=>setAmount(t.replace(/\D/g,'')), ph:'Enter amount', kb:'numeric' as const },
+            { label:'Note (optional)', val:note,     set:setNote,     ph:'What is this for?',         kb:'default'  as const },
+          ].map(f => (
+            <View key={f.label} style={{ marginBottom:18 }}>
+              <Text style={{ fontFamily:C.bold, fontSize:13, color:C.subtext, marginBottom:8 }}>{f.label}</Text>
+              <TextInput value={f.val} onChangeText={f.set} placeholder={f.ph}
+                placeholderTextColor={C.label} keyboardType={f.kb} style={inp} />
+            </View>
+          ))}
+          <Btn label="Proceed" onPress={() => onProceed({ username, amount, note })} disabled={!canProceed} />
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+function SendToBankScreen({ onBack, onProceed }: {
+  onBack: () => void;
+  onProceed: (payload: { accountNo: string; bankName: string; accountName: string; amount: string }) => void;
+}) {
+  const ins = useSafeAreaInsets();
+  const BANKS = ['Access Bank','GTBank','First Bank','Zenith Bank','UBA','Fidelity Bank','Sterling Bank','Kuda Bank','OPay','PalmPay'];
+  const [accountNo,   setAccountNo]   = useState('');
+  const [bankName,    setBankName]    = useState('');
+  const [accountName, setAccountName] = useState('John Doe'); // simulated lookup
+  const [amount,      setAmount]      = useState('');
+  const [showBanks,   setShowBanks]   = useState(false);
+  const canProceed = accountNo.length===10 && bankName && amount.length>0;
+  const inp: object = { backgroundColor:C.inputBg, borderRadius:14, height:52, paddingHorizontal:16,
+    fontFamily:C.regular, fontSize:15, color:C.text };
+  return (
+    <KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':undefined} style={{ flex:1, backgroundColor:C.bg }}>
+      <StatusBar barStyle="light-content" backgroundColor={C.primary} />
+      <View style={{ backgroundColor:C.primary, paddingTop:ins.top+(Platform.OS==='web'?67:14),
+        paddingBottom:36, paddingHorizontal:20 }}>
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:C.bold, fontSize:18, color:'#fff', marginLeft:8 }}>Send to Bank</Text>
+        </View>
+      </View>
+      <ScrollView contentContainerStyle={{ padding:20, paddingTop:0 }} keyboardShouldPersistTaps="handled">
+        <View style={{ backgroundColor:C.card, borderRadius:24, padding:24, marginTop:-20,
+          shadowColor:'#000', shadowOpacity:0.06, shadowRadius:12, elevation:4 }}>
+          {/* Account number */}
+          <Text style={{ fontFamily:C.bold, fontSize:13, color:C.subtext, marginBottom:8 }}>Account Number</Text>
+          <TextInput value={accountNo} onChangeText={t => { setAccountNo(t.replace(/\D/g,'').slice(0,10)); }}
+            placeholder="10-digit account number" placeholderTextColor={C.label} keyboardType="numeric" style={{ ...inp, marginBottom:18 }} />
+          {/* Bank picker */}
+          <Text style={{ fontFamily:C.bold, fontSize:13, color:C.subtext, marginBottom:8 }}>Bank</Text>
+          <Pressable onPress={() => setShowBanks(s=>!s)} style={{ ...inp, justifyContent:'center', marginBottom:showBanks?0:18 }}>
+            <Text style={{ fontFamily:C.regular, fontSize:15, color:bankName?C.text:C.label }}>
+              {bankName || 'Select bank'}
+            </Text>
+          </Pressable>
+          {showBanks && (
+            <View style={{ backgroundColor:C.inputBg, borderRadius:14, marginBottom:18, maxHeight:200, overflow:'hidden' }}>
+              <ScrollView nestedScrollEnabled>
+                {BANKS.map(b => (
+                  <Pressable key={b} onPress={() => { setBankName(b); setShowBanks(false); }}
+                    style={({ pressed }) => [{ paddingHorizontal:16, paddingVertical:13,
+                      borderBottomWidth:1, borderBottomColor:C.divider, opacity:pressed?0.7:1 }]}>
+                    <Text style={{ fontFamily:b===bankName?C.bold:C.regular, fontSize:14, color:C.text }}>{b}</Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+          {/* Account name (simulated) */}
+          {accountNo.length===10 && bankName ? (
+            <View style={{ backgroundColor:'#eafaf1', borderRadius:12, padding:12, marginBottom:18 }}>
+              <Text style={{ fontFamily:C.bold, fontSize:13, color:C.success }}>{accountName}</Text>
+            </View>
+          ) : null}
+          {/* Amount */}
+          <Text style={{ fontFamily:C.bold, fontSize:13, color:C.subtext, marginBottom:8 }}>Amount (₦)</Text>
+          <TextInput value={amount} onChangeText={t => setAmount(t.replace(/\D/g,''))}
+            placeholder="Enter amount" placeholderTextColor={C.label} keyboardType="numeric"
+            style={{ ...inp, marginBottom:20 }} />
+          <Btn label="Proceed" onPress={() => onProceed({ accountNo, bankName, accountName, amount })} disabled={!canProceed} />
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
 // ─── 6. Home tab ──────────────────────────────────────────────────────────────
 const SERVICES = [
   { id: 'electricity', label: 'Electricity', icon: 'flash-outline'          },
   { id: 'airtime',     label: 'Airtime',     icon: 'phone-portrait-outline'  },
   { id: 'data',        label: 'Data',        icon: 'wifi-outline'            },
+  { id: 'tv',          label: 'Cable TV',    icon: 'tv-outline'              },
   { id: 'betting',     label: 'Betting',     icon: 'dice-outline'            },
   { id: 'water',       label: 'Water',       icon: 'water-outline'           },
-  { id: 'more',        label: 'More',        icon: 'grid-outline'            },
 ] as const;
 
 const TXS = [
-  { id:'1', name:'Electricity', sub:'905 783 9231',     amt:'$30', date:'Jan. 25 2026  05:34 PM', lbl:'AEDC', bg:'#e8f0ff', fg:'#014dd4' },
-  { id:'2', name:'Airtime',     sub:'Glo  905 783 9231',amt:'$10', date:'Jan. 25 2026  05:34 PM', lbl:'glo',  bg:'#d4f5e0', fg:'#0d8f47', logo: require('../assets/images/design-b/glo-logo.png') },
-  { id:'3', name:'GOTV Subscription', sub:'905 783 9231', amt:'$30', date:'Jan. 25 2026  05:34 PM', lbl:'GOTV', bg:'#fff3e0', fg:'#e67e00' },
+  { id:'1', name:'Electricity',       sub:'AEDC  905 783 9231',  amt:'₦5,000', date:'Today, 08:15 AM',      lbl:'AEDC', bg:'#e8f0ff', fg:'#014dd4' },
+  { id:'2', name:'Airtime',           sub:'Glo  0905 783 9231',  amt:'₦500',   date:'Today, 10:42 AM',      lbl:'glo',  bg:'#d4f5e0', fg:'#0d8f47', logo: require('../assets/images/design-b/glo-logo.png') },
+  { id:'3', name:'GOTV Subscription', sub:'SmartCard: 9012345',  amt:'₦4,850', date:'Yesterday, 03:30 PM',  lbl:'GOTV', bg:'#fff3e0', fg:'#e67e00' },
+  { id:'4', name:'Data Bundle',       sub:'MTN  0812 345 6789',  amt:'₦1,000', date:'Jan. 28 2026 02:14 PM',lbl:'MTN',  bg:'#fff8dc', fg:'#b8860b' },
 ] as const;
 
 function LoadingOverlay() {
@@ -834,11 +1108,14 @@ function LoadingOverlay() {
 const StyleFill = { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0 };
 
 function HomeTab({
-  onShowReceipt, onOpenPicker, onShowPin,
+  onShowReceipt, onOpenPicker, onOpenTVPicker, onShowPin, onShowAddMoney, onShowTransfer,
 }: {
   onShowReceipt: (d: ReceiptData) => void;
   onOpenPicker: (svc: string) => void;
+  onOpenTVPicker: () => void;
   onShowPin: () => void;
+  onShowAddMoney: () => void;
+  onShowTransfer: () => void;
 }) {
   const ins = useSafeAreaInsets();
   const [balHidden, setBalHidden] = useState(false);
@@ -848,6 +1125,8 @@ function HomeTab({
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (id === 'airtime' || id === 'data' || id === 'electricity') {
       onOpenPicker(label);
+    } else if (id === 'tv') {
+      onOpenTVPicker();
     } else {
       onShowPin();
     }
@@ -897,7 +1176,7 @@ function HomeTab({
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <Text style={{ fontFamily: C.bold, fontSize: 30, color: '#fff', letterSpacing: -0.5 }}>
-                {balHidden ? '• • • • • •' : '$30,000.34'}
+                {balHidden ? '• • • • • •' : '₦30,000.34'}
               </Text>
               <Pressable onPress={() => setBalHidden(h => !h)}>
                 <Ionicons name={balHidden ? 'eye-outline' : 'eye-off-outline'}
@@ -909,10 +1188,10 @@ function HomeTab({
           {/* Deposit + Transfer */}
           <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
             {[
-              { lbl: 'Deposit',  icon: 'arrow-down-circle-outline' },
-              { lbl: 'Transfer', icon: 'arrow-forward-circle-outline' },
+              { lbl: 'Deposit',  icon: 'arrow-down-circle-outline',    fn: onShowAddMoney  },
+              { lbl: 'Transfer', icon: 'arrow-forward-circle-outline',  fn: onShowTransfer  },
             ].map(a => (
-              <Pressable key={a.lbl} onPress={onShowPin}
+              <Pressable key={a.lbl} onPress={a.fn}
                 style={({ pressed }) => [{
                   flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
                   gap: 8, borderRadius: 28, borderWidth: 1.5, borderColor: C.primary,
@@ -1278,48 +1557,160 @@ function buildReceipt(tx: FormPayload): ReceiptData {
   };
 }
 
+// ─── Extra receipt builders ───────────────────────────────────────────────────
+function makeTxRef() { return Math.floor(Math.random()*9e15).toString().slice(0,16); }
+function nowStr() {
+  const n = new Date();
+  return n.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})
+    + '  ' + n.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+function buildTVReceipt(provider: string, smartCard: string, bouquet: string, price: string): ReceiptData {
+  return { status:'success', type:'Cable TV', amount:price,
+    details:[
+      { label:'Provider',         value:provider  },
+      { label:'Smart Card / IUC', value:smartCard  },
+      { label:'Bouquet',          value:bouquet    },
+      { label:'Amount',           value:price      },
+      { label:'Transaction No.',  value:makeTxRef()},
+      { label:'Transaction Date', value:nowStr()   },
+    ],
+  };
+}
+function buildDRCSReceipt(username: string, amount: string, note: string): ReceiptData {
+  const fmt = `₦${Number(amount).toLocaleString()}`;
+  return { status:'success', type:'Transfer', amount:fmt,
+    details:[
+      { label:'Transfer Type',    value:'DRCS User'  },
+      { label:'Recipient',        value:`@${username}` },
+      { label:'Amount',           value:fmt           },
+      { label:'Note',             value:note||'—'    },
+      { label:'Transaction No.',  value:makeTxRef()  },
+      { label:'Transaction Date', value:nowStr()     },
+    ],
+  };
+}
+function buildBankReceipt(accountNo: string, bankName: string, accountName: string, amount: string): ReceiptData {
+  const fmt = `₦${Number(amount).toLocaleString()}`;
+  return { status:'success', type:'Bank Transfer', amount:fmt,
+    details:[
+      { label:'Transfer Type',    value:'Bank Transfer' },
+      { label:'Account Name',     value:accountName     },
+      { label:'Account Number',   value:accountNo       },
+      { label:'Bank',             value:bankName        },
+      { label:'Amount',           value:fmt             },
+      { label:'Transaction No.',  value:makeTxRef()     },
+      { label:'Transaction Date', value:nowStr()        },
+    ],
+  };
+}
+
 // ─── Main app shell ───────────────────────────────────────────────────────────
+type BPending =
+  | { kind:'service';  payload: FormPayload }
+  | { kind:'tv';       provider:string; smartCard:string; bouquet:string; price:string }
+  | { kind:'drcs';     username:string; amount:string; note:string }
+  | { kind:'bank';     accountNo:string; bankName:string; accountName:string; amount:string };
+
 function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
   const [tab,             setTab]             = useState<HomeTab>('Home');
   const [subScreen,       setSubScreen]       = useState<DBScreen | null>(null);
   const [receipt,         setReceipt]         = useState<ReceiptData | null>(null);
   const [pinOpen,         setPinOpen]         = useState(false);
-  const [picker,          setPicker]          = useState<string | null>(null); // service label
-  const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null); // chosen network
-  const [pendingTx,       setPendingTx]       = useState<FormPayload | null>(null);
+  const [pending,         setPending]         = useState<BPending | null>(null);
+
+  // Service (Airtime/Data/Electricity) flow
+  const [picker,          setPicker]          = useState<string | null>(null);
+  const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null);
+
+  // TV flow
+  const [tvPicker,        setTvPicker]        = useState(false);
+  const [tvProvider,      setTvProvider]      = useState<{id:string;label:string}|null>(null);
+
+  // Money flows
+  const [addMoney,        setAddMoney]        = useState(false);
+  const [transferPicker,  setTransferPicker]  = useState(false);
+  const [sendToDRCS,      setSendToDRCS]      = useState(false);
+  const [sendToBank,      setSendToBank]      = useState(false);
 
   const goSub = useCallback((s: DBScreen) => setSubScreen(s), []);
 
-  const resetPicker = () => { setPicker(null); setSelectedNetwork(null); };
+  const openPin = (p: BPending) => { setPending(p); setPinOpen(true); };
+  const handlePinSubmit = () => {
+    setPinOpen(false);
+    const p = pending; setPending(null);
+    if (!p) return;
+    if (p.kind==='service') setReceipt(buildReceipt(p.payload));
+    else if (p.kind==='tv')   setReceipt(buildTVReceipt(p.provider, p.smartCard, p.bouquet, p.price));
+    else if (p.kind==='drcs') setReceipt(buildDRCSReceipt(p.username, p.amount, p.note));
+    else if (p.kind==='bank') setReceipt(buildBankReceipt(p.accountNo, p.bankName, p.accountName, p.amount));
+  };
 
-  // Sub-screens (full-screen, no bottom nav)
-  if (subScreen === 'profileSettings') return <ProfileSettingsScreen onBack={() => setSubScreen(null)} />;
-  if (subScreen === 'security')        return <SecurityScreen        onBack={() => setSubScreen(null)} />;
-  if (subScreen === 'accountDetails')  return <AccountDetailsScreen  onBack={() => setSubScreen(null)} />;
+  // Sub-screens
+  if (subScreen==='profileSettings') return <ProfileSettingsScreen onBack={() => setSubScreen(null)} />;
+  if (subScreen==='security')        return <SecurityScreen        onBack={() => setSubScreen(null)} />;
+  if (subScreen==='accountDetails')  return <AccountDetailsScreen  onBack={() => setSubScreen(null)} />;
 
-  // Step 1 — Telecom / DisCo picker
-  if (picker && !selectedNetwork) return (
-    <TelecomPicker
-      serviceLabel={picker}
-      onBack={resetPicker}
-      onSelect={network => setSelectedNetwork(network)}
-    />
+  // Telecom service flows
+  if (picker && !selectedNetwork)
+    return <TelecomPicker serviceLabel={picker} onBack={() => setPicker(null)}
+              onSelect={n => setSelectedNetwork(n)} />;
+  if (picker && selectedNetwork)
+    return <ServiceFormScreen serviceLabel={picker} network={selectedNetwork}
+              onBack={() => setSelectedNetwork(null)}
+              onProceed={payload => { setSelectedNetwork(null); setPicker(null);
+                openPin({ kind:'service', payload }); }} />;
+
+  // TV flows
+  if (tvPicker && !tvProvider)
+    return <TVPickerScreen onBack={() => setTvPicker(false)}
+              onSelect={(id,label) => setTvProvider({id,label})} />;
+  if (tvPicker && tvProvider)
+    return <TVFormScreen providerId={tvProvider.id} providerLabel={tvProvider.label}
+              onBack={() => setTvProvider(null)}
+              onProceed={(sc,bq,px) => { setTvProvider(null); setTvPicker(false);
+                openPin({ kind:'tv', provider:tvProvider.label, smartCard:sc, bouquet:bq, price:px }); }} />;
+
+  // Money flows
+  if (addMoney) return <AddMoneyScreen onBack={() => setAddMoney(false)} onDone={() => setAddMoney(false)} />;
+
+  if (transferPicker) return (
+    <View style={{ flex:1, backgroundColor:C.bg }}>
+      <StatusBar barStyle="dark-content" />
+      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center',
+        paddingTop:60, paddingHorizontal:20, paddingBottom:16 }}>
+        <Pressable onPress={() => setTransferPicker(false)} style={{ position:'absolute', left:20 }}>
+          <Ionicons name="chevron-back" size={24} color={C.primary} />
+        </Pressable>
+        <Text style={{ fontFamily:C.bold, fontSize:18, color:C.text }}>Transfer Money</Text>
+      </View>
+      <View style={{ paddingHorizontal:20, gap:14 }}>
+        {[
+          { label:'To DRCS User', icon:'person-outline' as const, sub:'Send to any DRCS account',  fn:() => { setTransferPicker(false); setSendToDRCS(true); } },
+          { label:'To Bank',      icon:'business-outline' as const, sub:'Send to any Nigerian bank', fn:() => { setTransferPicker(false); setSendToBank(true); } },
+        ].map(o => (
+          <Pressable key={o.label} onPress={o.fn}
+            style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', backgroundColor:C.card,
+              borderRadius:18, padding:18, opacity:pressed?0.8:1 }]}>
+            <View style={{ width:48, height:48, borderRadius:24, backgroundColor:C.primaryLight,
+              alignItems:'center', justifyContent:'center', marginRight:16 }}>
+              <Ionicons name={o.icon} size={22} color={C.primary} />
+            </View>
+            <View style={{ flex:1 }}>
+              <Text style={{ fontFamily:C.bold, fontSize:16, color:C.text }}>{o.label}</Text>
+              <Text style={{ fontFamily:C.regular, fontSize:12, color:C.subtext, marginTop:2 }}>{o.sub}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={C.label} />
+          </Pressable>
+        ))}
+      </View>
+    </View>
   );
 
-  // Step 2 — Service form (phone/amount/plan)
-  if (picker && selectedNetwork) return (
-    <ServiceFormScreen
-      serviceLabel={picker}
-      network={selectedNetwork}
-      onBack={() => setSelectedNetwork(null)}   // go back to picker
-      onProceed={payload => {
-        setPendingTx(payload);
-        setSelectedNetwork(null);
-        setPicker(null);
-        setPinOpen(true);
-      }}
-    />
-  );
+  if (sendToDRCS) return <SendToDRCSScreen onBack={() => setSendToDRCS(false)}
+    onProceed={p => { setSendToDRCS(false); openPin({ kind:'drcs', ...p }); }} />;
+  if (sendToBank) return <SendToBankScreen onBack={() => setSendToBank(false)}
+    onProceed={p => { setSendToBank(false); openPin({ kind:'bank', ...p }); }} />;
 
   // Receipt
   if (receipt) return (
@@ -1329,48 +1720,32 @@ function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
-
-      {/* A↔B switcher pill */}
       <Pressable onPress={onSwitchDesign} style={{
-        position: 'absolute',
-        top: Platform.OS === 'web' ? 76 : 52,
-        right: 16, zIndex: 99,
-        backgroundColor: C.primary, borderRadius: 14,
-        paddingHorizontal: 11, paddingVertical: 5,
+        position:'absolute', top:Platform.OS==='web'?76:52, right:16, zIndex:99,
+        backgroundColor:C.primary, borderRadius:14, paddingHorizontal:11, paddingVertical:5,
       }}>
-        <Text style={{ fontFamily: C.bold, fontSize: 11, color: '#fff', letterSpacing: 0.5 }}>A ↔ B</Text>
+        <Text style={{ fontFamily:C.bold, fontSize:11, color:'#fff', letterSpacing:0.5 }}>A ↔ B</Text>
       </Pressable>
-
-      {/* Tab content */}
       <View style={{ flex: 1 }}>
-        {tab === 'Home'    && (
+        {tab==='Home' && (
           <HomeTab
             onShowReceipt={setReceipt}
             onOpenPicker={svc => setPicker(svc)}
+            onOpenTVPicker={() => setTvPicker(true)}
             onShowPin={() => setPinOpen(true)}
+            onShowAddMoney={() => setAddMoney(true)}
+            onShowTransfer={() => setTransferPicker(true)}
           />
         )}
-        {tab === 'Rewards' && <PlaceholderTab label="Rewards" />}
-        {tab === 'History' && <PlaceholderTab label="History" />}
-        {tab === 'Cards'   && <PlaceholderTab label="Cards" />}
-        {tab === 'Profile' && <ProfileTab onNavigate={goSub} />}
+        {tab==='Rewards' && <PlaceholderTab label="Rewards" />}
+        {tab==='History' && <PlaceholderTab label="History" />}
+        {tab==='Cards'   && <PlaceholderTab label="Cards"   />}
+        {tab==='Profile' && <ProfileTab onNavigate={goSub} />}
       </View>
-
       <BottomNav active={tab} onSelect={t => { Haptics.selectionAsync(); setTab(t); setSubScreen(null); }} />
-
-      <PinModal
-        visible={pinOpen}
-        onClose={() => { setPinOpen(false); setPendingTx(null); }}
-        onSubmit={() => {
-          setPinOpen(false);
-          const tx = pendingTx;
-          setPendingTx(null);
-          setReceipt(tx ? buildReceipt(tx) : {
-            status: 'success', type: 'Payment', amount: '₦0',
-            details: [{ label: 'Transaction No.', value: Date.now().toString() }],
-          });
-        }}
-      />
+      <PinModal visible={pinOpen}
+        onClose={() => { setPinOpen(false); setPending(null); }}
+        onSubmit={handlePinSubmit} />
     </View>
   );
 }
