@@ -18,6 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useColors, type DesignVariant } from '@/hooks/useColors';
+import { DesignBApp } from '@/components/DesignBApp';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -1155,6 +1156,12 @@ export default function OnboardingScreen() {
     setAuthScreen('signup');
   };
 
+  // ─── Design B: hand off to the complete Design B app ─────────────────────
+  const isDesignB = designVariant === 'B';
+  if (isDesignB) {
+    return <DesignBApp onSwitchDesign={toggleDesign} />;
+  }
+
   if (isHome) {
     return (
       <HomeScreen
@@ -1234,7 +1241,7 @@ export default function OnboardingScreen() {
             style={({ pressed }) => [
               styles.themeButton,
               {
-                backgroundColor: designVariant === 'B' ? colors.primary : colors.secondary,
+                backgroundColor: (designVariant as string) === 'B' ? colors.primary : colors.secondary,
                 minWidth: 36,
               },
               pressed && styles.pressed,
@@ -1244,11 +1251,11 @@ export default function OnboardingScreen() {
               style={{
                 fontFamily: colors.fontBodySemiBold,
                 fontSize: 12,
-                color: designVariant === 'B' ? colors.primaryForeground : colors.primary,
+                color: (designVariant as string) === 'B' ? colors.primaryForeground : colors.primary,
                 letterSpacing: 0.5,
               }}
             >
-              {designVariant === 'A' ? 'B' : 'A'}
+              {(designVariant as string) === 'A' ? 'B' : 'A'}
             </Text>
           </Pressable>
           <Pressable
