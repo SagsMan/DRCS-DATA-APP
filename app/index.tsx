@@ -9,6 +9,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   View,
@@ -23,6 +24,7 @@ import { DesignBApp } from '@/components/DesignBApp';
 import {
   AirtimeIcon, BettingIcon, CableTVIcon, DataIcon, EducationIcon, ElectricityIcon,
   CardsNavIcon, HistoryNavIcon, HomeNavIcon, ProfileNavIcon, RewardsNavIcon,
+  DepositIcon, TransferIcon,
 } from '@/components/icons/DrcsIcons';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 
@@ -1185,6 +1187,119 @@ function AEducationFormScreen({ bodyId, bodyLabel, colors, onBack, onProceed }: 
   );
 }
 
+// ─── A: Profile sub-screens ───────────────────────────────────────────────────
+function AProfileSettingsScreen({ colors, insets, onBack }: { colors: AColors; insets: { top: number }; onBack: () => void }) {
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ firstName:'John', middleName:'-', lastName:'Doe', email:'johndoe239@gmail.com', dob:'20/09/2001' });
+  const fields = [
+    { key:'firstName' as const, label:'First Name' },
+    { key:'middleName' as const, label:'Middle Name' },
+    { key:'lastName' as const, label:'Last Name' },
+    { key:'email' as const, label:'Email Address' },
+    { key:'dob' as const, label:'Date of Birth' },
+  ];
+  const inputSt = { fontFamily:colors.fontBody, fontSize:15, color:colors.grayBlack, borderWidth:1, borderColor:colors.border, borderRadius:14, paddingHorizontal:16, paddingVertical:13, backgroundColor:colors.card };
+  return (
+    <View style={{ flex:1, backgroundColor:colors.background }}>
+      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'space-between', paddingTop:insets.top+16, paddingHorizontal:18, paddingBottom:14 }}>
+        <Pressable onPress={onBack}><Ionicons name="chevron-back" size={24} color={colors.primary} /></Pressable>
+        <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack }}>Profile Settings</Text>
+        <Pressable onPress={() => setEditing(e => !e)}>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.primary }}>{editing ? 'Done' : 'Edit'}</Text>
+        </Pressable>
+      </View>
+      <ScrollView contentContainerStyle={{ paddingHorizontal:18, paddingBottom:32 }}>
+        <View style={{ alignItems:'center', marginBottom:28 }}>
+          <View style={{ position:'relative' }}>
+            <Image source={require('../assets/images/design-b/avatar.png')} style={{ width:96, height:96, borderRadius:48 }} />
+            {editing && (
+              <Pressable style={{ position:'absolute', bottom:0, right:0, width:32, height:32, borderRadius:16, backgroundColor:colors.card, borderWidth:1.5, borderColor:colors.primary, alignItems:'center', justifyContent:'center' }}>
+                <Ionicons name="camera-outline" size={16} color={colors.primary} />
+              </Pressable>
+            )}
+          </View>
+        </View>
+        {fields.map(f => (
+          <View key={f.key} style={{ marginBottom:16 }}>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayBlack, marginBottom:8 }}>{f.label}</Text>
+            {editing
+              ? <TextInput value={form[f.key]} onChangeText={v => setForm(p=>({...p,[f.key]:v}))} style={inputSt} />
+              : <View style={{ backgroundColor:colors.card, borderRadius:14, minHeight:50, justifyContent:'center', paddingHorizontal:16, borderWidth:1, borderColor:colors.border }}>
+                  <Text style={{ fontFamily:colors.fontBody, fontSize:15, color:colors.grayGray1 }}>{form[f.key]}</Text>
+                </View>
+            }
+          </View>
+        ))}
+        {editing && (
+          <Pressable onPress={() => setEditing(false)} style={({ pressed }) => [{ backgroundColor:colors.primary, borderRadius:14, paddingVertical:14, alignItems:'center', marginTop:8, opacity:pressed?0.85:1 }]}>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Save</Text>
+          </Pressable>
+        )}
+      </ScrollView>
+    </View>
+  );
+}
+
+function ASecurityScreen({ colors, insets, onBack }: { colors: AColors; insets: { top: number }; onBack: () => void }) {
+  const [fp, setFp] = useState(true);
+  return (
+    <View style={{ flex:1, backgroundColor:colors.background }}>
+      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center', paddingTop:insets.top+16, paddingHorizontal:18, paddingBottom:14 }}>
+        <Pressable onPress={onBack} style={{ position:'absolute', left:18 }}><Ionicons name="chevron-back" size={24} color={colors.primary} /></Pressable>
+        <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack }}>Settings</Text>
+      </View>
+      <View style={{ paddingHorizontal:18 }}>
+        {[
+          { icon:'lock-closed-outline' as const, label:'Change Password' },
+          { icon:'shield-checkmark-outline' as const, label:'2FA Authentication' },
+        ].map(item => (
+          <Pressable key={item.label} style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', backgroundColor:colors.card, borderRadius:16, padding:16, marginBottom:10, borderWidth:1, borderColor:colors.border, opacity:pressed?0.8:1 }]}>
+            <View style={{ width:38, height:38, borderRadius:12, backgroundColor:colors.brandPrimaryLight, alignItems:'center', justifyContent:'center', marginRight:14 }}>
+              <Ionicons name={item.icon} size={19} color={colors.primary} />
+            </View>
+            <Text style={{ flex:1, fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.grayBlack }}>{item.label}</Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.grayGray1} />
+          </Pressable>
+        ))}
+        <Pressable style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', backgroundColor:colors.card, borderRadius:16, padding:16, marginBottom:10, borderWidth:1, borderColor:colors.border, opacity:pressed?0.8:1 }]}
+          onPress={() => setFp(f => !f)}>
+          <View style={{ width:38, height:38, borderRadius:12, backgroundColor:colors.brandPrimaryLight, alignItems:'center', justifyContent:'center', marginRight:14 }}>
+            <Ionicons name="finger-print-outline" size={19} color={colors.primary} />
+          </View>
+          <Text style={{ flex:1, fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.grayBlack }}>Enable Fingerprint</Text>
+          <Switch value={fp} onValueChange={setFp} trackColor={{ true: colors.primary }} thumbColor="#fff" />
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+function AAccountDetailsScreen({ colors, insets, onBack }: { colors: AColors; insets: { top: number }; onBack: () => void }) {
+  return (
+    <View style={{ flex:1, backgroundColor:colors.background }}>
+      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center', paddingTop:insets.top+16, paddingHorizontal:18, paddingBottom:14 }}>
+        <Pressable onPress={onBack} style={{ position:'absolute', left:18 }}><Ionicons name="chevron-back" size={24} color={colors.primary} /></Pressable>
+        <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack }}>Account Details</Text>
+      </View>
+      <View style={{ paddingHorizontal:18 }}>
+        {[
+          { icon:'card-outline' as const, label:'BVN' },
+          { icon:'id-card-outline' as const, label:'NIN' },
+          { icon:'scan-circle-outline' as const, label:'Face Verification' },
+        ].map(item => (
+          <Pressable key={item.label} style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', backgroundColor:colors.card, borderRadius:16, padding:16, marginBottom:10, borderWidth:1, borderColor:colors.border, opacity:pressed?0.8:1 }]}>
+            <View style={{ width:38, height:38, borderRadius:12, backgroundColor:colors.brandPrimaryLight, alignItems:'center', justifyContent:'center', marginRight:14 }}>
+              <Ionicons name={item.icon} size={19} color={colors.primary} />
+            </View>
+            <Text style={{ flex:1, fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.grayBlack }}>{item.label}</Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.grayGray1} />
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  );
+}
+
 // ─── A: Receipt builder ────────────────────────────────────────────────────────
 function buildAReceipt(flow: AFlow, extra: Record<string,string> = {}): AReceiptData {
   const ref = aTxRef(), ts = aNow();
@@ -1252,7 +1367,8 @@ function HomeScreen({
   const insets = useSafeAreaInsets();
   const colors = useColors(theme, designVariant);
   const styles = makeStyles(colors);
-  const [activeTab, setActiveTab] = useState<HomeTab>('Home');
+  const [activeTab,   setActiveTab]   = useState<HomeTab>('Home');
+  const [profileSub,  setProfileSub]  = useState<'profileSettings'|'accountDetails'|'security'|null>(null);
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [notice, setNotice] = useState('');
   const [promoIndex, setPromoIndex] = useState(0);
@@ -1282,11 +1398,8 @@ function HomeScreen({
 
   const handleTabPress = (tab: HomeTab) => {
     setActiveTab(tab);
-    if (tab !== 'Home') {
-      showNotice(`${tab} is ready for your DRCS DATA account.`);
-    } else {
-      setNotice('');
-    }
+    setProfileSub(null);
+    setNotice('');
   };
 
   useEffect(() => {
@@ -1378,6 +1491,13 @@ function HomeScreen({
       onToDRCS={() => setFlow({ kind:'sendToDRCS' })}
       onToBank={() => setFlow({ kind:'sendToBank' })} />;
 
+  if (profileSub === 'profileSettings')
+    return <AProfileSettingsScreen colors={colors} insets={insets} onBack={() => setProfileSub(null)} />;
+  if (profileSub === 'accountDetails')
+    return <AAccountDetailsScreen colors={colors} insets={insets} onBack={() => setProfileSub(null)} />;
+  if (profileSub === 'security')
+    return <ASecurityScreen colors={colors} insets={insets} onBack={() => setProfileSub(null)} />;
+
   return (
     <View
       style={[
@@ -1390,22 +1510,20 @@ function HomeScreen({
         },
       ]}
     >
+      {activeTab === 'Home' && (
       <ScrollView
         contentContainerStyle={styles.homeScrollContent}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.homeHeader}>
           <View style={styles.homeBrandRow}>
-            <View style={[styles.homeLogoBadge, { backgroundColor: colors.primary }]}>
-              <Image
-                source={require('../assets/images/logo-icon.png')}
-                style={styles.homeLogo}
-                resizeMode="contain"
-              />
-            </View>
+            <Image
+              source={require('../assets/images/design-b/avatar.png')}
+              style={{ width: 44, height: 44, borderRadius: 22 }}
+            />
             <View>
               <Text style={[styles.homeGreeting, { color: colors.grayGray1 }]}>Welcome back</Text>
-              <Text style={[styles.homeName, { color: colors.grayBlack }]}>DRCS User</Text>
+              <Text style={[styles.homeName, { color: colors.grayBlack }]}>John Doe</Text>
             </View>
           </View>
           <View style={styles.homeHeaderActions}>
@@ -1508,57 +1626,20 @@ function HomeScreen({
           </View>
         </View>
 
-        <View style={styles.homeSectionHeading}>
-          <Text style={[styles.homeSectionTitle, { color: colors.grayBlack }]}>Move money</Text>
-          <Text style={[styles.homeSectionCaption, { color: colors.grayGray1 }]}>
-            Fast, safe and simple
-          </Text>
-        </View>
-        <View style={styles.actionRow}>
-          {homeActions.map((action) => (
-            <Pressable
-              key={action.label}
-              accessibilityRole="button"
-              accessibilityLabel={action.label}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                if (action.label === 'To DRCS User') openFlow({ kind: 'sendToDRCS' });
-                else if (action.label === 'To Bank')  openFlow({ kind: 'sendToBank'  });
-                else if (action.label === 'Add Money') openFlow({ kind: 'addMoney'   });
-                else showNotice(`${action.label} selected.`);
-              }}
-              style={({ pressed }) => [
-                styles.actionCard,
-                { backgroundColor: colors.card, borderColor: colors.border },
-                pressed && styles.actionCardPressed,
-              ]}
-            >
-              <View
-                style={[
-                  styles.actionIcon,
-                  {
-                    backgroundColor:
-                      action.tone === 'primary'
-                        ? colors.brandPrimaryLight
-                        : action.tone === 'secondary'
-                          ? colors.secondary
-                          : colors.successLight,
-                  },
-                ]}
-              >
-                <Ionicons
-                  name={action.icon}
-                  size={22}
-                  color={
-                    action.tone === 'accent'
-                      ? colors.success
-                      : action.tone === 'secondary'
-                        ? colors.secondaryForeground
-                        : colors.primary
-                  }
-                />
-              </View>
-              <Text style={[styles.actionLabel, { color: colors.grayBlack }]}>{action.label}</Text>
+        {/* Deposit + Transfer — matches Design B */}
+        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
+          {([
+            { lbl: 'Deposit',  Icon: DepositIcon,  fn: () => openFlow({ kind: 'addMoney' }) },
+            { lbl: 'Transfer', Icon: TransferIcon, fn: () => openFlow({ kind: 'transferPicker' } as any) },
+          ] as { lbl: string; Icon: ANavIconComponent; fn: () => void }[]).map(a => (
+            <Pressable key={a.lbl} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); a.fn(); }}
+              style={({ pressed }) => [{
+                flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+                gap: 8, borderRadius: 28, borderWidth: 1.5, borderColor: colors.primary,
+                paddingVertical: 13, opacity: pressed ? 0.75 : 1,
+              }]}>
+              <a.Icon size={18} color={colors.primary} strokeWidth={1.8} />
+              <Text style={{ fontFamily: colors.fontBodySemiBold, fontSize: 15, color: colors.primary }}>{a.lbl}</Text>
             </Pressable>
           ))}
         </View>
@@ -1767,6 +1848,49 @@ function HomeScreen({
           </View>
         ))}
       </ScrollView>
+      )}
+
+      {(activeTab === 'Rewards' || activeTab === 'History' || activeTab === 'Cards') && (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <Ionicons name="construct-outline" size={52} color={colors.primary} style={{ opacity: 0.3 }} />
+          <Text style={{ fontFamily: colors.fontBodySemiBold, fontSize: 18, color: colors.grayGray1, marginTop: 16 }}>{activeTab}</Text>
+          <Text style={{ fontFamily: colors.fontBody, fontSize: 14, color: colors.grayGray1, marginTop: 6 }}>Coming soon</Text>
+        </View>
+      )}
+
+      {activeTab === 'Profile' && (
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 24 }}>
+          <Text style={{ fontFamily: colors.fontBodySemiBold, fontSize: 20, color: colors.grayBlack, textAlign: 'center', marginBottom: 22 }}>Profile</Text>
+          <View style={{ alignItems: 'center', marginBottom: 20 }}>
+            <Image source={require('../assets/images/design-b/avatar.png')} style={{ width: 130, height: 130, borderRadius: 65 }} />
+            <Text style={{ fontFamily: colors.fontBodySemiBold, fontSize: 18, color: colors.grayBlack, marginTop: 16 }}>John Doe</Text>
+            <Text style={{ fontFamily: colors.fontBody, fontSize: 12, color: colors.grayGray1, marginTop: 4 }}>johndoe239@gmail.com</Text>
+          </View>
+          {([
+            { icon: 'person-outline',        label: 'Profile',         sub: 'profileSettings' },
+            { icon: 'list-outline',          label: 'Account Details', sub: 'accountDetails'  },
+            { icon: 'shield-outline',        label: 'Security',        sub: 'security'        },
+            { icon: 'people-outline',        label: 'Referral',        sub: null              },
+            { icon: 'notifications-outline', label: 'Notification',    sub: null              },
+          ] as { icon: string; label: string; sub: string|null }[]).map(item => (
+            <Pressable key={item.label} onPress={() => item.sub && setProfileSub(item.sub as any)}
+              style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', backgroundColor:colors.card,
+                borderRadius:16, padding:16, marginBottom:10, borderWidth:1, borderColor:colors.border, opacity:pressed?0.8:1 }]}>
+              <View style={{ width:38, height:38, borderRadius:12, backgroundColor:colors.brandPrimaryLight,
+                alignItems:'center', justifyContent:'center', marginRight:14 }}>
+                <Ionicons name={item.icon as any} size={19} color={colors.primary} />
+              </View>
+              <Text style={{ flex:1, fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.grayBlack }}>{item.label}</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.grayGray1} />
+            </Pressable>
+          ))}
+          <Pressable onPress={() => {}}
+            style={({ pressed }) => [{ backgroundColor:'#fe0d0d', borderRadius:40, paddingVertical:14,
+              alignItems:'center', marginTop:4, opacity:pressed?0.85:1 }]}>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:'#fff' }}>Log Out</Text>
+          </Pressable>
+        </ScrollView>
+      )}
 
       <View style={{
         flexDirection: 'row', backgroundColor: colors.card,
