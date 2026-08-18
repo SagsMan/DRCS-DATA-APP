@@ -75,7 +75,8 @@ const C = {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type DBScreen = 'splash'|'onboarding'|'login'|'signup'|'home'|'profile'
-  |'profileSettings'|'accountDetails'|'security'|'receipt'|'telecomPicker';
+  |'profileSettings'|'accountDetails'|'security'|'receipt'|'telecomPicker'
+  |'referral'|'notification'|'changePassword'|'twoFA'|'bvn'|'nin'|'faceVerification';
 type HomeTab  = 'Home'|'Rewards'|'History'|'Cards'|'Profile';
 interface ReceiptData {
   status: 'success'|'failed';
@@ -440,15 +441,55 @@ function BottomNav({ active, onSelect }: { active: HomeTab; onSelect: (t: HomeTa
 }
 
 // ─── 1. Splash ────────────────────────────────────────────────────────────────
+// ─── Shared blue-bg decorative shapes (splash / onboarding / auth) ────────────
+// Figma: two large dark-navy elliptical wings sweeping from the lower corners
+// to the centre, creating a V-chevron valley, plus a soft upper-left glow arc.
+function BlueBgDecor() {
+  // Each wing is a large ellipse, mostly off-screen, rotated inward.
+  const wingW = W * 1.35;
+  const wingH = H * 1.05;
+  const xOff  = W * 0.50;   // how far the wing centre extends off the side
+  const yTop  = H * 0.38;   // vertical start of the wings
+  const angle = 22;          // degrees of inward rotation
+  return (
+    <>
+      {/* Soft upper-left glow — lighter highlight circle */}
+      <View pointerEvents="none" style={{
+        position: 'absolute', width: W * 1.8, height: W * 1.8,
+        borderRadius: W * 0.9,
+        backgroundColor: 'rgba(90,130,255,0.10)',
+        top: -W * 1.0, left: -W * 0.55,
+      }} />
+      {/* Left wing */}
+      <View pointerEvents="none" style={{
+        position: 'absolute', width: wingW, height: wingH,
+        borderRadius: 999,
+        backgroundColor: 'rgba(4, 14, 68, 0.52)',
+        top: yTop, left: -xOff,
+        transform: [{ rotate: `-${angle}deg` }],
+      }} />
+      {/* Right wing */}
+      <View pointerEvents="none" style={{
+        position: 'absolute', width: wingW, height: wingH,
+        borderRadius: 999,
+        backgroundColor: 'rgba(4, 14, 68, 0.52)',
+        top: yTop, right: -xOff,
+        transform: [{ rotate: `${angle}deg` }],
+      }} />
+    </>
+  );
+}
+
 function SplashScreen({ onDone }: { onDone: () => void }) {
   useEffect(() => { const t = setTimeout(onDone, 2400); return () => clearTimeout(t); }, []);
   return (
-    <View style={{ flex: 1, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{ flex: 1, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
       <StatusBar barStyle="light-content" backgroundColor={C.primary} />
+      <BlueBgDecor />
       {/* Figma: logo block 140×195 (hexagon 140×160 + DRCSDATA 24px text) */}
       <Image
         source={require('../assets/images/design-b/splash-logo.png')}
-        style={{ width: 140, height: 195 }}
+        style={{ width: 140, height: 195, zIndex: 1 }}
         resizeMode="contain"
       />
     </View>
@@ -496,10 +537,11 @@ function OnboardingScreen({ onDone }: { onDone: () => void }) {
       <StatusBar barStyle="light-content" backgroundColor={C.primary} />
 
       {/* ── Blue illustration zone ── */}
-      <View style={{ height: ILLUS_H, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ height: ILLUS_H, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        <BlueBgDecor />
         <Image
           source={slide.img}
-          style={{ width: ILLUS_SIZE, height: ILLUS_SIZE, marginTop: ins.top / 2 }}
+          style={{ width: ILLUS_SIZE, height: ILLUS_SIZE, marginTop: ins.top / 2, zIndex: 1 }}
           resizeMode="contain"
         />
 
@@ -558,14 +600,15 @@ function AuthShell({ title, children }: { title: string; children: React.ReactNo
 
       {/* Blue header */}
       <View style={{ height: topH, justifyContent: 'flex-end', paddingHorizontal: 28, paddingBottom: 32, overflow: 'hidden' }}>
+        <BlueBgDecor />
         {/* Watermark hexagon (logo-hex, low opacity, top-right) */}
         <Image
           source={require('../assets/images/design-b/logo-hex.png')}
-          style={{ position: 'absolute', right: -24, top: ins.top + 8, width: 160, height: 160, opacity: 0.12 }}
+          style={{ position: 'absolute', right: -24, top: ins.top + 8, width: 160, height: 160, opacity: 0.12, zIndex: 1 }}
           resizeMode="contain"
         />
         {/* Figma: DM Sans 600, 32px, lh 41.7, ls -0.64 */}
-        <Text style={{ fontFamily: C.bold, fontSize: 32, color: '#fff', lineHeight: 42, letterSpacing: -0.64 }}>{title}</Text>
+        <Text style={{ fontFamily: C.bold, fontSize: 32, color: '#fff', lineHeight: 42, letterSpacing: -0.64, zIndex: 1 }}>{title}</Text>
       </View>
 
       {/* White form card */}
@@ -628,7 +671,9 @@ function LoginScreen({ onLogin, onGoSignup }: { onLogin: () => void; onGoSignup:
       <View style={{ gap: 12 }}>
         <Field placeholder="Email" value={email} onChangeText={setEmail} keyboard="email-address" autoCapitalize="none" />
         <Field placeholder="Password" value={pass} onChangeText={setPass} secure />
-        <Pressable onPress={() => {}} style={{ alignSelf: 'flex-end' }}>
+        <Pressable onPress={() => Alert.alert('Reset Password','Enter your email and we\'ll send a reset link.',
+            [{text:'Cancel',style:'cancel'},{text:'Send Link',onPress:()=>Alert.alert('Sent','Check your email for the reset link.')}])}
+          style={{ alignSelf: 'flex-end' }}>
           <Text style={{ fontFamily: C.regular, fontSize: 13, color: C.label, fontStyle: 'italic' }}>Forget Password</Text>
         </Pressable>
       </View>
@@ -1850,7 +1895,7 @@ function LoadingOverlay() {
 const StyleFill = { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0 };
 
 function HomeTab({
-  onShowReceipt, onOpenPicker, onOpenTVPicker, onOpenBetting, onOpenEducationPicker, onShowPin, onShowAddMoney, onShowTransfer,
+  onShowReceipt, onOpenPicker, onOpenTVPicker, onOpenBetting, onOpenEducationPicker, onShowPin, onShowAddMoney, onShowTransfer, onGoHistory, onShowReferral,
 }: {
   onShowReceipt: (d: ReceiptData) => void;
   onOpenPicker: (svc: string) => void;
@@ -1860,6 +1905,8 @@ function HomeTab({
   onShowPin: () => void;
   onShowAddMoney: () => void;
   onShowTransfer: () => void;
+  onGoHistory: () => void;
+  onShowReferral: () => void;
 }) {
   const ins = useSafeAreaInsets();
   const [balHidden, setBalHidden] = useState(false);
@@ -2003,7 +2050,7 @@ function HomeTab({
                 setPromoIdx(Math.max(0, Math.min(i, B_PROMO_SLIDES.length - 1)));
               }}>
               {B_PROMO_SLIDES.map((slide, i) => (
-                <Pressable key={slide.title} style={{ width: promoW }} onPress={() => {}}>
+                <Pressable key={slide.title} style={{ width: promoW }} onPress={onShowReferral}>
                   <ImageBackground source={slide.bg} resizeMode="cover"
                     style={{ width: promoW, height: 164, borderRadius: 20, overflow: 'hidden',
                       backgroundColor: C.primaryDark }}
@@ -2047,7 +2094,7 @@ function HomeTab({
             {/* Figma: DM Sans 600 16/20.8 ls -0.8 */}
             <Text style={{ fontFamily: C.bold, fontSize: 16, lineHeight: 21, letterSpacing: -0.8, color: C.text }}>Recent Transactions</Text>
             {/* Figma: DM Sans 400 12/15.6 ls -0.6 */}
-            <Pressable><Text style={{ fontFamily: C.regular, fontSize: 12, lineHeight: 16, letterSpacing: -0.6, color: C.primary }}>See More</Text></Pressable>
+            <Pressable onPress={onGoHistory}><Text style={{ fontFamily: C.regular, fontSize: 12, lineHeight: 16, letterSpacing: -0.6, color: C.primary }}>See More</Text></Pressable>
           </View>
 
           <View style={{ gap: 10 }}>
@@ -2126,10 +2173,10 @@ function ProfileTab({ onNavigate }: { onNavigate: (s: DBScreen) => void }) {
       <MenuRow icon="person-outline"         label="Profile"          onPress={() => onNavigate('profileSettings')} />
       <MenuRow icon="list-outline"           label="Account Details"  onPress={() => onNavigate('accountDetails')} />
       <MenuRow icon="shield-outline"         label="Security"         onPress={() => onNavigate('security')} />
-      <MenuRow icon="people-outline"         label="Referral"         onPress={() => {}} />
-      <MenuRow icon="notifications-outline"  label="Notification"     onPress={() => {}} />
+      <MenuRow icon="people-outline"         label="Referral"         onPress={() => onNavigate('referral')} />
+      <MenuRow icon="notifications-outline"  label="Notification"     onPress={() => onNavigate('notification')} />
       {/* Figma: logout BTN r=40, height 44, fill #fe0d0d */}
-      <Btn label="Log Out" onPress={() => {}} variant="danger" style={{ marginTop: 14, minHeight: 44 }} />
+      <Btn label="Log Out" onPress={() => Alert.alert('Log Out','Are you sure you want to log out?',[{text:'Cancel',style:'cancel'},{text:'Log Out',style:'destructive',onPress:()=>{}}])} variant="danger" style={{ marginTop: 14, minHeight: 44 }} />
     </ScrollView>
     </View>
   );
@@ -2202,6 +2249,9 @@ function ProfileSettingsScreen({ onBack }: { onBack: () => void }) {
 function SecurityScreen({ onBack }: { onBack: () => void }) {
   const ins = useSafeAreaInsets();
   const [fp, setFp] = useState(true);
+  const [sub, setSub] = useState<'main'|'changePassword'|'twoFA'>('main');
+  if (sub === 'changePassword') return <ChangePasswordScreen onBack={() => setSub('main')} />;
+  if (sub === 'twoFA')          return <TwoFAScreen          onBack={() => setSub('main')} />;
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <Image source={require('../assets/images/design-b/logo-hex.png')}
@@ -2217,11 +2267,11 @@ function SecurityScreen({ onBack }: { onBack: () => void }) {
         <Text style={{ fontFamily: C.bold, fontSize: 18, color: C.text }}>Settings</Text>
       </View>
       <View style={{ paddingHorizontal: 20 }}>
-        <MenuRow icon="lock-closed-outline"      label="Change Password"      onPress={() => {}} />
+        <MenuRow icon="lock-closed-outline"      label="Change Password"      onPress={() => setSub('changePassword')} />
         <MenuRow icon="finger-print-outline"     label="Enable Fingerprint"
           right={<Switch value={fp} onValueChange={setFp} trackColor={{ true: C.primary }} thumbColor="#fff" />}
           onPress={() => setFp(f => !f)} />
-        <MenuRow icon="shield-checkmark-outline" label="2FA Authentication"   onPress={() => {}} />
+        <MenuRow icon="shield-checkmark-outline" label="2FA Authentication"   onPress={() => setSub('twoFA')} />
       </View>
     </View>
   );
@@ -2230,6 +2280,10 @@ function SecurityScreen({ onBack }: { onBack: () => void }) {
 // ─── 10. Account details ──────────────────────────────────────────────────────
 function AccountDetailsScreen({ onBack }: { onBack: () => void }) {
   const ins = useSafeAreaInsets();
+  const [sub, setSub] = useState<'main'|'bvn'|'nin'|'faceVerification'>('main');
+  if (sub === 'bvn')             return <BVNScreen              onBack={() => setSub('main')} />;
+  if (sub === 'nin')             return <NINScreen              onBack={() => setSub('main')} />;
+  if (sub === 'faceVerification')return <FaceVerificationScreen onBack={() => setSub('main')} />;
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <Image source={require('../assets/images/design-b/logo-hex.png')}
@@ -2245,9 +2299,319 @@ function AccountDetailsScreen({ onBack }: { onBack: () => void }) {
         <Text style={{ fontFamily: C.bold, fontSize: 18, color: C.text }}>Account Details</Text>
       </View>
       <View style={{ paddingHorizontal: 20 }}>
-        <MenuRow icon="card-outline"        label="BVN"               onPress={() => {}} />
-        <MenuRow icon="id-card-outline"     label="NIN"               onPress={() => {}} />
-        <MenuRow icon="scan-circle-outline" label="Face Verification"  onPress={() => {}} />
+        <MenuRow icon="card-outline"        label="BVN"               onPress={() => setSub('bvn')} />
+        <MenuRow icon="id-card-outline"     label="NIN"               onPress={() => setSub('nin')} />
+        <MenuRow icon="scan-circle-outline" label="Face Verification"  onPress={() => setSub('faceVerification')} />
+      </View>
+    </View>
+  );
+}
+
+// ─── New profile sub-screens ──────────────────────────────────────────────────
+function ReferralScreen({ onBack }: { onBack: () => void }) {
+  const ins = useSafeAreaInsets();
+  const code = 'DRCS-JD239';
+  return (
+    <View style={{ flex:1, backgroundColor:C.bg }}>
+      <Image source={require('../assets/images/design-b/logo-hex.png')}
+        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }} resizeMode="contain" />
+      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center',
+        paddingTop:ins.top+(Platform.OS==='web'?67:12), paddingHorizontal:20, paddingBottom:16 }}>
+        <Pressable onPress={onBack} style={{ position:'absolute', left:20 }}>
+          <Ionicons name="chevron-back" size={24} color={C.primary} />
+        </Pressable>
+        <Text style={{ fontFamily:C.bold, fontSize:18, color:C.text }}>Referral</Text>
+      </View>
+      <ScrollView contentContainerStyle={{ paddingHorizontal:20, paddingBottom:32 }}>
+        <View style={{ backgroundColor:C.card, borderRadius:20, padding:20, alignItems:'center', marginBottom:20, borderWidth:1, borderColor:C.border }}>
+          <Text style={{ fontFamily:C.bold, fontSize:11, color:C.subtext, letterSpacing:1.2, marginBottom:8 }}>YOUR REFERRAL CODE</Text>
+          <Text style={{ fontFamily:C.bold, fontSize:30, color:C.primary, letterSpacing:4, marginBottom:14 }}>{code}</Text>
+          <Pressable onPress={() => Alert.alert('Copied!', `Code ${code} copied.`)}
+            style={({ pressed }) => [{ flexDirection:'row', gap:6, alignItems:'center', backgroundColor:C.primaryLight, borderRadius:20, paddingHorizontal:20, paddingVertical:10, opacity:pressed?0.8:1 }]}>
+            <Ionicons name="copy-outline" size={15} color={C.primary} />
+            <Text style={{ fontFamily:C.bold, fontSize:13, color:C.primary }}>Copy Code</Text>
+          </Pressable>
+        </View>
+        <Pressable onPress={() => Alert.alert('Share', `Share your referral code: ${code}`)}
+          style={({ pressed }) => [{ flexDirection:'row', gap:8, alignItems:'center', justifyContent:'center',
+            backgroundColor:C.primary, borderRadius:28, paddingVertical:14, marginBottom:24, opacity:pressed?0.85:1 }]}>
+          <Ionicons name="share-social-outline" size={18} color="#fff" />
+          <Text style={{ fontFamily:C.bold, fontSize:15, color:'#fff' }}>Share Invite Link</Text>
+        </Pressable>
+        <View style={{ flexDirection:'row', gap:12, marginBottom:24 }}>
+          {([{ label:'Referred', value:'3' }, { label:'Earned', value:'₦750' }] as const).map(s => (
+            <View key={s.label} style={{ flex:1, backgroundColor:C.card, borderRadius:16, padding:16, alignItems:'center', borderWidth:1, borderColor:C.border }}>
+              <Text style={{ fontFamily:C.bold, fontSize:22, color:C.primary }}>{s.value}</Text>
+              <Text style={{ fontFamily:C.regular, fontSize:12, color:C.subtext, marginTop:4 }}>{s.label}</Text>
+            </View>
+          ))}
+        </View>
+        <Text style={{ fontFamily:C.bold, fontSize:16, color:C.text, marginBottom:12 }}>How it works</Text>
+        {[
+          { n:'1', t:'Share your referral code with friends' },
+          { n:'2', t:'Friend signs up and makes first transaction' },
+          { n:'3', t:'You both earn ₦250 bonus credit!' },
+        ].map(s => (
+          <View key={s.n} style={{ flexDirection:'row', gap:14, alignItems:'flex-start', marginBottom:14 }}>
+            <View style={{ width:28, height:28, borderRadius:14, backgroundColor:C.primary, alignItems:'center', justifyContent:'center' }}>
+              <Text style={{ fontFamily:C.bold, fontSize:13, color:'#fff' }}>{s.n}</Text>
+            </View>
+            <Text style={{ flex:1, fontFamily:C.regular, fontSize:14, color:C.text, lineHeight:20, paddingTop:4 }}>{s.t}</Text>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
+
+function NotificationScreen({ onBack }: { onBack: () => void }) {
+  const ins = useSafeAreaInsets();
+  const [items, setItems] = useState([
+    { id:'1', icon:'gift-outline',            title:'₦250 referral bonus!',       body:'Your friend signed up using your code.',    time:'2h ago',  read:false },
+    { id:'2', icon:'checkmark-circle-outline', title:'Data purchase successful',   body:'2GB data for 08012345678 activated.',       time:'5h ago',  read:false },
+    { id:'3', icon:'alert-circle-outline',     title:'Low balance alert',          body:'Your wallet balance is below ₦500.',        time:'1d ago',  read:true  },
+    { id:'4', icon:'star-outline',             title:'Welcome to DRCS DATA!',      body:'Your account is ready. Start transacting.', time:'3d ago',  read:true  },
+  ]);
+  return (
+    <View style={{ flex:1, backgroundColor:C.bg }}>
+      <Image source={require('../assets/images/design-b/logo-hex.png')}
+        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }} resizeMode="contain" />
+      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'space-between',
+        paddingTop:ins.top+(Platform.OS==='web'?67:12), paddingHorizontal:20, paddingBottom:16 }}>
+        <Pressable onPress={onBack}><Ionicons name="chevron-back" size={24} color={C.primary} /></Pressable>
+        <Text style={{ fontFamily:C.bold, fontSize:18, color:C.text }}>Notifications</Text>
+        <Pressable onPress={() => setItems(i => i.map(n => ({ ...n, read:true })))}>
+          <Text style={{ fontFamily:C.bold, fontSize:13, color:C.primary }}>Mark all</Text>
+        </Pressable>
+      </View>
+      <ScrollView contentContainerStyle={{ paddingHorizontal:20, paddingBottom:24 }}>
+        {items.map(item => (
+          <Pressable key={item.id} onPress={() => setItems(i => i.map(n => n.id===item.id ? { ...n, read:true } : n))}
+            style={({ pressed }) => [{ flexDirection:'row', alignItems:'flex-start',
+              backgroundColor: item.read ? C.card : C.primaryLight,
+              borderRadius:16, padding:16, marginBottom:10, borderWidth:1, borderColor:C.border, opacity:pressed?0.8:1 }]}>
+            <View style={{ width:38, height:38, borderRadius:12,
+              backgroundColor: item.read ? C.bg : C.primary,
+              alignItems:'center', justifyContent:'center', marginRight:14 }}>
+              <Ionicons name={item.icon as any} size={19} color={item.read ? C.subtext : '#fff'} />
+            </View>
+            <View style={{ flex:1 }}>
+              <View style={{ flexDirection:'row', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
+                <Text style={{ fontFamily:C.bold, fontSize:14, color:C.text }}>{item.title}</Text>
+                <Text style={{ fontFamily:C.regular, fontSize:11, color:C.subtext }}>{item.time}</Text>
+              </View>
+              <Text style={{ fontFamily:C.regular, fontSize:13, color:C.subtext, lineHeight:18 }}>{item.body}</Text>
+            </View>
+            {!item.read && <View style={{ width:8, height:8, borderRadius:4, backgroundColor:C.primary, marginLeft:8, marginTop:4 }} />}
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
+
+function ChangePasswordScreen({ onBack }: { onBack: () => void }) {
+  const ins = useSafeAreaInsets();
+  const [cur, setCur] = useState('');
+  const [nw,  setNw]  = useState('');
+  const [cf,  setCf]  = useState('');
+  const ok = cur.length >= 6 && nw.length >= 6 && nw === cf;
+  return (
+    <View style={{ flex:1, backgroundColor:C.bg }}>
+      <Image source={require('../assets/images/design-b/logo-hex.png')}
+        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }} resizeMode="contain" />
+      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center',
+        paddingTop:ins.top+(Platform.OS==='web'?67:12), paddingHorizontal:20, paddingBottom:16 }}>
+        <Pressable onPress={onBack} style={{ position:'absolute', left:20 }}>
+          <Ionicons name="chevron-back" size={24} color={C.primary} />
+        </Pressable>
+        <Text style={{ fontFamily:C.bold, fontSize:18, color:C.text }}>Change Password</Text>
+      </View>
+      <ScrollView contentContainerStyle={{ paddingHorizontal:20, paddingBottom:32 }} keyboardShouldPersistTaps="handled">
+        {([
+          { label:'Current Password', val:cur, set:setCur },
+          { label:'New Password',     val:nw,  set:setNw  },
+          { label:'Confirm Password', val:cf,  set:setCf  },
+        ] as const).map(f => (
+          <View key={f.label} style={{ marginBottom:18 }}>
+            <Text style={{ fontFamily:C.bold, fontSize:13, color:C.text, marginBottom:8 }}>{f.label}</Text>
+            <Field placeholder={f.label} value={f.val} onChangeText={f.set} secure />
+          </View>
+        ))}
+        {nw.length > 0 && cf.length > 0 && nw !== cf &&
+          <Text style={{ fontFamily:C.regular, fontSize:13, color:C.error, marginBottom:12 }}>Passwords do not match</Text>}
+        <Btn label="Update Password" onPress={() => ok && (Alert.alert('Success','Password updated successfully.'), onBack())}
+          style={{ marginTop:8, opacity: ok ? 1 : 0.5 }} />
+      </ScrollView>
+    </View>
+  );
+}
+
+function TwoFAScreen({ onBack }: { onBack: () => void }) {
+  const ins = useSafeAreaInsets();
+  const [enabled, setEnabled] = useState(false);
+  return (
+    <View style={{ flex:1, backgroundColor:C.bg }}>
+      <Image source={require('../assets/images/design-b/logo-hex.png')}
+        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }} resizeMode="contain" />
+      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center',
+        paddingTop:ins.top+(Platform.OS==='web'?67:12), paddingHorizontal:20, paddingBottom:16 }}>
+        <Pressable onPress={onBack} style={{ position:'absolute', left:20 }}>
+          <Ionicons name="chevron-back" size={24} color={C.primary} />
+        </Pressable>
+        <Text style={{ fontFamily:C.bold, fontSize:18, color:C.text }}>2FA Authentication</Text>
+      </View>
+      <ScrollView contentContainerStyle={{ paddingHorizontal:20, paddingBottom:32 }}>
+        <View style={{ alignItems:'center', paddingVertical:28 }}>
+          <View style={{ width:80, height:80, borderRadius:40, backgroundColor:C.primaryLight, alignItems:'center', justifyContent:'center', marginBottom:16 }}>
+            <Ionicons name="shield-checkmark-outline" size={40} color={C.primary} />
+          </View>
+          <Text style={{ fontFamily:C.bold, fontSize:18, color:C.text, marginBottom:8 }}>Two-Factor Authentication</Text>
+          <Text style={{ fontFamily:C.regular, fontSize:14, color:C.subtext, textAlign:'center', lineHeight:20, paddingHorizontal:12 }}>
+            Add an extra layer of security. When enabled, you'll be asked for a code in addition to your password.
+          </Text>
+        </View>
+        <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'space-between',
+          backgroundColor:C.card, borderRadius:16, padding:18, borderWidth:1, borderColor:C.border, marginBottom:20 }}>
+          <View style={{ flex:1, marginRight:12 }}>
+            <Text style={{ fontFamily:C.bold, fontSize:15, color:C.text, marginBottom:4 }}>Enable 2FA</Text>
+            <Text style={{ fontFamily:C.regular, fontSize:13, color:C.subtext }}>Secure with authenticator app</Text>
+          </View>
+          <Switch value={enabled} onValueChange={v => { setEnabled(v); if (v) Alert.alert('2FA Enabled','Your account is now more secure.'); }}
+            trackColor={{ true:C.primary }} thumbColor="#fff" />
+        </View>
+        {enabled && (
+          <View style={{ backgroundColor:C.primaryLight, borderRadius:16, padding:16 }}>
+            <Text style={{ fontFamily:C.bold, fontSize:14, color:C.primary, marginBottom:8 }}>Next Steps</Text>
+            <Text style={{ fontFamily:C.regular, fontSize:13, color:C.text, lineHeight:20 }}>
+              {'1. Download Google Authenticator\n2. Scan the QR code shown during setup\n3. Enter the 6-digit code to confirm'}
+            </Text>
+          </View>
+        )}
+      </ScrollView>
+    </View>
+  );
+}
+
+function BVNScreen({ onBack }: { onBack: () => void }) {
+  const ins = useSafeAreaInsets();
+  const [bvn, setBvn] = useState('');
+  const [verified, setVerified] = useState(false);
+  return (
+    <View style={{ flex:1, backgroundColor:C.bg }}>
+      <Image source={require('../assets/images/design-b/logo-hex.png')}
+        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }} resizeMode="contain" />
+      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center',
+        paddingTop:ins.top+(Platform.OS==='web'?67:12), paddingHorizontal:20, paddingBottom:16 }}>
+        <Pressable onPress={onBack} style={{ position:'absolute', left:20 }}>
+          <Ionicons name="chevron-back" size={24} color={C.primary} />
+        </Pressable>
+        <Text style={{ fontFamily:C.bold, fontSize:18, color:C.text }}>BVN Verification</Text>
+      </View>
+      <ScrollView contentContainerStyle={{ paddingHorizontal:20, paddingBottom:32 }} keyboardShouldPersistTaps="handled">
+        <View style={{ backgroundColor:C.primaryLight, borderRadius:16, padding:16, marginBottom:24 }}>
+          <Text style={{ fontFamily:C.bold, fontSize:13, color:C.primary }}>Why we need your BVN</Text>
+          <Text style={{ fontFamily:C.regular, fontSize:13, color:C.text, marginTop:6, lineHeight:19 }}>
+            Your BVN is required by the CBN to verify your identity and protect your account.
+          </Text>
+        </View>
+        <Text style={{ fontFamily:C.bold, fontSize:13, color:C.text, marginBottom:8 }}>Bank Verification Number (BVN)</Text>
+        <Field placeholder="Enter your 11-digit BVN" value={bvn}
+          onChangeText={t => setBvn(t.replace(/\D/g,'').slice(0,11))} keyboard="numeric" />
+        <View style={{ marginTop:24 }}>
+          {verified
+            ? <View style={{ flexDirection:'row', alignItems:'center', gap:8, justifyContent:'center',
+                padding:16, backgroundColor:C.primaryLight, borderRadius:16 }}>
+                <Ionicons name="checkmark-circle" size={22} color={C.success} />
+                <Text style={{ fontFamily:C.bold, fontSize:15, color:C.success }}>BVN Verified Successfully</Text>
+              </View>
+            : <Btn label="Verify BVN" onPress={() => {
+                if (bvn.length === 11) { Alert.alert('Processing','Your BVN is being verified...'); setTimeout(() => setVerified(true), 1500); }
+                else Alert.alert('Invalid BVN','Please enter a valid 11-digit BVN.');
+              }} />
+          }
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+function NINScreen({ onBack }: { onBack: () => void }) {
+  const ins = useSafeAreaInsets();
+  const [nin, setNin] = useState('');
+  const [verified, setVerified] = useState(false);
+  return (
+    <View style={{ flex:1, backgroundColor:C.bg }}>
+      <Image source={require('../assets/images/design-b/logo-hex.png')}
+        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }} resizeMode="contain" />
+      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center',
+        paddingTop:ins.top+(Platform.OS==='web'?67:12), paddingHorizontal:20, paddingBottom:16 }}>
+        <Pressable onPress={onBack} style={{ position:'absolute', left:20 }}>
+          <Ionicons name="chevron-back" size={24} color={C.primary} />
+        </Pressable>
+        <Text style={{ fontFamily:C.bold, fontSize:18, color:C.text }}>NIN Verification</Text>
+      </View>
+      <ScrollView contentContainerStyle={{ paddingHorizontal:20, paddingBottom:32 }} keyboardShouldPersistTaps="handled">
+        <View style={{ backgroundColor:C.primaryLight, borderRadius:16, padding:16, marginBottom:24 }}>
+          <Text style={{ fontFamily:C.bold, fontSize:13, color:C.primary }}>Why we need your NIN</Text>
+          <Text style={{ fontFamily:C.regular, fontSize:13, color:C.text, marginTop:6, lineHeight:19 }}>
+            Your NIN is required by Nigerian law for identity verification on financial platforms.
+          </Text>
+        </View>
+        <Text style={{ fontFamily:C.bold, fontSize:13, color:C.text, marginBottom:8 }}>National Identification Number (NIN)</Text>
+        <Field placeholder="Enter your 11-digit NIN" value={nin}
+          onChangeText={t => setNin(t.replace(/\D/g,'').slice(0,11))} keyboard="numeric" />
+        <View style={{ marginTop:24 }}>
+          {verified
+            ? <View style={{ flexDirection:'row', alignItems:'center', gap:8, justifyContent:'center',
+                padding:16, backgroundColor:C.primaryLight, borderRadius:16 }}>
+                <Ionicons name="checkmark-circle" size={22} color={C.success} />
+                <Text style={{ fontFamily:C.bold, fontSize:15, color:C.success }}>NIN Verified Successfully</Text>
+              </View>
+            : <Btn label="Verify NIN" onPress={() => {
+                if (nin.length === 11) { Alert.alert('Processing','Your NIN is being verified...'); setTimeout(() => setVerified(true), 1500); }
+                else Alert.alert('Invalid NIN','Please enter a valid 11-digit NIN.');
+              }} />
+          }
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+function FaceVerificationScreen({ onBack }: { onBack: () => void }) {
+  const ins = useSafeAreaInsets();
+  const [done, setDone] = useState(false);
+  return (
+    <View style={{ flex:1, backgroundColor:C.bg }}>
+      <Image source={require('../assets/images/design-b/logo-hex.png')}
+        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }} resizeMode="contain" />
+      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center',
+        paddingTop:ins.top+(Platform.OS==='web'?67:12), paddingHorizontal:20, paddingBottom:16 }}>
+        <Pressable onPress={onBack} style={{ position:'absolute', left:20 }}>
+          <Ionicons name="chevron-back" size={24} color={C.primary} />
+        </Pressable>
+        <Text style={{ fontFamily:C.bold, fontSize:18, color:C.text }}>Face Verification</Text>
+      </View>
+      <View style={{ flex:1, alignItems:'center', justifyContent:'center', paddingHorizontal:32 }}>
+        <View style={{ width:140, height:140, borderRadius:70, backgroundColor:C.primaryLight,
+          alignItems:'center', justifyContent:'center', marginBottom:24 }}>
+          <Ionicons name={done ? 'checkmark-circle' : 'scan-circle-outline'} size={64} color={done ? C.success : C.primary} />
+        </View>
+        <Text style={{ fontFamily:C.bold, fontSize:20, color:C.text, marginBottom:10, textAlign:'center' }}>
+          {done ? 'Verification Complete!' : 'Face ID Setup'}
+        </Text>
+        <Text style={{ fontFamily:C.regular, fontSize:14, color:C.subtext, textAlign:'center', lineHeight:20, marginBottom:32 }}>
+          {done
+            ? 'Your face has been verified. Your account is now secured.'
+            : 'Position your face in the frame and hold steady. Ensure good lighting for best results.'}
+        </Text>
+        {!done
+          ? <Btn label="Start Verification" onPress={() =>
+              Alert.alert('Camera Access','DRCS DATA needs camera access to verify your face.',
+                [{ text:'Allow', onPress: () => setTimeout(() => setDone(true), 900) }, { text:'Deny', style:'cancel' }])} />
+          : <Btn label="Done" onPress={onBack} />
+        }
       </View>
     </View>
   );
@@ -2515,9 +2879,16 @@ function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
   };
 
   // Sub-screens
-  if (subScreen==='profileSettings') return <ProfileSettingsScreen onBack={() => setSubScreen(null)} />;
-  if (subScreen==='security')        return <SecurityScreen        onBack={() => setSubScreen(null)} />;
-  if (subScreen==='accountDetails')  return <AccountDetailsScreen  onBack={() => setSubScreen(null)} />;
+  if (subScreen==='profileSettings')  return <ProfileSettingsScreen  onBack={() => setSubScreen(null)} />;
+  if (subScreen==='security')         return <SecurityScreen          onBack={() => setSubScreen(null)} />;
+  if (subScreen==='accountDetails')   return <AccountDetailsScreen    onBack={() => setSubScreen(null)} />;
+  if (subScreen==='referral')         return <ReferralScreen          onBack={() => setSubScreen(null)} />;
+  if (subScreen==='notification')     return <NotificationScreen      onBack={() => setSubScreen(null)} />;
+  if (subScreen==='changePassword')   return <ChangePasswordScreen    onBack={() => setSubScreen(null)} />;
+  if (subScreen==='twoFA')            return <TwoFAScreen             onBack={() => setSubScreen(null)} />;
+  if (subScreen==='bvn')              return <BVNScreen               onBack={() => setSubScreen(null)} />;
+  if (subScreen==='nin')              return <NINScreen               onBack={() => setSubScreen(null)} />;
+  if (subScreen==='faceVerification') return <FaceVerificationScreen  onBack={() => setSubScreen(null)} />;
 
   // Telecom service flows
   if (picker && !selectedNetwork)
@@ -2632,6 +3003,8 @@ function MainApp({ onSwitchDesign }: { onSwitchDesign: () => void }) {
             onShowPin={() => setPinOpen(true)}
             onShowAddMoney={() => setAddMoney(true)}
             onShowTransfer={() => setTransferPicker(true)}
+            onGoHistory={() => { setTab('History'); setSubScreen(null); }}
+            onShowReferral={() => setSubScreen('referral')}
           />
         )}
         {tab==='Rewards' && <PlaceholderTab label="Rewards" />}

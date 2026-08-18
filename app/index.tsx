@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Dimensions,
   Image,
   ImageBackground,
@@ -475,6 +476,7 @@ type AFlow =
   | { kind: 'tvForm';        providerId: string; providerLabel: string }
   | { kind: 'educationPicker' }
   | { kind: 'educationForm';  bodyId: string; bodyLabel: string }
+  | { kind: 'bettingPicker' }
   | { kind: 'sendToDRCS' }
   | { kind: 'sendToBank' }
   | { kind: 'addMoney' }
@@ -1242,6 +1244,9 @@ function AProfileSettingsScreen({ colors, insets, onBack }: { colors: AColors; i
 
 function ASecurityScreen({ colors, insets, onBack }: { colors: AColors; insets: { top: number }; onBack: () => void }) {
   const [fp, setFp] = useState(true);
+  const [sub, setSub] = useState<'main'|'changePassword'|'twoFA'>('main');
+  if (sub === 'changePassword') return <AChangePasswordScreen colors={colors} insets={insets} onBack={() => setSub('main')} />;
+  if (sub === 'twoFA')          return <ATwoFAScreen          colors={colors} insets={insets} onBack={() => setSub('main')} />;
   return (
     <View style={{ flex:1, backgroundColor:colors.background }}>
       <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center', paddingTop:insets.top+16, paddingHorizontal:18, paddingBottom:14 }}>
@@ -1249,11 +1254,12 @@ function ASecurityScreen({ colors, insets, onBack }: { colors: AColors; insets: 
         <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack }}>Settings</Text>
       </View>
       <View style={{ paddingHorizontal:18 }}>
-        {[
-          { icon:'lock-closed-outline' as const, label:'Change Password' },
-          { icon:'shield-checkmark-outline' as const, label:'2FA Authentication' },
-        ].map(item => (
-          <Pressable key={item.label} style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', backgroundColor:colors.card, borderRadius:16, padding:16, marginBottom:10, borderWidth:1, borderColor:colors.border, opacity:pressed?0.8:1 }]}>
+        {([
+          { icon:'lock-closed-outline' as const, label:'Change Password', sub:'changePassword' as const },
+          { icon:'shield-checkmark-outline' as const, label:'2FA Authentication', sub:'twoFA' as const },
+        ]).map(item => (
+          <Pressable key={item.label} onPress={() => setSub(item.sub)}
+            style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', backgroundColor:colors.card, borderRadius:16, padding:16, marginBottom:10, borderWidth:1, borderColor:colors.border, opacity:pressed?0.8:1 }]}>
             <View style={{ width:38, height:38, borderRadius:12, backgroundColor:colors.brandPrimaryLight, alignItems:'center', justifyContent:'center', marginRight:14 }}>
               <Ionicons name={item.icon} size={19} color={colors.primary} />
             </View>
@@ -1275,6 +1281,67 @@ function ASecurityScreen({ colors, insets, onBack }: { colors: AColors; insets: 
 }
 
 function AAccountDetailsScreen({ colors, insets, onBack }: { colors: AColors; insets: { top: number }; onBack: () => void }) {
+  const [sub,  setSub]  = useState<'main'|'bvn'|'nin'|'face'>('main');
+  const [val,  setVal]  = useState('');
+  const [done, setDone] = useState(false);
+  const inputSt = { fontFamily:colors.fontBody, fontSize:15, color:colors.grayBlack, borderWidth:1, borderColor:colors.border, borderRadius:14, paddingHorizontal:16, paddingVertical:13, backgroundColor:colors.card };
+  if (sub !== 'main') {
+    const labels = { bvn:'BVN Verification', nin:'NIN Verification', face:'Face Verification' };
+    const isFace = sub === 'face';
+    return (
+      <View style={{ flex:1, backgroundColor:colors.background }}>
+        <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center', paddingTop:insets.top+16, paddingHorizontal:18, paddingBottom:14 }}>
+          <Pressable onPress={() => { setSub('main'); setDone(false); setVal(''); }} style={{ position:'absolute', left:18 }}>
+            <Ionicons name="chevron-back" size={24} color={colors.primary} />
+          </Pressable>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack }}>{labels[sub]}</Text>
+        </View>
+        {isFace
+          ? <View style={{ flex:1, alignItems:'center', justifyContent:'center', paddingHorizontal:32 }}>
+              <View style={{ width:120, height:120, borderRadius:60, backgroundColor:colors.brandPrimaryLight, alignItems:'center', justifyContent:'center', marginBottom:20 }}>
+                <Ionicons name={done?'checkmark-circle':'scan-circle-outline'} size={56} color={done?colors.success:colors.primary} />
+              </View>
+              <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack, marginBottom:10, textAlign:'center' }}>{done?'Verified!':'Face ID Setup'}</Text>
+              <Text style={{ fontFamily:colors.fontBody, fontSize:14, color:colors.grayGray1, textAlign:'center', lineHeight:20, marginBottom:32 }}>
+                {done ? 'Your face has been verified successfully.' : 'Position your face in the frame and hold steady.'}
+              </Text>
+              {!done
+                ? <Pressable onPress={() => Alert.alert('Camera','Allow camera access?',[{text:'Allow',onPress:()=>setTimeout(()=>setDone(true),800)},{text:'Deny',style:'cancel'}])}
+                    style={({ pressed }) => [{ backgroundColor:colors.primary, borderRadius:14, paddingVertical:14, paddingHorizontal:32, opacity:pressed?0.85:1 }]}>
+                    <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Start Verification</Text>
+                  </Pressable>
+                : <Pressable onPress={() => { setSub('main'); setDone(false); }}
+                    style={({ pressed }) => [{ backgroundColor:colors.primary, borderRadius:14, paddingVertical:14, paddingHorizontal:32, opacity:pressed?0.85:1 }]}>
+                    <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Done</Text>
+                  </Pressable>
+              }
+            </View>
+          : <ScrollView contentContainerStyle={{ paddingHorizontal:18, paddingBottom:32 }} keyboardShouldPersistTaps="handled">
+              <View style={{ backgroundColor:colors.brandPrimaryLight, borderRadius:16, padding:16, marginBottom:24 }}>
+                <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.primary }}>Why we need your {sub.toUpperCase()}</Text>
+                <Text style={{ fontFamily:colors.fontBody, fontSize:13, color:colors.grayBlack, marginTop:6, lineHeight:19 }}>
+                  {sub==='bvn' ? 'Required by the CBN to verify your identity and protect your account.' : 'Required by Nigerian law for identity verification on financial platforms.'}
+                </Text>
+              </View>
+              <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayBlack, marginBottom:8 }}>{labels[sub]} Number</Text>
+              <TextInput value={val} onChangeText={t => setVal(t.replace(/\D/g,'').slice(0,11))}
+                placeholder="Enter your 11-digit number" placeholderTextColor={colors.grayGray1}
+                keyboardType="numeric" style={inputSt} />
+              {done
+                ? <View style={{ flexDirection:'row', alignItems:'center', gap:8, justifyContent:'center', padding:16, backgroundColor:colors.brandPrimaryLight, borderRadius:16, marginTop:24 }}>
+                    <Ionicons name="checkmark-circle" size={22} color={colors.success} />
+                    <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.success }}>Verified Successfully</Text>
+                  </View>
+                : <Pressable onPress={() => { if(val.length===11){Alert.alert('Processing','Verifying...');setTimeout(()=>setDone(true),1500);}else Alert.alert('Invalid','Enter a valid 11-digit number.'); }}
+                    style={({ pressed }) => [{ backgroundColor:colors.primary, borderRadius:14, paddingVertical:14, alignItems:'center', marginTop:24, opacity:pressed?0.85:1 }]}>
+                    <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Verify</Text>
+                  </Pressable>
+              }
+            </ScrollView>
+        }
+      </View>
+    );
+  }
   return (
     <View style={{ flex:1, backgroundColor:colors.background }}>
       <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center', paddingTop:insets.top+16, paddingHorizontal:18, paddingBottom:14 }}>
@@ -1282,12 +1349,13 @@ function AAccountDetailsScreen({ colors, insets, onBack }: { colors: AColors; in
         <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack }}>Account Details</Text>
       </View>
       <View style={{ paddingHorizontal:18 }}>
-        {[
-          { icon:'card-outline' as const, label:'BVN' },
-          { icon:'id-card-outline' as const, label:'NIN' },
-          { icon:'scan-circle-outline' as const, label:'Face Verification' },
-        ].map(item => (
-          <Pressable key={item.label} style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', backgroundColor:colors.card, borderRadius:16, padding:16, marginBottom:10, borderWidth:1, borderColor:colors.border, opacity:pressed?0.8:1 }]}>
+        {([
+          { icon:'card-outline' as const, label:'BVN', sub:'bvn' as const },
+          { icon:'id-card-outline' as const, label:'NIN', sub:'nin' as const },
+          { icon:'scan-circle-outline' as const, label:'Face Verification', sub:'face' as const },
+        ]).map(item => (
+          <Pressable key={item.label} onPress={() => setSub(item.sub)}
+            style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', backgroundColor:colors.card, borderRadius:16, padding:16, marginBottom:10, borderWidth:1, borderColor:colors.border, opacity:pressed?0.8:1 }]}>
             <View style={{ width:38, height:38, borderRadius:12, backgroundColor:colors.brandPrimaryLight, alignItems:'center', justifyContent:'center', marginRight:14 }}>
               <Ionicons name={item.icon} size={19} color={colors.primary} />
             </View>
@@ -1296,6 +1364,166 @@ function AAccountDetailsScreen({ colors, insets, onBack }: { colors: AColors; in
           </Pressable>
         ))}
       </View>
+    </View>
+  );
+}
+
+// ─── A: Additional profile sub-screens ────────────────────────────────────────
+function AReferralScreen({ colors, insets, onBack }: { colors: AColors; insets: { top: number }; onBack: () => void }) {
+  const code = 'DRCS-JD239';
+  return (
+    <View style={{ flex:1, backgroundColor:colors.background }}>
+      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center',
+        paddingTop:insets.top+16, paddingHorizontal:18, paddingBottom:14 }}>
+        <Pressable onPress={onBack} style={{ position:'absolute', left:18 }}><Ionicons name="chevron-back" size={24} color={colors.primary} /></Pressable>
+        <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack }}>Referral</Text>
+      </View>
+      <ScrollView contentContainerStyle={{ paddingHorizontal:18, paddingBottom:32 }}>
+        <View style={{ backgroundColor:colors.card, borderRadius:20, padding:20, alignItems:'center', marginBottom:20, borderWidth:1, borderColor:colors.border }}>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:11, color:colors.grayGray1, letterSpacing:1.2, marginBottom:8 }}>YOUR REFERRAL CODE</Text>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:30, color:colors.primary, letterSpacing:4, marginBottom:14 }}>{code}</Text>
+          <Pressable onPress={() => Alert.alert('Copied!', `Code ${code} copied.`)}
+            style={({ pressed }) => [{ flexDirection:'row', gap:6, alignItems:'center', backgroundColor:colors.brandPrimaryLight, borderRadius:20, paddingHorizontal:20, paddingVertical:10, opacity:pressed?0.8:1 }]}>
+            <Ionicons name="copy-outline" size={15} color={colors.primary} />
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.primary }}>Copy Code</Text>
+          </Pressable>
+        </View>
+        <Pressable onPress={() => Alert.alert('Share', `Share your referral code: ${code}`)}
+          style={({ pressed }) => [{ flexDirection:'row', gap:8, alignItems:'center', justifyContent:'center',
+            backgroundColor:colors.primary, borderRadius:28, paddingVertical:14, marginBottom:24, opacity:pressed?0.85:1 }]}>
+          <Ionicons name="share-social-outline" size={18} color={colors.primaryForeground} />
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.primaryForeground }}>Share Invite Link</Text>
+        </Pressable>
+        <View style={{ flexDirection:'row', gap:12, marginBottom:24 }}>
+          {([{ label:'Referred', value:'3' }, { label:'Earned', value:'₦750' }] as const).map(s => (
+            <View key={s.label} style={{ flex:1, backgroundColor:colors.card, borderRadius:16, padding:16, alignItems:'center', borderWidth:1, borderColor:colors.border }}>
+              <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:22, color:colors.primary }}>{s.value}</Text>
+              <Text style={{ fontFamily:colors.fontBody, fontSize:12, color:colors.grayGray1, marginTop:4 }}>{s.label}</Text>
+            </View>
+          ))}
+        </View>
+        <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.grayBlack, marginBottom:12 }}>How it works</Text>
+        {[
+          { n:'1', t:'Share your referral code with friends' },
+          { n:'2', t:'Friend signs up and makes first transaction' },
+          { n:'3', t:'You both earn ₦250 bonus credit!' },
+        ].map(s => (
+          <View key={s.n} style={{ flexDirection:'row', gap:14, alignItems:'flex-start', marginBottom:14 }}>
+            <View style={{ width:28, height:28, borderRadius:14, backgroundColor:colors.primary, alignItems:'center', justifyContent:'center' }}>
+              <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.primaryForeground }}>{s.n}</Text>
+            </View>
+            <Text style={{ flex:1, fontFamily:colors.fontBody, fontSize:14, color:colors.grayBlack, lineHeight:20, paddingTop:4 }}>{s.t}</Text>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
+
+function ANotificationScreen({ colors, insets, onBack }: { colors: AColors; insets: { top: number }; onBack: () => void }) {
+  const [items, setItems] = useState([
+    { id:'1', icon:'gift-outline',            title:'₦250 referral bonus!',      body:'Your friend signed up using your code.',    time:'2h ago', read:false },
+    { id:'2', icon:'checkmark-circle-outline', title:'Data purchase successful', body:'2GB data for 08012345678 activated.',       time:'5h ago', read:false },
+    { id:'3', icon:'alert-circle-outline',     title:'Low balance alert',        body:'Your wallet balance is below ₦500.',        time:'1d ago', read:true  },
+    { id:'4', icon:'star-outline',             title:'Welcome to DRCS DATA!',    body:'Your account is ready. Start transacting.', time:'3d ago', read:true  },
+  ]);
+  return (
+    <View style={{ flex:1, backgroundColor:colors.background }}>
+      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'space-between',
+        paddingTop:insets.top+16, paddingHorizontal:18, paddingBottom:14 }}>
+        <Pressable onPress={onBack}><Ionicons name="chevron-back" size={24} color={colors.primary} /></Pressable>
+        <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack }}>Notifications</Text>
+        <Pressable onPress={() => setItems(i => i.map(n => ({ ...n, read:true })))}>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.primary }}>Mark all</Text>
+        </Pressable>
+      </View>
+      <ScrollView contentContainerStyle={{ paddingHorizontal:18, paddingBottom:24 }}>
+        {items.map(item => (
+          <Pressable key={item.id} onPress={() => setItems(i => i.map(n => n.id===item.id ? { ...n, read:true } : n))}
+            style={({ pressed }) => [{ flexDirection:'row', alignItems:'flex-start',
+              backgroundColor: item.read ? colors.card : colors.brandPrimaryLight,
+              borderRadius:16, padding:16, marginBottom:10, borderWidth:1, borderColor:colors.border, opacity:pressed?0.8:1 }]}>
+            <View style={{ width:38, height:38, borderRadius:12,
+              backgroundColor: item.read ? colors.background : colors.primary,
+              alignItems:'center', justifyContent:'center', marginRight:14 }}>
+              <Ionicons name={item.icon as any} size={19} color={item.read ? colors.grayGray1 : colors.primaryForeground} />
+            </View>
+            <View style={{ flex:1 }}>
+              <View style={{ flexDirection:'row', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
+                <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:14, color:colors.grayBlack }}>{item.title}</Text>
+                <Text style={{ fontFamily:colors.fontBody, fontSize:11, color:colors.grayGray1 }}>{item.time}</Text>
+              </View>
+              <Text style={{ fontFamily:colors.fontBody, fontSize:13, color:colors.grayGray1, lineHeight:18 }}>{item.body}</Text>
+            </View>
+            {!item.read && <View style={{ width:8, height:8, borderRadius:4, backgroundColor:colors.primary, marginLeft:8, marginTop:4 }} />}
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
+
+function AChangePasswordScreen({ colors, insets, onBack }: { colors: AColors; insets: { top: number }; onBack: () => void }) {
+  const [cur, setCur] = useState(''); const [nw, setNw] = useState(''); const [cf, setCf] = useState('');
+  const ok = cur.length >= 6 && nw.length >= 6 && nw === cf;
+  const inputSt = { fontFamily:colors.fontBody, fontSize:15, color:colors.grayBlack, borderWidth:1, borderColor:colors.border, borderRadius:14, paddingHorizontal:16, paddingVertical:13, backgroundColor:colors.card };
+  return (
+    <View style={{ flex:1, backgroundColor:colors.background }}>
+      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center', paddingTop:insets.top+16, paddingHorizontal:18, paddingBottom:14 }}>
+        <Pressable onPress={onBack} style={{ position:'absolute', left:18 }}><Ionicons name="chevron-back" size={24} color={colors.primary} /></Pressable>
+        <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack }}>Change Password</Text>
+      </View>
+      <ScrollView contentContainerStyle={{ paddingHorizontal:18, paddingBottom:32 }} keyboardShouldPersistTaps="handled">
+        {([{ label:'Current Password', val:cur, set:setCur }, { label:'New Password', val:nw, set:setNw }, { label:'Confirm Password', val:cf, set:setCf }] as const).map(f => (
+          <View key={f.label} style={{ marginBottom:18 }}>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayBlack, marginBottom:8 }}>{f.label}</Text>
+            <TextInput value={f.val} onChangeText={f.set} secureTextEntry placeholder={f.label} placeholderTextColor={colors.grayGray1} style={inputSt} />
+          </View>
+        ))}
+        {nw.length > 0 && cf.length > 0 && nw !== cf && <Text style={{ fontFamily:colors.fontBody, fontSize:13, color:'#fe0d0d', marginBottom:12 }}>Passwords do not match</Text>}
+        <Pressable onPress={() => ok && (Alert.alert('Success','Password updated successfully.'), onBack())}
+          style={({ pressed }) => [{ backgroundColor: ok ? colors.primary : colors.grayGray4, borderRadius:14, paddingVertical:14, alignItems:'center', marginTop:8, opacity:pressed?0.85:1 }]}>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Update Password</Text>
+        </Pressable>
+      </ScrollView>
+    </View>
+  );
+}
+
+function ATwoFAScreen({ colors, insets, onBack }: { colors: AColors; insets: { top: number }; onBack: () => void }) {
+  const [enabled, setEnabled] = useState(false);
+  return (
+    <View style={{ flex:1, backgroundColor:colors.background }}>
+      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center', paddingTop:insets.top+16, paddingHorizontal:18, paddingBottom:14 }}>
+        <Pressable onPress={onBack} style={{ position:'absolute', left:18 }}><Ionicons name="chevron-back" size={24} color={colors.primary} /></Pressable>
+        <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack }}>2FA Authentication</Text>
+      </View>
+      <ScrollView contentContainerStyle={{ paddingHorizontal:18, paddingBottom:32 }}>
+        <View style={{ alignItems:'center', paddingVertical:28 }}>
+          <View style={{ width:80, height:80, borderRadius:40, backgroundColor:colors.brandPrimaryLight, alignItems:'center', justifyContent:'center', marginBottom:16 }}>
+            <Ionicons name="shield-checkmark-outline" size={40} color={colors.primary} />
+          </View>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack, marginBottom:8 }}>Two-Factor Authentication</Text>
+          <Text style={{ fontFamily:colors.fontBody, fontSize:14, color:colors.grayGray1, textAlign:'center', lineHeight:20, paddingHorizontal:8 }}>
+            Add an extra layer of security. When enabled, you'll need a code in addition to your password.
+          </Text>
+        </View>
+        <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'space-between', backgroundColor:colors.card, borderRadius:16, padding:18, borderWidth:1, borderColor:colors.border, marginBottom:20 }}>
+          <View style={{ flex:1, marginRight:12 }}>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.grayBlack, marginBottom:4 }}>Enable 2FA</Text>
+            <Text style={{ fontFamily:colors.fontBody, fontSize:13, color:colors.grayGray1 }}>Secure with authenticator app</Text>
+          </View>
+          <Switch value={enabled} onValueChange={v => { setEnabled(v); if (v) Alert.alert('2FA Enabled','Your account is now more secure.'); }} trackColor={{ true:colors.primary }} thumbColor="#fff" />
+        </View>
+        {enabled && (
+          <View style={{ backgroundColor:colors.brandPrimaryLight, borderRadius:16, padding:16 }}>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:14, color:colors.primary, marginBottom:8 }}>Next Steps</Text>
+            <Text style={{ fontFamily:colors.fontBody, fontSize:13, color:colors.grayBlack, lineHeight:20 }}>
+              {'1. Download Google Authenticator\n2. Scan the QR code during setup\n3. Enter the 6-digit code to confirm'}
+            </Text>
+          </View>
+        )}
+      </ScrollView>
     </View>
   );
 }
@@ -1368,7 +1596,7 @@ function HomeScreen({
   const colors = useColors(theme, designVariant);
   const styles = makeStyles(colors);
   const [activeTab,   setActiveTab]   = useState<HomeTab>('Home');
-  const [profileSub,  setProfileSub]  = useState<'profileSettings'|'accountDetails'|'security'|null>(null);
+  const [profileSub,  setProfileSub]  = useState<'profileSettings'|'accountDetails'|'security'|'referral'|'notification'|'changePassword'|'twoFA'|null>(null);
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [notice, setNotice] = useState('');
   const [promoIndex, setPromoIndex] = useState(0);
@@ -1473,6 +1701,46 @@ function HomeScreen({
         }));
       }} />;
 
+  if (flow?.kind === 'bettingPicker')
+    return (
+      <View style={{ flex:1, backgroundColor:colors.background }}>
+        <View style={{ flexDirection:'row', alignItems:'center', paddingTop:insets.top+16, paddingHorizontal:18, paddingBottom:14 }}>
+          <Pressable onPress={closeFlow}><Ionicons name="chevron-back" size={24} color={colors.primary} /></Pressable>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack, marginLeft:12 }}>Betting Top-Up</Text>
+        </View>
+        <ScrollView contentContainerStyle={{ paddingHorizontal:18, paddingBottom:32 }} keyboardShouldPersistTaps="handled">
+          {[
+            { id:'sportybet', label:'SportyBet',    icon:'trophy-outline' as const },
+            { id:'bet9ja',    label:'Bet9ja',        icon:'dice-outline' as const },
+            { id:'betway',    label:'Betway',         icon:'football-outline' as const },
+            { id:'1xbet',     label:'1xBet',          icon:'game-controller-outline' as const },
+          ].map(p => (
+            <Pressable key={p.id} onPress={() =>
+              Alert.alert('Betting Top-Up', `Top up your ${p.label} account`, [
+                { text:'Cancel', style:'cancel' },
+                { text:'Continue', onPress: () => {
+                  showPin(() => showReceipt({ status:'success', title:`${p.label} Top-Up`,
+                    amount:'₦500', rows:[
+                      { label:'Provider', value: p.label },
+                      { label:'Account',  value:'BET12345' },
+                      { label:'Amount',   value:'₦500' },
+                      { label:'Ref',      value: aTxRef() },
+                      { label:'Date',     value: aNow() },
+                    ]}));
+                }}
+              ])}
+              style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', backgroundColor:colors.card, borderRadius:16, padding:16, marginBottom:12, borderWidth:1, borderColor:colors.border, opacity:pressed?0.8:1 }]}>
+              <View style={{ width:44, height:44, borderRadius:12, backgroundColor:colors.brandPrimaryLight, alignItems:'center', justifyContent:'center', marginRight:14 }}>
+                <Ionicons name={p.icon} size={22} color={colors.primary} />
+              </View>
+              <Text style={{ flex:1, fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.grayBlack }}>{p.label}</Text>
+              <Ionicons name="chevron-forward" size={18} color={colors.grayGray1} />
+            </Pressable>
+          ))}
+        </ScrollView>
+      </View>
+    );
+
   if (flow?.kind === 'sendToDRCS')
     return <ASendToDRCSScreen colors={colors} onBack={closeFlow}
       onProceed={p => showPin(() => showReceipt(buildAReceipt({ kind:'sendToDRCS' },
@@ -1494,9 +1762,17 @@ function HomeScreen({
   if (profileSub === 'profileSettings')
     return <AProfileSettingsScreen colors={colors} insets={insets} onBack={() => setProfileSub(null)} />;
   if (profileSub === 'accountDetails')
-    return <AAccountDetailsScreen colors={colors} insets={insets} onBack={() => setProfileSub(null)} />;
+    return <AAccountDetailsScreen  colors={colors} insets={insets} onBack={() => setProfileSub(null)} />;
   if (profileSub === 'security')
-    return <ASecurityScreen colors={colors} insets={insets} onBack={() => setProfileSub(null)} />;
+    return <ASecurityScreen        colors={colors} insets={insets} onBack={() => setProfileSub(null)} />;
+  if (profileSub === 'referral')
+    return <AReferralScreen        colors={colors} insets={insets} onBack={() => setProfileSub(null)} />;
+  if (profileSub === 'notification')
+    return <ANotificationScreen    colors={colors} insets={insets} onBack={() => setProfileSub(null)} />;
+  if (profileSub === 'changePassword')
+    return <AChangePasswordScreen  colors={colors} insets={insets} onBack={() => setProfileSub(null)} />;
+  if (profileSub === 'twoFA')
+    return <ATwoFAScreen           colors={colors} insets={insets} onBack={() => setProfileSub(null)} />;
 
   return (
     <View
@@ -1615,7 +1891,7 @@ function HomeScreen({
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="View transaction history"
-              onPress={() => showNotice('Your transaction history is coming next.')}
+              onPress={() => setActiveTab('History')}
               style={({ pressed }) => [styles.balanceHistoryButton, pressed && styles.pressed]}
             >
               <Text style={[styles.balanceHistoryText, { color: colors.primaryForeground }]}>
@@ -1661,6 +1937,8 @@ function HomeScreen({
                     openFlow({ kind: 'tvPicker' });
                   else if (service.label === 'Education')
                     openFlow({ kind: 'educationPicker' });
+                  else if (service.label === 'Betting')
+                    openFlow({ kind: 'bettingPicker' });
                   else
                     showNotice(`${service.label} service selected.`);
                 }}
@@ -1680,7 +1958,7 @@ function HomeScreen({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Refer and Earn"
-            onPress={() => showNotice('Your referral invite is ready to share.')}
+            onPress={() => setProfileSub('referral')}
             style={({ pressed }) => [
               styles.promoCard,
               { backgroundColor: colors.brandPrimaryDark },
@@ -1699,7 +1977,7 @@ function HomeScreen({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Education"
-            onPress={() => showNotice('Learn more with DRCS DATA Education.')}
+            onPress={() => openFlow({ kind: 'educationPicker' })}
             style={({ pressed }) => [
               styles.promoCard,
               { backgroundColor: colors.secondary },
@@ -1742,7 +2020,7 @@ function HomeScreen({
                   key={slide.title}
                   accessibilityRole="button"
                   accessibilityLabel={slide.cta}
-                  onPress={() => showNotice(`${slide.title}. Giveaway details coming soon.`)}
+                  onPress={() => setProfileSub('referral')}
                   style={({ pressed }) => [
                     styles.promoBanner,
                     { width: promoWidth },
@@ -1830,7 +2108,7 @@ function HomeScreen({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="See all recent activity"
-            onPress={() => showNotice('Your full activity list is coming next.')}
+            onPress={() => setActiveTab('History')}
           >
             <Text style={[styles.homeSectionCaption, { color: colors.primary }]}>See all</Text>
           </Pressable>
@@ -1870,8 +2148,8 @@ function HomeScreen({
             { icon: 'person-outline',        label: 'Profile',         sub: 'profileSettings' },
             { icon: 'list-outline',          label: 'Account Details', sub: 'accountDetails'  },
             { icon: 'shield-outline',        label: 'Security',        sub: 'security'        },
-            { icon: 'people-outline',        label: 'Referral',        sub: null              },
-            { icon: 'notifications-outline', label: 'Notification',    sub: null              },
+            { icon: 'people-outline',        label: 'Referral',        sub: 'referral'      },
+            { icon: 'notifications-outline', label: 'Notification',    sub: 'notification'  },
           ] as { icon: string; label: string; sub: string|null }[]).map(item => (
             <Pressable key={item.label} onPress={() => item.sub && setProfileSub(item.sub as any)}
               style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', backgroundColor:colors.card,
@@ -1884,7 +2162,7 @@ function HomeScreen({
               <Ionicons name="chevron-forward" size={16} color={colors.grayGray1} />
             </Pressable>
           ))}
-          <Pressable onPress={() => {}}
+          <Pressable onPress={() => Alert.alert('Log Out','Are you sure you want to log out?',[{text:'Cancel',style:'cancel'},{text:'Log Out',style:'destructive',onPress:()=>{}}])}
             style={({ pressed }) => [{ backgroundColor:'#fe0d0d', borderRadius:40, paddingVertical:14,
               alignItems:'center', marginTop:4, opacity:pressed?0.85:1 }]}>
             <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:'#fff' }}>Log Out</Text>
