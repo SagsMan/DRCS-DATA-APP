@@ -1372,8 +1372,8 @@ function TVFormScreen({ providerId, providerLabel, onBack, onProceed }: {
           </View>}
         </View>
       </View>
-      <ScrollView contentContainerStyle={{ padding:20, paddingTop:0 }} keyboardShouldPersistTaps="handled">
-        <View style={{ backgroundColor:C.card, borderRadius:24, padding:24, marginTop:-20, marginBottom:24,
+      <ScrollView contentContainerStyle={{ padding:20, paddingTop:8 }} keyboardShouldPersistTaps="handled">
+        <View style={{ backgroundColor:C.card, borderRadius:24, padding:24, marginTop:8, marginBottom:24,
           shadowColor:'#000', shadowOpacity:0.06, shadowRadius:12, elevation:4 }}>
           <Text style={{ fontFamily:C.bold, fontSize:13, color:C.subtext, marginBottom:8 }}>Smart Card / IUC Number</Text>
           <TextInput value={smartCard} onChangeText={setSmartCard}
@@ -1451,9 +1451,9 @@ function BettingFormScreen({ onBack, onProceed }: {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 0 }}
+      <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 8 }}
         keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        <View style={{ backgroundColor: C.card, borderRadius: 24, padding: 24, marginTop: -20, marginBottom: 24,
+        <View style={{ backgroundColor: C.card, borderRadius: 24, padding: 24, marginTop: 8, marginBottom: 24,
           shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, elevation: 4 }}>
 
           {/* Provider selection */}
@@ -1536,7 +1536,7 @@ function AddMoneyScreen({ onBack, onDone }: { onBack: () => void; onDone: () => 
         </View>
       </View>
       <ScrollView contentContainerStyle={{ padding:20, paddingTop:0 }}>
-        <View style={{ backgroundColor:C.card, borderRadius:24, padding:24, marginTop:-20,
+        <View style={{ backgroundColor:C.card, borderRadius:24, padding:24, marginTop:8,
           shadowColor:'#000', shadowOpacity:0.06, shadowRadius:12, elevation:4 }}>
           <Text style={{ fontFamily:C.regular, fontSize:14, color:C.subtext, textAlign:'center', marginBottom:20 }}>
             Transfer to the account below to fund your wallet
@@ -1600,7 +1600,7 @@ function SendToDRCSScreen({ onBack, onProceed }: {
         </View>
       </View>
       <ScrollView contentContainerStyle={{ padding:20, paddingTop:0 }} keyboardShouldPersistTaps="handled">
-        <View style={{ backgroundColor:C.card, borderRadius:24, padding:24, marginTop:-20,
+        <View style={{ backgroundColor:C.card, borderRadius:24, padding:24, marginTop:8,
           shadowColor:'#000', shadowOpacity:0.06, shadowRadius:12, elevation:4 }}>
           {[
             { label:'DRCS Username',   val:username, set:setUsername, ph:'Enter username or phone',   kb:'default'  as const },
@@ -1651,7 +1651,7 @@ function SendToBankScreen({ onBack, onProceed }: {
         </View>
       </View>
       <ScrollView contentContainerStyle={{ padding:20, paddingTop:0 }} keyboardShouldPersistTaps="handled">
-        <View style={{ backgroundColor:C.card, borderRadius:24, padding:24, marginTop:-20,
+        <View style={{ backgroundColor:C.card, borderRadius:24, padding:24, marginTop:8,
           shadowColor:'#000', shadowOpacity:0.06, shadowRadius:12, elevation:4 }}>
           {/* Account number */}
           <Text style={{ fontFamily:C.bold, fontSize:13, color:C.subtext, marginBottom:8 }}>Account Number</Text>
@@ -1799,9 +1799,9 @@ function EducationFormScreen({ bodyId, bodyLabel, onBack, onProceed }: {
         </View>
       </View>
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingTop: 0 }}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingTop: 8 }}
         keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        <View style={{ backgroundColor: C.card, borderRadius: 24, padding: 24, marginTop: -20, marginBottom: 24,
+        <View style={{ backgroundColor: C.card, borderRadius: 24, padding: 24, marginTop: 8, marginBottom: 24,
           shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, elevation: 4 }}>
 
           <Text style={{ fontFamily: C.bold, fontSize: 13, color: C.subtext, marginBottom: 8 }}>
@@ -2198,50 +2198,50 @@ function ProfileSettingsScreen({ onBack }: { onBack: () => void }) {
     { key: 'dob' as const, label: 'Date of Birth' },
   ];
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <Image source={require('../assets/images/design-b/logo-hex.png')}
-        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }}
-        resizeMode="contain" />
-      <View style={{
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-        paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 12), paddingHorizontal: 20, paddingBottom: 16,
-      }}>
-        <Pressable onPress={onBack}><Ionicons name="chevron-back" size={24} color={C.primary} /></Pressable>
-        <Text style={{ fontFamily: C.bold, fontSize: 18, color: C.text }}>Profile Settings</Text>
-        <Pressable onPress={() => setEditing(e => !e)}>
-          <Text style={{ fontFamily: C.bold, fontSize: 15, color: C.primary }}>{editing ? 'Done' : 'Edit'}</Text>
-        </Pressable>
+    <KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':undefined} style={{ flex:1, backgroundColor:C.bg }}>
+      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
+      <View style={{ backgroundColor:C.primaryDark,
+        paddingTop:ins.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:20 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:C.bold, fontSize:18, color:'#fff', marginLeft:8, flex:1 }}>Profile Settings</Text>
+          <Pressable onPress={() => setEditing(e => !e)}>
+            <Text style={{ fontFamily:C.bold, fontSize:14, color:'rgba(255,255,255,0.85)' }}>{editing?'Done':'Edit'}</Text>
+          </Pressable>
+        </View>
       </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}>
-        <View style={{ alignItems: 'center', marginBottom: 28 }}>
-          <View style={{ position: 'relative' }}>
-            <Image source={require('../assets/images/design-b/avatar.png')}
-              style={{ width: 96, height: 96, borderRadius: 48 }} />
-            {editing && (
-              <Pressable style={{
-                position: 'absolute', bottom: 0, right: 0,
-                width: 32, height: 32, borderRadius: 16, backgroundColor: C.card,
-                borderWidth: 1.5, borderColor: C.primary, alignItems: 'center', justifyContent: 'center',
-              }}>
+      <ScrollView contentContainerStyle={{ padding:20, paddingTop:0 }} keyboardShouldPersistTaps="handled">
+        <View style={{ backgroundColor:C.card, borderRadius:24, padding:20, marginTop:8,
+          shadowColor:'#000', shadowOpacity:0.06, shadowRadius:12, elevation:4 }}>
+          <View style={{ alignItems:'center', marginBottom:24, paddingTop:8 }}>
+            <View style={{ position:'relative' }}>
+              <Image source={require('../assets/images/design-b/avatar.png')}
+                style={{ width:96, height:96, borderRadius:48 }} />
+              <Pressable onPress={() => Alert.alert('Change Photo','Photo picker would open here.')}
+                style={{ position:'absolute', bottom:0, right:0, width:32, height:32, borderRadius:16,
+                  backgroundColor:C.card, borderWidth:1.5, borderColor:C.primary, alignItems:'center', justifyContent:'center' }}>
                 <Ionicons name="camera-outline" size={16} color={C.primary} />
               </Pressable>
-            )}
+            </View>
           </View>
+          {fields.map(f => (
+            <View key={f.key} style={{ marginBottom:16 }}>
+              <Text style={{ fontFamily:C.bold, fontSize:13, color:C.text, marginBottom:8 }}>{f.label}</Text>
+              {editing
+                ? <Field placeholder={f.label} value={form[f.key]} onChangeText={v => setForm(p => ({ ...p, [f.key]:v }))} />
+                : <View style={{ backgroundColor:C.inputBg, borderRadius:28, minHeight:52, justifyContent:'center', paddingHorizontal:20 }}>
+                    <Text style={{ fontFamily:C.regular, fontSize:15, color:C.subtext }}>{form[f.key]}</Text>
+                  </View>
+              }
+            </View>
+          ))}
+          {editing && <Btn label="Save" onPress={() => setEditing(false)} style={{ marginTop:8 }} />}
         </View>
-        {fields.map(f => (
-          <View key={f.key} style={{ marginBottom: 16 }}>
-            <Text style={{ fontFamily: C.bold, fontSize: 13, color: C.text, marginBottom: 8 }}>{f.label}</Text>
-            {editing
-              ? <Field placeholder={f.label} value={form[f.key]} onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))} />
-              : <View style={{ backgroundColor: C.inputBg, borderRadius: 28, minHeight: 52, justifyContent: 'center', paddingHorizontal: 20 }}>
-                  <Text style={{ fontFamily: C.regular, fontSize: 15, color: C.subtext }}>{form[f.key]}</Text>
-                </View>
-            }
-          </View>
-        ))}
-        {editing && <Btn label="Save" onPress={() => setEditing(false)} style={{ marginTop: 8 }} />}
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -2253,20 +2253,20 @@ function SecurityScreen({ onBack }: { onBack: () => void }) {
   if (sub === 'changePassword') return <ChangePasswordScreen onBack={() => setSub('main')} />;
   if (sub === 'twoFA')          return <TwoFAScreen          onBack={() => setSub('main')} />;
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <Image source={require('../assets/images/design-b/logo-hex.png')}
-        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }}
-        resizeMode="contain" />
-      <View style={{
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-        paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 12), paddingHorizontal: 20, paddingBottom: 16,
-      }}>
-        <Pressable onPress={onBack} style={{ position: 'absolute', left: 20 }}>
-          <Ionicons name="chevron-back" size={24} color={C.primary} />
-        </Pressable>
-        <Text style={{ fontFamily: C.bold, fontSize: 18, color: C.text }}>Settings</Text>
+    <View style={{ flex:1, backgroundColor:C.bg }}>
+      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
+      <View style={{ backgroundColor:C.primaryDark,
+        paddingTop:ins.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:20 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:C.bold, fontSize:18, color:'#fff', marginLeft:8 }}>Security</Text>
+        </View>
       </View>
-      <View style={{ paddingHorizontal: 20 }}>
+      <View style={{ margin:20, marginTop:8, backgroundColor:C.card, borderRadius:24, padding:12,
+        shadowColor:'#000', shadowOpacity:0.06, shadowRadius:12, elevation:4 }}>
         <MenuRow icon="lock-closed-outline"      label="Change Password"      onPress={() => setSub('changePassword')} />
         <MenuRow icon="finger-print-outline"     label="Enable Fingerprint"
           right={<Switch value={fp} onValueChange={setFp} trackColor={{ true: C.primary }} thumbColor="#fff" />}
@@ -2285,20 +2285,20 @@ function AccountDetailsScreen({ onBack }: { onBack: () => void }) {
   if (sub === 'nin')             return <NINScreen              onBack={() => setSub('main')} />;
   if (sub === 'faceVerification')return <FaceVerificationScreen onBack={() => setSub('main')} />;
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <Image source={require('../assets/images/design-b/logo-hex.png')}
-        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }}
-        resizeMode="contain" />
-      <View style={{
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-        paddingTop: ins.top + (Platform.OS === 'web' ? 67 : 12), paddingHorizontal: 20, paddingBottom: 16,
-      }}>
-        <Pressable onPress={onBack} style={{ position: 'absolute', left: 20 }}>
-          <Ionicons name="chevron-back" size={24} color={C.primary} />
-        </Pressable>
-        <Text style={{ fontFamily: C.bold, fontSize: 18, color: C.text }}>Account Details</Text>
+    <View style={{ flex:1, backgroundColor:C.bg }}>
+      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
+      <View style={{ backgroundColor:C.primaryDark,
+        paddingTop:ins.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:20 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:C.bold, fontSize:18, color:'#fff', marginLeft:8 }}>Account Details</Text>
+        </View>
       </View>
-      <View style={{ paddingHorizontal: 20 }}>
+      <View style={{ margin:20, marginTop:8, backgroundColor:C.card, borderRadius:24, padding:12,
+        shadowColor:'#000', shadowOpacity:0.06, shadowRadius:12, elevation:4 }}>
         <MenuRow icon="card-outline"        label="BVN"               onPress={() => setSub('bvn')} />
         <MenuRow icon="id-card-outline"     label="NIN"               onPress={() => setSub('nin')} />
         <MenuRow icon="scan-circle-outline" label="Face Verification"  onPress={() => setSub('faceVerification')} />
@@ -2313,16 +2313,20 @@ function ReferralScreen({ onBack }: { onBack: () => void }) {
   const code = 'DRCS-JD239';
   return (
     <View style={{ flex:1, backgroundColor:C.bg }}>
-      <Image source={require('../assets/images/design-b/logo-hex.png')}
-        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }} resizeMode="contain" />
-      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center',
-        paddingTop:ins.top+(Platform.OS==='web'?67:12), paddingHorizontal:20, paddingBottom:16 }}>
-        <Pressable onPress={onBack} style={{ position:'absolute', left:20 }}>
-          <Ionicons name="chevron-back" size={24} color={C.primary} />
-        </Pressable>
-        <Text style={{ fontFamily:C.bold, fontSize:18, color:C.text }}>Referral</Text>
+      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
+      <View style={{ backgroundColor:C.primaryDark,
+        paddingTop:ins.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:20 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:C.bold, fontSize:18, color:'#fff', marginLeft:8 }}>Referral</Text>
+        </View>
       </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal:20, paddingBottom:32 }}>
+      <ScrollView contentContainerStyle={{ padding:20, paddingTop:8, paddingBottom:32 }}>
+        <View style={{ backgroundColor:C.card, borderRadius:24, padding:20, marginTop:8,
+          shadowColor:'#000', shadowOpacity:0.06, shadowRadius:12, elevation:4, marginBottom:16 }}>
         <View style={{ backgroundColor:C.card, borderRadius:20, padding:20, alignItems:'center', marginBottom:20, borderWidth:1, borderColor:C.border }}>
           <Text style={{ fontFamily:C.bold, fontSize:11, color:C.subtext, letterSpacing:1.2, marginBottom:8 }}>YOUR REFERRAL CODE</Text>
           <Text style={{ fontFamily:C.bold, fontSize:30, color:C.primary, letterSpacing:4, marginBottom:14 }}>{code}</Text>
@@ -2359,6 +2363,7 @@ function ReferralScreen({ onBack }: { onBack: () => void }) {
             <Text style={{ flex:1, fontFamily:C.regular, fontSize:14, color:C.text, lineHeight:20, paddingTop:4 }}>{s.t}</Text>
           </View>
         ))}
+        </View>
       </ScrollView>
     </View>
   );
@@ -2374,17 +2379,23 @@ function NotificationScreen({ onBack }: { onBack: () => void }) {
   ]);
   return (
     <View style={{ flex:1, backgroundColor:C.bg }}>
-      <Image source={require('../assets/images/design-b/logo-hex.png')}
-        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }} resizeMode="contain" />
-      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'space-between',
-        paddingTop:ins.top+(Platform.OS==='web'?67:12), paddingHorizontal:20, paddingBottom:16 }}>
-        <Pressable onPress={onBack}><Ionicons name="chevron-back" size={24} color={C.primary} /></Pressable>
-        <Text style={{ fontFamily:C.bold, fontSize:18, color:C.text }}>Notifications</Text>
-        <Pressable onPress={() => setItems(i => i.map(n => ({ ...n, read:true })))}>
-          <Text style={{ fontFamily:C.bold, fontSize:13, color:C.primary }}>Mark all</Text>
-        </Pressable>
+      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
+      <View style={{ backgroundColor:C.primaryDark,
+        paddingTop:ins.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:20 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:C.bold, fontSize:18, color:'#fff', marginLeft:8, flex:1 }}>Notifications</Text>
+          <Pressable onPress={() => setItems(i => i.map(n => ({ ...n, read:true })))}>
+            <Text style={{ fontFamily:C.bold, fontSize:14, color:'rgba(255,255,255,0.85)' }}>Mark all</Text>
+          </Pressable>
+        </View>
       </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal:20, paddingBottom:24 }}>
+      <ScrollView contentContainerStyle={{ padding:20, paddingTop:8, paddingBottom:24 }}>
+        <View style={{ backgroundColor:C.card, borderRadius:24, padding:12, paddingTop:20, marginTop:8,
+          shadowColor:'#000', shadowOpacity:0.06, shadowRadius:12, elevation:4 }}>
         {items.map(item => (
           <Pressable key={item.id} onPress={() => setItems(i => i.map(n => n.id===item.id ? { ...n, read:true } : n))}
             style={({ pressed }) => [{ flexDirection:'row', alignItems:'flex-start',
@@ -2405,6 +2416,7 @@ function NotificationScreen({ onBack }: { onBack: () => void }) {
             {!item.read && <View style={{ width:8, height:8, borderRadius:4, backgroundColor:C.primary, marginLeft:8, marginTop:4 }} />}
           </Pressable>
         ))}
+        </View>
       </ScrollView>
     </View>
   );
@@ -2417,33 +2429,38 @@ function ChangePasswordScreen({ onBack }: { onBack: () => void }) {
   const [cf,  setCf]  = useState('');
   const ok = cur.length >= 6 && nw.length >= 6 && nw === cf;
   return (
-    <View style={{ flex:1, backgroundColor:C.bg }}>
-      <Image source={require('../assets/images/design-b/logo-hex.png')}
-        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }} resizeMode="contain" />
-      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center',
-        paddingTop:ins.top+(Platform.OS==='web'?67:12), paddingHorizontal:20, paddingBottom:16 }}>
-        <Pressable onPress={onBack} style={{ position:'absolute', left:20 }}>
-          <Ionicons name="chevron-back" size={24} color={C.primary} />
-        </Pressable>
-        <Text style={{ fontFamily:C.bold, fontSize:18, color:C.text }}>Change Password</Text>
+    <KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':undefined} style={{ flex:1, backgroundColor:C.bg }}>
+      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
+      <View style={{ backgroundColor:C.primaryDark,
+        paddingTop:ins.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:20 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:C.bold, fontSize:18, color:'#fff', marginLeft:8 }}>Change Password</Text>
+        </View>
       </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal:20, paddingBottom:32 }} keyboardShouldPersistTaps="handled">
-        {([
-          { label:'Current Password', val:cur, set:setCur },
-          { label:'New Password',     val:nw,  set:setNw  },
-          { label:'Confirm Password', val:cf,  set:setCf  },
-        ] as const).map(f => (
-          <View key={f.label} style={{ marginBottom:18 }}>
-            <Text style={{ fontFamily:C.bold, fontSize:13, color:C.text, marginBottom:8 }}>{f.label}</Text>
-            <Field placeholder={f.label} value={f.val} onChangeText={f.set} secure />
-          </View>
-        ))}
-        {nw.length > 0 && cf.length > 0 && nw !== cf &&
-          <Text style={{ fontFamily:C.regular, fontSize:13, color:C.error, marginBottom:12 }}>Passwords do not match</Text>}
-        <Btn label="Update Password" onPress={() => ok && (Alert.alert('Success','Password updated successfully.'), onBack())}
-          style={{ marginTop:8, opacity: ok ? 1 : 0.5 }} />
+      <ScrollView contentContainerStyle={{ padding:20, paddingTop:8, paddingBottom:32 }} keyboardShouldPersistTaps="handled">
+        <View style={{ backgroundColor:C.card, borderRadius:24, padding:20, marginTop:8,
+          shadowColor:'#000', shadowOpacity:0.06, shadowRadius:12, elevation:4 }}>
+          {([
+            { label:'Current Password', val:cur, set:setCur },
+            { label:'New Password',     val:nw,  set:setNw  },
+            { label:'Confirm Password', val:cf,  set:setCf  },
+          ] as const).map(f => (
+            <View key={f.label} style={{ marginBottom:18 }}>
+              <Text style={{ fontFamily:C.bold, fontSize:13, color:C.text, marginBottom:8 }}>{f.label}</Text>
+              <Field placeholder={f.label} value={f.val} onChangeText={f.set} secure={true} />
+            </View>
+          ))}
+          {nw.length > 0 && cf.length > 0 && nw !== cf &&
+            <Text style={{ fontFamily:C.regular, fontSize:13, color:C.error, marginBottom:12 }}>Passwords do not match</Text>}
+          <Btn label="Update Password" onPress={() => ok && (Alert.alert('Success','Password updated successfully.'), onBack())}
+            style={{ marginTop:8, opacity: ok ? 1 : 0.5 }} />
+        </View>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -2452,42 +2469,47 @@ function TwoFAScreen({ onBack }: { onBack: () => void }) {
   const [enabled, setEnabled] = useState(false);
   return (
     <View style={{ flex:1, backgroundColor:C.bg }}>
-      <Image source={require('../assets/images/design-b/logo-hex.png')}
-        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }} resizeMode="contain" />
-      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center',
-        paddingTop:ins.top+(Platform.OS==='web'?67:12), paddingHorizontal:20, paddingBottom:16 }}>
-        <Pressable onPress={onBack} style={{ position:'absolute', left:20 }}>
-          <Ionicons name="chevron-back" size={24} color={C.primary} />
-        </Pressable>
-        <Text style={{ fontFamily:C.bold, fontSize:18, color:C.text }}>2FA Authentication</Text>
+      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
+      <View style={{ backgroundColor:C.primaryDark,
+        paddingTop:ins.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:20 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:C.bold, fontSize:18, color:'#fff', marginLeft:8 }}>2FA Authentication</Text>
+        </View>
       </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal:20, paddingBottom:32 }}>
-        <View style={{ alignItems:'center', paddingVertical:28 }}>
-          <View style={{ width:80, height:80, borderRadius:40, backgroundColor:C.primaryLight, alignItems:'center', justifyContent:'center', marginBottom:16 }}>
-            <Ionicons name="shield-checkmark-outline" size={40} color={C.primary} />
-          </View>
-          <Text style={{ fontFamily:C.bold, fontSize:18, color:C.text, marginBottom:8 }}>Two-Factor Authentication</Text>
-          <Text style={{ fontFamily:C.regular, fontSize:14, color:C.subtext, textAlign:'center', lineHeight:20, paddingHorizontal:12 }}>
-            Add an extra layer of security. When enabled, you'll be asked for a code in addition to your password.
-          </Text>
-        </View>
-        <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'space-between',
-          backgroundColor:C.card, borderRadius:16, padding:18, borderWidth:1, borderColor:C.border, marginBottom:20 }}>
-          <View style={{ flex:1, marginRight:12 }}>
-            <Text style={{ fontFamily:C.bold, fontSize:15, color:C.text, marginBottom:4 }}>Enable 2FA</Text>
-            <Text style={{ fontFamily:C.regular, fontSize:13, color:C.subtext }}>Secure with authenticator app</Text>
-          </View>
-          <Switch value={enabled} onValueChange={v => { setEnabled(v); if (v) Alert.alert('2FA Enabled','Your account is now more secure.'); }}
-            trackColor={{ true:C.primary }} thumbColor="#fff" />
-        </View>
-        {enabled && (
-          <View style={{ backgroundColor:C.primaryLight, borderRadius:16, padding:16 }}>
-            <Text style={{ fontFamily:C.bold, fontSize:14, color:C.primary, marginBottom:8 }}>Next Steps</Text>
-            <Text style={{ fontFamily:C.regular, fontSize:13, color:C.text, lineHeight:20 }}>
-              {'1. Download Google Authenticator\n2. Scan the QR code shown during setup\n3. Enter the 6-digit code to confirm'}
+      <ScrollView contentContainerStyle={{ padding:20, paddingTop:8, paddingBottom:32 }}>
+        <View style={{ backgroundColor:C.card, borderRadius:24, padding:20, marginTop:8,
+          shadowColor:'#000', shadowOpacity:0.06, shadowRadius:12, elevation:4 }}>
+          <View style={{ alignItems:'center', paddingVertical:20 }}>
+            <View style={{ width:80, height:80, borderRadius:40, backgroundColor:C.primaryLight, alignItems:'center', justifyContent:'center', marginBottom:16 }}>
+              <Ionicons name="shield-checkmark-outline" size={40} color={C.primary} />
+            </View>
+            <Text style={{ fontFamily:C.bold, fontSize:18, color:C.text, marginBottom:8 }}>Two-Factor Authentication</Text>
+            <Text style={{ fontFamily:C.regular, fontSize:14, color:C.subtext, textAlign:'center', lineHeight:20, paddingHorizontal:8 }}>
+              Add an extra layer of security. When enabled, you'll be asked for a code in addition to your password.
             </Text>
           </View>
-        )}
+          <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'space-between',
+            backgroundColor:C.inputBg, borderRadius:16, padding:18, marginBottom:16 }}>
+            <View style={{ flex:1, marginRight:12 }}>
+              <Text style={{ fontFamily:C.bold, fontSize:15, color:C.text, marginBottom:4 }}>Enable 2FA</Text>
+              <Text style={{ fontFamily:C.regular, fontSize:13, color:C.subtext }}>Secure with authenticator app</Text>
+            </View>
+            <Switch value={enabled} onValueChange={v => { setEnabled(v); if (v) Alert.alert('2FA Enabled','Your account is now more secure.'); }}
+              trackColor={{ true:C.primary }} thumbColor="#fff" />
+          </View>
+          {enabled && (
+            <View style={{ backgroundColor:C.primaryLight, borderRadius:16, padding:16 }}>
+              <Text style={{ fontFamily:C.bold, fontSize:14, color:C.primary, marginBottom:8 }}>Next Steps</Text>
+              <Text style={{ fontFamily:C.regular, fontSize:13, color:C.text, lineHeight:20 }}>
+                {'1. Download Google Authenticator\n2. Scan the QR code shown during setup\n3. Enter the 6-digit code to confirm'}
+              </Text>
+            </View>
+          )}
+        </View>
       </ScrollView>
     </View>
   );
@@ -2498,41 +2520,46 @@ function BVNScreen({ onBack }: { onBack: () => void }) {
   const [bvn, setBvn] = useState('');
   const [verified, setVerified] = useState(false);
   return (
-    <View style={{ flex:1, backgroundColor:C.bg }}>
-      <Image source={require('../assets/images/design-b/logo-hex.png')}
-        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }} resizeMode="contain" />
-      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center',
-        paddingTop:ins.top+(Platform.OS==='web'?67:12), paddingHorizontal:20, paddingBottom:16 }}>
-        <Pressable onPress={onBack} style={{ position:'absolute', left:20 }}>
-          <Ionicons name="chevron-back" size={24} color={C.primary} />
-        </Pressable>
-        <Text style={{ fontFamily:C.bold, fontSize:18, color:C.text }}>BVN Verification</Text>
-      </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal:20, paddingBottom:32 }} keyboardShouldPersistTaps="handled">
-        <View style={{ backgroundColor:C.primaryLight, borderRadius:16, padding:16, marginBottom:24 }}>
-          <Text style={{ fontFamily:C.bold, fontSize:13, color:C.primary }}>Why we need your BVN</Text>
-          <Text style={{ fontFamily:C.regular, fontSize:13, color:C.text, marginTop:6, lineHeight:19 }}>
-            Your BVN is required by the CBN to verify your identity and protect your account.
-          </Text>
+    <KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':undefined} style={{ flex:1, backgroundColor:C.bg }}>
+      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
+      <View style={{ backgroundColor:C.primaryDark,
+        paddingTop:ins.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:20 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:C.bold, fontSize:18, color:'#fff', marginLeft:8 }}>BVN Verification</Text>
         </View>
-        <Text style={{ fontFamily:C.bold, fontSize:13, color:C.text, marginBottom:8 }}>Bank Verification Number (BVN)</Text>
-        <Field placeholder="Enter your 11-digit BVN" value={bvn}
-          onChangeText={t => setBvn(t.replace(/\D/g,'').slice(0,11))} keyboard="numeric" />
-        <View style={{ marginTop:24 }}>
-          {verified
-            ? <View style={{ flexDirection:'row', alignItems:'center', gap:8, justifyContent:'center',
-                padding:16, backgroundColor:C.primaryLight, borderRadius:16 }}>
-                <Ionicons name="checkmark-circle" size={22} color={C.success} />
-                <Text style={{ fontFamily:C.bold, fontSize:15, color:C.success }}>BVN Verified Successfully</Text>
-              </View>
-            : <Btn label="Verify BVN" onPress={() => {
-                if (bvn.length === 11) { Alert.alert('Processing','Your BVN is being verified...'); setTimeout(() => setVerified(true), 1500); }
-                else Alert.alert('Invalid BVN','Please enter a valid 11-digit BVN.');
-              }} />
-          }
+      </View>
+      <ScrollView contentContainerStyle={{ padding:20, paddingTop:8, paddingBottom:32 }} keyboardShouldPersistTaps="handled">
+        <View style={{ backgroundColor:C.card, borderRadius:24, padding:20, marginTop:8,
+          shadowColor:'#000', shadowOpacity:0.06, shadowRadius:12, elevation:4 }}>
+          <View style={{ backgroundColor:C.primaryLight, borderRadius:16, padding:16, marginBottom:20 }}>
+            <Text style={{ fontFamily:C.bold, fontSize:13, color:C.primary }}>Why we need your BVN</Text>
+            <Text style={{ fontFamily:C.regular, fontSize:13, color:C.text, marginTop:6, lineHeight:19 }}>
+              Your BVN is required by the CBN to verify your identity and protect your account.
+            </Text>
+          </View>
+          <Text style={{ fontFamily:C.bold, fontSize:13, color:C.text, marginBottom:8 }}>Bank Verification Number (BVN)</Text>
+          <Field placeholder="Enter your 11-digit BVN" value={bvn}
+            onChangeText={t => setBvn(t.replace(/\D/g,'').slice(0,11))} keyboard="numeric" />
+          <View style={{ marginTop:24 }}>
+            {verified
+              ? <View style={{ flexDirection:'row', alignItems:'center', gap:8, justifyContent:'center',
+                  padding:16, backgroundColor:C.primaryLight, borderRadius:16 }}>
+                  <Ionicons name="checkmark-circle" size={22} color={C.success} />
+                  <Text style={{ fontFamily:C.bold, fontSize:15, color:C.success }}>BVN Verified Successfully</Text>
+                </View>
+              : <Btn label="Verify BVN" onPress={() => {
+                  if (bvn.length === 11) { Alert.alert('Processing','Your BVN is being verified...'); setTimeout(() => setVerified(true), 1500); }
+                  else Alert.alert('Invalid BVN','Please enter a valid 11-digit BVN.');
+                }} />
+            }
+          </View>
         </View>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -2541,41 +2568,46 @@ function NINScreen({ onBack }: { onBack: () => void }) {
   const [nin, setNin] = useState('');
   const [verified, setVerified] = useState(false);
   return (
-    <View style={{ flex:1, backgroundColor:C.bg }}>
-      <Image source={require('../assets/images/design-b/logo-hex.png')}
-        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }} resizeMode="contain" />
-      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center',
-        paddingTop:ins.top+(Platform.OS==='web'?67:12), paddingHorizontal:20, paddingBottom:16 }}>
-        <Pressable onPress={onBack} style={{ position:'absolute', left:20 }}>
-          <Ionicons name="chevron-back" size={24} color={C.primary} />
-        </Pressable>
-        <Text style={{ fontFamily:C.bold, fontSize:18, color:C.text }}>NIN Verification</Text>
-      </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal:20, paddingBottom:32 }} keyboardShouldPersistTaps="handled">
-        <View style={{ backgroundColor:C.primaryLight, borderRadius:16, padding:16, marginBottom:24 }}>
-          <Text style={{ fontFamily:C.bold, fontSize:13, color:C.primary }}>Why we need your NIN</Text>
-          <Text style={{ fontFamily:C.regular, fontSize:13, color:C.text, marginTop:6, lineHeight:19 }}>
-            Your NIN is required by Nigerian law for identity verification on financial platforms.
-          </Text>
+    <KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':undefined} style={{ flex:1, backgroundColor:C.bg }}>
+      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
+      <View style={{ backgroundColor:C.primaryDark,
+        paddingTop:ins.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:20 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:C.bold, fontSize:18, color:'#fff', marginLeft:8 }}>NIN Verification</Text>
         </View>
-        <Text style={{ fontFamily:C.bold, fontSize:13, color:C.text, marginBottom:8 }}>National Identification Number (NIN)</Text>
-        <Field placeholder="Enter your 11-digit NIN" value={nin}
-          onChangeText={t => setNin(t.replace(/\D/g,'').slice(0,11))} keyboard="numeric" />
-        <View style={{ marginTop:24 }}>
-          {verified
-            ? <View style={{ flexDirection:'row', alignItems:'center', gap:8, justifyContent:'center',
-                padding:16, backgroundColor:C.primaryLight, borderRadius:16 }}>
-                <Ionicons name="checkmark-circle" size={22} color={C.success} />
-                <Text style={{ fontFamily:C.bold, fontSize:15, color:C.success }}>NIN Verified Successfully</Text>
-              </View>
-            : <Btn label="Verify NIN" onPress={() => {
-                if (nin.length === 11) { Alert.alert('Processing','Your NIN is being verified...'); setTimeout(() => setVerified(true), 1500); }
-                else Alert.alert('Invalid NIN','Please enter a valid 11-digit NIN.');
-              }} />
-          }
+      </View>
+      <ScrollView contentContainerStyle={{ padding:20, paddingTop:8, paddingBottom:32 }} keyboardShouldPersistTaps="handled">
+        <View style={{ backgroundColor:C.card, borderRadius:24, padding:20, marginTop:8,
+          shadowColor:'#000', shadowOpacity:0.06, shadowRadius:12, elevation:4 }}>
+          <View style={{ backgroundColor:C.primaryLight, borderRadius:16, padding:16, marginBottom:20 }}>
+            <Text style={{ fontFamily:C.bold, fontSize:13, color:C.primary }}>Why we need your NIN</Text>
+            <Text style={{ fontFamily:C.regular, fontSize:13, color:C.text, marginTop:6, lineHeight:19 }}>
+              Your NIN is required by Nigerian law for identity verification on financial platforms.
+            </Text>
+          </View>
+          <Text style={{ fontFamily:C.bold, fontSize:13, color:C.text, marginBottom:8 }}>National Identification Number (NIN)</Text>
+          <Field placeholder="Enter your 11-digit NIN" value={nin}
+            onChangeText={t => setNin(t.replace(/\D/g,'').slice(0,11))} keyboard="numeric" />
+          <View style={{ marginTop:24 }}>
+            {verified
+              ? <View style={{ flexDirection:'row', alignItems:'center', gap:8, justifyContent:'center',
+                  padding:16, backgroundColor:C.primaryLight, borderRadius:16 }}>
+                  <Ionicons name="checkmark-circle" size={22} color={C.success} />
+                  <Text style={{ fontFamily:C.bold, fontSize:15, color:C.success }}>NIN Verified Successfully</Text>
+                </View>
+              : <Btn label="Verify NIN" onPress={() => {
+                  if (nin.length === 11) { Alert.alert('Processing','Your NIN is being verified...'); setTimeout(() => setVerified(true), 1500); }
+                  else Alert.alert('Invalid NIN','Please enter a valid 11-digit NIN.');
+                }} />
+            }
+          </View>
         </View>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -2584,16 +2616,20 @@ function FaceVerificationScreen({ onBack }: { onBack: () => void }) {
   const [done, setDone] = useState(false);
   return (
     <View style={{ flex:1, backgroundColor:C.bg }}>
-      <Image source={require('../assets/images/design-b/logo-hex.png')}
-        style={{ position:'absolute', right:-30, bottom:80, width:260, height:260, opacity:0.08 }} resizeMode="contain" />
-      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center',
-        paddingTop:ins.top+(Platform.OS==='web'?67:12), paddingHorizontal:20, paddingBottom:16 }}>
-        <Pressable onPress={onBack} style={{ position:'absolute', left:20 }}>
-          <Ionicons name="chevron-back" size={24} color={C.primary} />
-        </Pressable>
-        <Text style={{ fontFamily:C.bold, fontSize:18, color:C.text }}>Face Verification</Text>
+      <StatusBar barStyle="light-content" backgroundColor={C.primaryDark} />
+      <View style={{ backgroundColor:C.primaryDark,
+        paddingTop:ins.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:20 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:C.bold, fontSize:18, color:'#fff', marginLeft:8 }}>Face Verification</Text>
+        </View>
       </View>
-      <View style={{ flex:1, alignItems:'center', justifyContent:'center', paddingHorizontal:32 }}>
+      <View style={{ flex:1, margin:20, marginTop:8, backgroundColor:C.card, borderRadius:24,
+        shadowColor:'#000', shadowOpacity:0.06, shadowRadius:12, elevation:4,
+        alignItems:'center', justifyContent:'center', paddingHorizontal:32 }}>
         <View style={{ width:140, height:140, borderRadius:70, backgroundColor:C.primaryLight,
           alignItems:'center', justifyContent:'center', marginBottom:24 }}>
           <Ionicons name={done ? 'checkmark-circle' : 'scan-circle-outline'} size={64} color={done ? C.success : C.primary} />
@@ -2670,8 +2706,9 @@ function ReceiptScreen({
           {ok ? (
             <>
               <View style={{ flexDirection: 'row', gap: 12, marginBottom: 12 }}>
-                {[{ icon: 'download-outline', lbl: 'Download Receipt' }, { icon: 'share-outline', lbl: 'Share Receipt' }].map(b => (
+                {[{ icon: 'image-outline', lbl: 'Share as Image' }, { icon: 'document-outline', lbl: 'Share as PDF' }].map(b => (
                   <Pressable key={b.lbl}
+                    onPress={() => Alert.alert(b.lbl, `Receipt will be shared as ${b.lbl.split(' ')[2]}.`)}
                     style={({ pressed }) => [{
                       flex: 1, flexDirection: 'row', gap: 6,
                       borderWidth: 1.5, borderColor: C.primary, borderRadius: 28,
@@ -2683,7 +2720,7 @@ function ReceiptScreen({
                   </Pressable>
                 ))}
               </View>
-              <Btn label="Complete" onPress={onClose} variant="ghost" style={{ backgroundColor: C.bg }} />
+              <Btn label="Complete / Exit" onPress={onClose} />
             </>
           ) : (
             <Btn label="Try Again" onPress={onRetry} />

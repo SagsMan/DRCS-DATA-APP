@@ -6,9 +6,11 @@ import {
   Image,
   ImageBackground,
   ImageSourcePropType,
+  KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Switch,
   Text,
@@ -815,33 +817,47 @@ function ASendToDRCSScreen({ colors, onBack, onProceed }: {
   colors:AColors; onBack:()=>void;
   onProceed:(p:{username:string;amount:string;note:string})=>void;
 }) {
+  const ins = useSafeAreaInsets();
   const [username,setUsername]=useState('');
   const [amount,  setAmount]  =useState('');
   const [note,    setNote]    =useState('');
   const inp:object = { backgroundColor:colors.background, borderRadius:12, height:50, paddingHorizontal:14,
     fontFamily:colors.fontBody, fontSize:15, color:colors.grayBlack, borderWidth:1, borderColor:colors.border };
   return (
-    <KeyboardAwareScrollViewCompat style={{ flex:1, backgroundColor:colors.background }}>
-      <AHeader title="Send to DRCS User" onBack={onBack} colors={colors} />
-      <View style={{ padding:20, gap:16 }}>
-        {[
-          {label:'DRCS Username',ph:'Enter username or phone',val:username,set:setUsername,kb:'default'  as const},
-          {label:'Amount (₦)',  ph:'Enter amount',           val:amount,  set:(t:string)=>setAmount(t.replace(/\D/g,'')),kb:'numeric' as const},
-          {label:'Note (optional)',ph:'What is this for?',  val:note,    set:setNote,    kb:'default'  as const},
-        ].map(f => (
-          <View key={f.label}>
-            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>{f.label}</Text>
-            <TextInput value={f.val} onChangeText={f.set} placeholder={f.ph}
-              placeholderTextColor={colors.grayGray1} keyboardType={f.kb} style={inp} />
-          </View>
-        ))}
-        <Pressable onPress={() => { if(username.length>=3&&amount) onProceed({username,amount,note}); }}
-          style={({ pressed }) => [{ backgroundColor:(username.length>=3&&amount)?colors.primary:colors.grayGray4,
-            borderRadius:26, minHeight:52, alignItems:'center', justifyContent:'center', opacity:pressed?0.82:1 }]}>
-          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Proceed</Text>
-        </Pressable>
+    <KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':undefined} style={{ flex:1, backgroundColor:colors.background }}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.brandPrimaryDark} />
+      <View style={{ backgroundColor:colors.brandPrimaryDark,
+        paddingTop:ins.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:18 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:'#fff', marginLeft:8 }}>Send to DRCS User</Text>
+        </View>
       </View>
-    </KeyboardAwareScrollViewCompat>
+      <ScrollView contentContainerStyle={{ padding:18, paddingTop:8, paddingBottom:32 }} keyboardShouldPersistTaps="handled">
+        <View style={{ backgroundColor:colors.card, borderRadius:24, padding:20, marginTop:8,
+          borderWidth:1, borderColor:colors.border }}>
+          {[
+            {label:'DRCS Username',ph:'Enter username or phone',val:username,set:setUsername,kb:'default'  as const},
+            {label:'Amount (₦)',  ph:'Enter amount',           val:amount,  set:(t:string)=>setAmount(t.replace(/\D/g,'')),kb:'numeric' as const},
+            {label:'Note (optional)',ph:'What is this for?',  val:note,    set:setNote,    kb:'default'  as const},
+          ].map(f => (
+            <View key={f.label} style={{ marginBottom:16 }}>
+              <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>{f.label}</Text>
+              <TextInput value={f.val} onChangeText={f.set} placeholder={f.ph}
+                placeholderTextColor={colors.grayGray1} keyboardType={f.kb} style={inp} />
+            </View>
+          ))}
+          <Pressable onPress={() => { if(username.length>=3&&amount) onProceed({username,amount,note}); }}
+            style={({ pressed }) => [{ backgroundColor:(username.length>=3&&amount)?colors.primary:colors.grayGray4,
+              borderRadius:26, minHeight:52, alignItems:'center', justifyContent:'center', opacity:pressed?0.82:1 }]}>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Proceed</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -849,6 +865,7 @@ function ASendToBankScreen({ colors, onBack, onProceed }: {
   colors:AColors; onBack:()=>void;
   onProceed:(p:{accountNo:string;bankName:string;accountName:string;amount:string})=>void;
 }) {
+  const ins = useSafeAreaInsets();
   const [accountNo,  setAccountNo]  = useState('');
   const [bankName,   setBankName]   = useState('');
   const [amount,     setAmount]     = useState('');
@@ -858,66 +875,91 @@ function ASendToBankScreen({ colors, onBack, onProceed }: {
   const inp:object = { backgroundColor:colors.background, borderRadius:12, height:50, paddingHorizontal:14,
     fontFamily:colors.fontBody, fontSize:15, color:colors.grayBlack, borderWidth:1, borderColor:colors.border };
   return (
-    <KeyboardAwareScrollViewCompat style={{ flex:1, backgroundColor:colors.background }}>
-      <AHeader title="Send to Bank" onBack={onBack} colors={colors} />
-      <View style={{ padding:20, gap:16 }}>
-        <View>
-          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>Account Number</Text>
-          <TextInput value={accountNo} onChangeText={t=>setAccountNo(t.replace(/\D/g,'').slice(0,10))}
-            placeholder="10-digit account number" placeholderTextColor={colors.grayGray1} keyboardType="numeric" style={inp} />
+    <KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':undefined} style={{ flex:1, backgroundColor:colors.background }}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.brandPrimaryDark} />
+      <View style={{ backgroundColor:colors.brandPrimaryDark,
+        paddingTop:ins.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:18 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:'#fff', marginLeft:8 }}>Send to Bank</Text>
         </View>
-        <View>
-          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>Bank</Text>
-          <Pressable onPress={() => setShowBanks(s=>!s)}
-            style={[inp, { justifyContent:'center' }]}>
-            <Text style={{ fontFamily:colors.fontBody, fontSize:15, color:bankName?colors.grayBlack:colors.grayGray1 }}>
-              {bankName||'Select bank'}
-            </Text>
-          </Pressable>
-          {showBanks && (
-            <View style={{ backgroundColor:colors.card, borderRadius:12, borderWidth:1, borderColor:colors.border, maxHeight:180, overflow:'hidden', marginTop:4 }}>
-              <ScrollView nestedScrollEnabled>
-                {A_BANKS.map(b => (
-                  <Pressable key={b} onPress={() => { setBankName(b); setShowBanks(false); }}
-                    style={({ pressed }) => [{ paddingHorizontal:14, paddingVertical:12,
-                      borderBottomWidth:1, borderBottomColor:colors.border, opacity:pressed?0.7:1,
-                      backgroundColor:b===bankName?colors.brandPrimaryLight:colors.card }]}>
-                    <Text style={{ fontFamily:b===bankName?colors.fontBodySemiBold:colors.fontBody,
-                      fontSize:14, color:colors.grayBlack }}>{b}</Text>
-                  </Pressable>
-                ))}
-              </ScrollView>
-            </View>
-          )}
-        </View>
-        {accountNo.length===10 && bankName ? (
-          <View style={{ backgroundColor:colors.successLight, borderRadius:12, padding:12 }}>
-            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.success }}>{accountName}</Text>
-          </View>
-        ) : null}
-        <View>
-          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>Amount (₦)</Text>
-          <TextInput value={amount} onChangeText={t=>setAmount(t.replace(/\D/g,''))}
-            placeholder="Enter amount" placeholderTextColor={colors.grayGray1} keyboardType="numeric" style={inp} />
-        </View>
-        <Pressable onPress={() => { if(canGo) onProceed({accountNo,bankName,accountName,amount}); }}
-          style={({ pressed }) => [{ backgroundColor:canGo?colors.primary:colors.grayGray4,
-            borderRadius:26, minHeight:52, alignItems:'center', justifyContent:'center', opacity:pressed?0.82:1 }]}>
-          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Proceed</Text>
-        </Pressable>
       </View>
-    </KeyboardAwareScrollViewCompat>
+      <ScrollView contentContainerStyle={{ padding:18, paddingTop:8, paddingBottom:32 }} keyboardShouldPersistTaps="handled">
+        <View style={{ backgroundColor:colors.card, borderRadius:24, padding:20, marginTop:8,
+          borderWidth:1, borderColor:colors.border }}>
+          <View style={{ marginBottom:16 }}>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>Account Number</Text>
+            <TextInput value={accountNo} onChangeText={t=>setAccountNo(t.replace(/\D/g,'').slice(0,10))}
+              placeholder="10-digit account number" placeholderTextColor={colors.grayGray1} keyboardType="numeric" style={inp} />
+          </View>
+          <View style={{ marginBottom:16 }}>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>Bank</Text>
+            <Pressable onPress={() => setShowBanks(s=>!s)}
+              style={[inp, { justifyContent:'center' }]}>
+              <Text style={{ fontFamily:colors.fontBody, fontSize:15, color:bankName?colors.grayBlack:colors.grayGray1 }}>
+                {bankName||'Select bank'}
+              </Text>
+            </Pressable>
+            {showBanks && (
+              <View style={{ backgroundColor:colors.card, borderRadius:12, borderWidth:1, borderColor:colors.border, maxHeight:180, overflow:'hidden', marginTop:4 }}>
+                <ScrollView nestedScrollEnabled>
+                  {A_BANKS.map(b => (
+                    <Pressable key={b} onPress={() => { setBankName(b); setShowBanks(false); }}
+                      style={({ pressed }) => [{ paddingHorizontal:14, paddingVertical:12,
+                        borderBottomWidth:1, borderBottomColor:colors.border, opacity:pressed?0.7:1,
+                        backgroundColor:b===bankName?colors.brandPrimaryLight:colors.card }]}>
+                      <Text style={{ fontFamily:b===bankName?colors.fontBodySemiBold:colors.fontBody,
+                        fontSize:14, color:colors.grayBlack }}>{b}</Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+          </View>
+          {accountNo.length===10 && bankName ? (
+            <View style={{ backgroundColor:colors.successLight, borderRadius:12, padding:12, marginBottom:16 }}>
+              <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.success }}>{accountName}</Text>
+            </View>
+          ) : null}
+          <View style={{ marginBottom:16 }}>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayGray1, marginBottom:8 }}>Amount (₦)</Text>
+            <TextInput value={amount} onChangeText={t=>setAmount(t.replace(/\D/g,''))}
+              placeholder="Enter amount" placeholderTextColor={colors.grayGray1} keyboardType="numeric" style={inp} />
+          </View>
+          <Pressable onPress={() => { if(canGo) onProceed({accountNo,bankName,accountName,amount}); }}
+            style={({ pressed }) => [{ backgroundColor:canGo?colors.primary:colors.grayGray4,
+              borderRadius:26, minHeight:52, alignItems:'center', justifyContent:'center', opacity:pressed?0.82:1 }]}>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Proceed</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 function AAddMoneyScreen({ colors, onBack }: { colors:AColors; onBack:()=>void }) {
+  const ins = useSafeAreaInsets();
   const ACCOUNT = { bank:'DRCS Microfinance Bank', name:'DRCS User', number:'1234567890' };
   const [copied, setCopied] = useState(false);
   return (
     <View style={{ flex:1, backgroundColor:colors.background }}>
-      <AHeader title="Add Money" onBack={onBack} colors={colors} />
-      <ScrollView contentContainerStyle={{ padding:20 }}>
-        <View style={{ backgroundColor:colors.card, borderRadius:16, padding:20, borderWidth:1, borderColor:colors.border, marginBottom:20 }}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.brandPrimaryDark} />
+      <View style={{ backgroundColor:colors.brandPrimaryDark,
+        paddingTop:ins.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:18 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:'#fff', marginLeft:8 }}>Deposit</Text>
+        </View>
+      </View>
+      <ScrollView contentContainerStyle={{ padding:18, paddingTop:0, paddingBottom:32 }}>
+        <View style={{ backgroundColor:colors.card, borderRadius:24, padding:20, marginTop:8,
+          borderWidth:1, borderColor:colors.border }}>
           <Text style={{ fontFamily:colors.fontBody, fontSize:14, color:colors.grayGray1, textAlign:'center', marginBottom:20 }}>
             Transfer to the account below to fund your wallet
           </Text>
@@ -938,8 +980,14 @@ function AAddMoneyScreen({ colors, onBack }: { colors:AColors; onBack:()=>void }
               {copied?'Copied!':'Copy Account Number'}
             </Text>
           </Pressable>
+          <View style={{ height:10 }} />
+          <Pressable onPress={onBack}
+            style={({ pressed }) => [{ borderWidth:1.5, borderColor:colors.primary,
+              borderRadius:26, minHeight:50, alignItems:'center', justifyContent:'center', opacity:pressed?0.82:1 }]}>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.primary }}>Done</Text>
+          </Pressable>
         </View>
-        <View style={{ backgroundColor:colors.brandPrimaryLight, borderRadius:14, padding:16 }}>
+        <View style={{ backgroundColor:colors.brandPrimaryLight, borderRadius:14, padding:16, marginTop:16 }}>
           <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.primary, marginBottom:4 }}>Note</Text>
           <Text style={{ fontFamily:colors.fontBody, fontSize:13, color:colors.grayBlack, lineHeight:20 }}>
             Your wallet will be credited within minutes after transfer. Use your registered phone number as payment reference.
@@ -1026,18 +1074,20 @@ function AReceiptScreen({ data, colors, onClose, onRetry }: {
           {ok ? (
             <>
               <View style={{ flexDirection:'row', gap:12 }}>
-                {[{icon:'download-outline',lbl:'Download'},{icon:'share-outline',lbl:'Share'}].map(b=>(
-                  <Pressable key={b.lbl} style={({ pressed }) => [{ flex:1, flexDirection:'row', gap:6,
-                    borderWidth:1.5, borderColor:colors.primary, borderRadius:26, paddingVertical:13,
-                    alignItems:'center', justifyContent:'center', opacity:pressed?0.75:1 }]}>
-                    <Ionicons name={b.icon as any} size={16} color={colors.primary} />
-                    <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.primary }}>{b.lbl}</Text>
+                {[{icon:'image-outline',lbl:'Share as Image'},{icon:'document-outline',lbl:'Share as PDF'}].map(b=>(
+                  <Pressable key={b.lbl}
+                    onPress={() => Alert.alert(b.lbl, `Receipt will be shared as ${b.lbl.split(' ')[2]}.`)}
+                    style={({ pressed }) => [{ flex:1, flexDirection:'row', gap:5,
+                      borderWidth:1.5, borderColor:colors.primary, borderRadius:26, paddingVertical:13,
+                      alignItems:'center', justifyContent:'center', opacity:pressed?0.75:1 }]}>
+                    <Ionicons name={b.icon as any} size={15} color={colors.primary} />
+                    <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:12, color:colors.primary }}>{b.lbl}</Text>
                   </Pressable>
                 ))}
               </View>
               <Pressable onPress={onClose} style={({ pressed }) => [{ backgroundColor:colors.primary,
                 borderRadius:26, minHeight:52, alignItems:'center', justifyContent:'center', opacity:pressed?0.82:1 }]}>
-                <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Done</Text>
+                <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Complete / Exit</Text>
               </Pressable>
             </>
           ) : (
@@ -1055,10 +1105,22 @@ function AReceiptScreen({ data, colors, onClose, onRetry }: {
 function ATransferPickerScreen({ colors, onBack, onToDRCS, onToBank }: {
   colors:AColors; onBack:()=>void; onToDRCS:()=>void; onToBank:()=>void;
 }) {
+  const ins = useSafeAreaInsets();
   return (
     <View style={{ flex:1, backgroundColor:colors.background }}>
-      <AHeader title="Transfer Money" onBack={onBack} colors={colors} />
-      <View style={{ padding:20, gap:14 }}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.brandPrimaryDark} />
+      <View style={{ backgroundColor:colors.brandPrimaryDark,
+        paddingTop:ins.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:18 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:'#fff', marginLeft:8 }}>Transfer Money</Text>
+        </View>
+      </View>
+      <View style={{ margin:18, marginTop:8, backgroundColor:colors.card, borderRadius:24, padding:16,
+        borderWidth:1, borderColor:colors.border, gap:8 }}>
         {[
           { label:'To DRCS User', icon:'person-outline' as const, sub:'Send to any DRCS account', fn:onToDRCS },
           { label:'To Bank',      icon:'business-outline' as const, sub:'Send to any Nigerian bank', fn:onToBank },
@@ -1202,43 +1264,52 @@ function AProfileSettingsScreen({ colors, insets, onBack }: { colors: AColors; i
   ];
   const inputSt = { fontFamily:colors.fontBody, fontSize:15, color:colors.grayBlack, borderWidth:1, borderColor:colors.border, borderRadius:14, paddingHorizontal:16, paddingVertical:13, backgroundColor:colors.card };
   return (
-    <View style={{ flex:1, backgroundColor:colors.background }}>
-      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'space-between', paddingTop:insets.top+16, paddingHorizontal:18, paddingBottom:14 }}>
-        <Pressable onPress={onBack}><Ionicons name="chevron-back" size={24} color={colors.primary} /></Pressable>
-        <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack }}>Profile Settings</Text>
-        <Pressable onPress={() => setEditing(e => !e)}>
-          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.primary }}>{editing ? 'Done' : 'Edit'}</Text>
-        </Pressable>
+    <KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':undefined} style={{ flex:1, backgroundColor:colors.background }}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.brandPrimaryDark} />
+      <View style={{ backgroundColor:colors.brandPrimaryDark,
+        paddingTop:insets.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:18 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:'#fff', marginLeft:8, flex:1 }}>Profile Settings</Text>
+          <Pressable onPress={() => setEditing(e => !e)}>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:14, color:'rgba(255,255,255,0.85)' }}>{editing?'Done':'Edit'}</Text>
+          </Pressable>
+        </View>
       </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal:18, paddingBottom:32 }}>
-        <View style={{ alignItems:'center', marginBottom:28 }}>
-          <View style={{ position:'relative' }}>
-            <Image source={require('../assets/images/design-b/avatar.png')} style={{ width:96, height:96, borderRadius:48 }} />
-            {editing && (
-              <Pressable style={{ position:'absolute', bottom:0, right:0, width:32, height:32, borderRadius:16, backgroundColor:colors.card, borderWidth:1.5, borderColor:colors.primary, alignItems:'center', justifyContent:'center' }}>
+      <ScrollView contentContainerStyle={{ padding:18, paddingTop:0, paddingBottom:32 }} keyboardShouldPersistTaps="handled">
+        <View style={{ backgroundColor:colors.card, borderRadius:24, padding:18, marginTop:8,
+          borderWidth:1, borderColor:colors.border }}>
+          <View style={{ alignItems:'center', marginBottom:24, paddingTop:8 }}>
+            <View style={{ position:'relative' }}>
+              <Image source={require('../assets/images/design-b/avatar.png')} style={{ width:96, height:96, borderRadius:48 }} />
+              <Pressable onPress={() => Alert.alert('Change Photo','Photo picker would open here.')}
+                style={{ position:'absolute', bottom:0, right:0, width:32, height:32, borderRadius:16, backgroundColor:colors.card, borderWidth:1.5, borderColor:colors.primary, alignItems:'center', justifyContent:'center' }}>
                 <Ionicons name="camera-outline" size={16} color={colors.primary} />
               </Pressable>
-            )}
+            </View>
           </View>
+          {fields.map(f => (
+            <View key={f.key} style={{ marginBottom:16 }}>
+              <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayBlack, marginBottom:8 }}>{f.label}</Text>
+              {editing
+                ? <TextInput value={form[f.key]} onChangeText={v => setForm(p=>({...p,[f.key]:v}))} style={inputSt} />
+                : <View style={{ backgroundColor:colors.card, borderRadius:14, minHeight:50, justifyContent:'center', paddingHorizontal:16, borderWidth:1, borderColor:colors.border }}>
+                    <Text style={{ fontFamily:colors.fontBody, fontSize:15, color:colors.grayGray1 }}>{form[f.key]}</Text>
+                  </View>
+              }
+            </View>
+          ))}
+          {editing && (
+            <Pressable onPress={() => setEditing(false)} style={({ pressed }) => [{ backgroundColor:colors.primary, borderRadius:14, paddingVertical:14, alignItems:'center', marginTop:8, opacity:pressed?0.85:1 }]}>
+              <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Save</Text>
+            </Pressable>
+          )}
         </View>
-        {fields.map(f => (
-          <View key={f.key} style={{ marginBottom:16 }}>
-            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayBlack, marginBottom:8 }}>{f.label}</Text>
-            {editing
-              ? <TextInput value={form[f.key]} onChangeText={v => setForm(p=>({...p,[f.key]:v}))} style={inputSt} />
-              : <View style={{ backgroundColor:colors.card, borderRadius:14, minHeight:50, justifyContent:'center', paddingHorizontal:16, borderWidth:1, borderColor:colors.border }}>
-                  <Text style={{ fontFamily:colors.fontBody, fontSize:15, color:colors.grayGray1 }}>{form[f.key]}</Text>
-                </View>
-            }
-          </View>
-        ))}
-        {editing && (
-          <Pressable onPress={() => setEditing(false)} style={({ pressed }) => [{ backgroundColor:colors.primary, borderRadius:14, paddingVertical:14, alignItems:'center', marginTop:8, opacity:pressed?0.85:1 }]}>
-            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Save</Text>
-          </Pressable>
-        )}
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -1249,17 +1320,25 @@ function ASecurityScreen({ colors, insets, onBack }: { colors: AColors; insets: 
   if (sub === 'twoFA')          return <ATwoFAScreen          colors={colors} insets={insets} onBack={() => setSub('main')} />;
   return (
     <View style={{ flex:1, backgroundColor:colors.background }}>
-      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center', paddingTop:insets.top+16, paddingHorizontal:18, paddingBottom:14 }}>
-        <Pressable onPress={onBack} style={{ position:'absolute', left:18 }}><Ionicons name="chevron-back" size={24} color={colors.primary} /></Pressable>
-        <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack }}>Settings</Text>
+      <StatusBar barStyle="light-content" backgroundColor={colors.brandPrimaryDark} />
+      <View style={{ backgroundColor:colors.brandPrimaryDark,
+        paddingTop:insets.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:18 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:'#fff', marginLeft:8 }}>Security</Text>
+        </View>
       </View>
-      <View style={{ paddingHorizontal:18 }}>
+      <View style={{ margin:18, marginTop:8, backgroundColor:colors.card, borderRadius:24, padding:12,
+        borderWidth:1, borderColor:colors.border }}>
         {([
           { icon:'lock-closed-outline' as const, label:'Change Password', sub:'changePassword' as const },
           { icon:'shield-checkmark-outline' as const, label:'2FA Authentication', sub:'twoFA' as const },
         ]).map(item => (
           <Pressable key={item.label} onPress={() => setSub(item.sub)}
-            style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', backgroundColor:colors.card, borderRadius:16, padding:16, marginBottom:10, borderWidth:1, borderColor:colors.border, opacity:pressed?0.8:1 }]}>
+            style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', borderRadius:16, padding:16, marginBottom:4, opacity:pressed?0.8:1 }]}>
             <View style={{ width:38, height:38, borderRadius:12, backgroundColor:colors.brandPrimaryLight, alignItems:'center', justifyContent:'center', marginRight:14 }}>
               <Ionicons name={item.icon} size={19} color={colors.primary} />
             </View>
@@ -1267,7 +1346,7 @@ function ASecurityScreen({ colors, insets, onBack }: { colors: AColors; insets: 
             <Ionicons name="chevron-forward" size={16} color={colors.grayGray1} />
           </Pressable>
         ))}
-        <Pressable style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', backgroundColor:colors.card, borderRadius:16, padding:16, marginBottom:10, borderWidth:1, borderColor:colors.border, opacity:pressed?0.8:1 }]}
+        <Pressable style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', borderRadius:16, padding:16, opacity:pressed?0.8:1 }]}
           onPress={() => setFp(f => !f)}>
           <View style={{ width:38, height:38, borderRadius:12, backgroundColor:colors.brandPrimaryLight, alignItems:'center', justifyContent:'center', marginRight:14 }}>
             <Ionicons name="finger-print-outline" size={19} color={colors.primary} />
@@ -1290,14 +1369,22 @@ function AAccountDetailsScreen({ colors, insets, onBack }: { colors: AColors; in
     const isFace = sub === 'face';
     return (
       <View style={{ flex:1, backgroundColor:colors.background }}>
-        <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center', paddingTop:insets.top+16, paddingHorizontal:18, paddingBottom:14 }}>
-          <Pressable onPress={() => { setSub('main'); setDone(false); setVal(''); }} style={{ position:'absolute', left:18 }}>
-            <Ionicons name="chevron-back" size={24} color={colors.primary} />
-          </Pressable>
-          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack }}>{labels[sub]}</Text>
+        <StatusBar barStyle="light-content" backgroundColor={colors.brandPrimaryDark} />
+        <View style={{ backgroundColor:colors.brandPrimaryDark,
+          paddingTop:insets.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:18 }}>
+          <Image source={require('../assets/images/design-b/logo-hex.png')}
+            style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+            resizeMode="contain" />
+          <View style={{ flexDirection:'row', alignItems:'center' }}>
+            <Pressable onPress={() => { setSub('main'); setDone(false); setVal(''); }} hitSlop={12}>
+              <Ionicons name="chevron-back" size={24} color="#fff" />
+            </Pressable>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:'#fff', marginLeft:8 }}>{labels[sub]}</Text>
+          </View>
         </View>
         {isFace
-          ? <View style={{ flex:1, alignItems:'center', justifyContent:'center', paddingHorizontal:32 }}>
+          ? <View style={{ flex:1, margin:18, marginTop:8, backgroundColor:colors.card, borderRadius:24,
+              borderWidth:1, borderColor:colors.border, alignItems:'center', justifyContent:'center', paddingHorizontal:32 }}>
               <View style={{ width:120, height:120, borderRadius:60, backgroundColor:colors.brandPrimaryLight, alignItems:'center', justifyContent:'center', marginBottom:20 }}>
                 <Ionicons name={done?'checkmark-circle':'scan-circle-outline'} size={56} color={done?colors.success:colors.primary} />
               </View>
@@ -1316,8 +1403,9 @@ function AAccountDetailsScreen({ colors, insets, onBack }: { colors: AColors; in
                   </Pressable>
               }
             </View>
-          : <ScrollView contentContainerStyle={{ paddingHorizontal:18, paddingBottom:32 }} keyboardShouldPersistTaps="handled">
-              <View style={{ backgroundColor:colors.brandPrimaryLight, borderRadius:16, padding:16, marginBottom:24 }}>
+          : <ScrollView contentContainerStyle={{ padding:18, paddingTop:0, paddingBottom:32 }} keyboardShouldPersistTaps="handled">
+              <View style={{ backgroundColor:colors.card, borderRadius:24, padding:18, marginTop:8, borderWidth:1, borderColor:colors.border }}>
+              <View style={{ backgroundColor:colors.brandPrimaryLight, borderRadius:16, padding:16, marginBottom:20 }}>
                 <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.primary }}>Why we need your {sub.toUpperCase()}</Text>
                 <Text style={{ fontFamily:colors.fontBody, fontSize:13, color:colors.grayBlack, marginTop:6, lineHeight:19 }}>
                   {sub==='bvn' ? 'Required by the CBN to verify your identity and protect your account.' : 'Required by Nigerian law for identity verification on financial platforms.'}
@@ -1337,6 +1425,7 @@ function AAccountDetailsScreen({ colors, insets, onBack }: { colors: AColors; in
                     <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Verify</Text>
                   </Pressable>
               }
+              </View>
             </ScrollView>
         }
       </View>
@@ -1344,18 +1433,26 @@ function AAccountDetailsScreen({ colors, insets, onBack }: { colors: AColors; in
   }
   return (
     <View style={{ flex:1, backgroundColor:colors.background }}>
-      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center', paddingTop:insets.top+16, paddingHorizontal:18, paddingBottom:14 }}>
-        <Pressable onPress={onBack} style={{ position:'absolute', left:18 }}><Ionicons name="chevron-back" size={24} color={colors.primary} /></Pressable>
-        <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack }}>Account Details</Text>
+      <StatusBar barStyle="light-content" backgroundColor={colors.brandPrimaryDark} />
+      <View style={{ backgroundColor:colors.brandPrimaryDark,
+        paddingTop:insets.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:18 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:'#fff', marginLeft:8 }}>Account Details</Text>
+        </View>
       </View>
-      <View style={{ paddingHorizontal:18 }}>
+      <View style={{ margin:18, marginTop:8, backgroundColor:colors.card, borderRadius:24, padding:12,
+        borderWidth:1, borderColor:colors.border }}>
         {([
           { icon:'card-outline' as const, label:'BVN', sub:'bvn' as const },
           { icon:'id-card-outline' as const, label:'NIN', sub:'nin' as const },
           { icon:'scan-circle-outline' as const, label:'Face Verification', sub:'face' as const },
         ]).map(item => (
           <Pressable key={item.label} onPress={() => setSub(item.sub)}
-            style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', backgroundColor:colors.card, borderRadius:16, padding:16, marginBottom:10, borderWidth:1, borderColor:colors.border, opacity:pressed?0.8:1 }]}>
+            style={({ pressed }) => [{ flexDirection:'row', alignItems:'center', borderRadius:16, padding:16, marginBottom:4, opacity:pressed?0.8:1 }]}>
             <View style={{ width:38, height:38, borderRadius:12, backgroundColor:colors.brandPrimaryLight, alignItems:'center', justifyContent:'center', marginRight:14 }}>
               <Ionicons name={item.icon} size={19} color={colors.primary} />
             </View>
@@ -1373,13 +1470,21 @@ function AReferralScreen({ colors, insets, onBack }: { colors: AColors; insets: 
   const code = 'DRCS-JD239';
   return (
     <View style={{ flex:1, backgroundColor:colors.background }}>
-      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center',
-        paddingTop:insets.top+16, paddingHorizontal:18, paddingBottom:14 }}>
-        <Pressable onPress={onBack} style={{ position:'absolute', left:18 }}><Ionicons name="chevron-back" size={24} color={colors.primary} /></Pressable>
-        <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack }}>Referral</Text>
+      <StatusBar barStyle="light-content" backgroundColor={colors.brandPrimaryDark} />
+      <View style={{ backgroundColor:colors.brandPrimaryDark,
+        paddingTop:insets.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:18 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:'#fff', marginLeft:8 }}>Referral</Text>
+        </View>
       </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal:18, paddingBottom:32 }}>
-        <View style={{ backgroundColor:colors.card, borderRadius:20, padding:20, alignItems:'center', marginBottom:20, borderWidth:1, borderColor:colors.border }}>
+      <ScrollView contentContainerStyle={{ padding:18, paddingTop:0, paddingBottom:32 }}>
+        <View style={{ backgroundColor:colors.card, borderRadius:24, padding:18, marginTop:8,
+          borderWidth:1, borderColor:colors.border, marginBottom:16 }}>
+        <View style={{ alignItems:'center', paddingVertical:12, marginBottom:8 }}>
           <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:11, color:colors.grayGray1, letterSpacing:1.2, marginBottom:8 }}>YOUR REFERRAL CODE</Text>
           <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:30, color:colors.primary, letterSpacing:4, marginBottom:14 }}>{code}</Text>
           <Pressable onPress={() => Alert.alert('Copied!', `Code ${code} copied.`)}
@@ -1415,6 +1520,7 @@ function AReferralScreen({ colors, insets, onBack }: { colors: AColors; insets: 
             <Text style={{ flex:1, fontFamily:colors.fontBody, fontSize:14, color:colors.grayBlack, lineHeight:20, paddingTop:4 }}>{s.t}</Text>
           </View>
         ))}
+        </View>
       </ScrollView>
     </View>
   );
@@ -1429,35 +1535,44 @@ function ANotificationScreen({ colors, insets, onBack }: { colors: AColors; inse
   ]);
   return (
     <View style={{ flex:1, backgroundColor:colors.background }}>
-      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'space-between',
-        paddingTop:insets.top+16, paddingHorizontal:18, paddingBottom:14 }}>
-        <Pressable onPress={onBack}><Ionicons name="chevron-back" size={24} color={colors.primary} /></Pressable>
-        <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack }}>Notifications</Text>
-        <Pressable onPress={() => setItems(i => i.map(n => ({ ...n, read:true })))}>
-          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.primary }}>Mark all</Text>
-        </Pressable>
-      </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal:18, paddingBottom:24 }}>
-        {items.map(item => (
-          <Pressable key={item.id} onPress={() => setItems(i => i.map(n => n.id===item.id ? { ...n, read:true } : n))}
-            style={({ pressed }) => [{ flexDirection:'row', alignItems:'flex-start',
-              backgroundColor: item.read ? colors.card : colors.brandPrimaryLight,
-              borderRadius:16, padding:16, marginBottom:10, borderWidth:1, borderColor:colors.border, opacity:pressed?0.8:1 }]}>
-            <View style={{ width:38, height:38, borderRadius:12,
-              backgroundColor: item.read ? colors.background : colors.primary,
-              alignItems:'center', justifyContent:'center', marginRight:14 }}>
-              <Ionicons name={item.icon as any} size={19} color={item.read ? colors.grayGray1 : colors.primaryForeground} />
-            </View>
-            <View style={{ flex:1 }}>
-              <View style={{ flexDirection:'row', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
-                <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:14, color:colors.grayBlack }}>{item.title}</Text>
-                <Text style={{ fontFamily:colors.fontBody, fontSize:11, color:colors.grayGray1 }}>{item.time}</Text>
-              </View>
-              <Text style={{ fontFamily:colors.fontBody, fontSize:13, color:colors.grayGray1, lineHeight:18 }}>{item.body}</Text>
-            </View>
-            {!item.read && <View style={{ width:8, height:8, borderRadius:4, backgroundColor:colors.primary, marginLeft:8, marginTop:4 }} />}
+      <StatusBar barStyle="light-content" backgroundColor={colors.brandPrimaryDark} />
+      <View style={{ backgroundColor:colors.brandPrimaryDark,
+        paddingTop:insets.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:18 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:'#fff', marginLeft:8, flex:1 }}>Notifications</Text>
+          <Pressable onPress={() => setItems(i => i.map(n => ({ ...n, read:true })))}>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:14, color:'rgba(255,255,255,0.85)' }}>Mark all</Text>
           </Pressable>
-        ))}
+        </View>
+      </View>
+      <ScrollView contentContainerStyle={{ padding:18, paddingTop:8, paddingBottom:24 }}>
+        <View style={{ backgroundColor:colors.card, borderRadius:24, padding:10, paddingTop:20, marginTop:8,
+          borderWidth:1, borderColor:colors.border }}>
+          {items.map(item => (
+            <Pressable key={item.id} onPress={() => setItems(i => i.map(n => n.id===item.id ? { ...n, read:true } : n))}
+              style={({ pressed }) => [{ flexDirection:'row', alignItems:'flex-start',
+                backgroundColor: item.read ? colors.card : colors.brandPrimaryLight,
+                borderRadius:16, padding:14, marginBottom:6, opacity:pressed?0.8:1 }]}>
+              <View style={{ width:38, height:38, borderRadius:12,
+                backgroundColor: item.read ? colors.background : colors.primary,
+                alignItems:'center', justifyContent:'center', marginRight:14 }}>
+                <Ionicons name={item.icon as any} size={19} color={item.read ? colors.grayGray1 : colors.primaryForeground} />
+              </View>
+              <View style={{ flex:1 }}>
+                <View style={{ flexDirection:'row', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
+                  <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:14, color:colors.grayBlack }}>{item.title}</Text>
+                  <Text style={{ fontFamily:colors.fontBody, fontSize:11, color:colors.grayGray1 }}>{item.time}</Text>
+                </View>
+                <Text style={{ fontFamily:colors.fontBody, fontSize:13, color:colors.grayGray1, lineHeight:18 }}>{item.body}</Text>
+              </View>
+              {!item.read && <View style={{ width:8, height:8, borderRadius:4, backgroundColor:colors.primary, marginLeft:8, marginTop:4 }} />}
+            </Pressable>
+          ))}
+        </View>
       </ScrollView>
     </View>
   );
@@ -1468,25 +1583,35 @@ function AChangePasswordScreen({ colors, insets, onBack }: { colors: AColors; in
   const ok = cur.length >= 6 && nw.length >= 6 && nw === cf;
   const inputSt = { fontFamily:colors.fontBody, fontSize:15, color:colors.grayBlack, borderWidth:1, borderColor:colors.border, borderRadius:14, paddingHorizontal:16, paddingVertical:13, backgroundColor:colors.card };
   return (
-    <View style={{ flex:1, backgroundColor:colors.background }}>
-      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center', paddingTop:insets.top+16, paddingHorizontal:18, paddingBottom:14 }}>
-        <Pressable onPress={onBack} style={{ position:'absolute', left:18 }}><Ionicons name="chevron-back" size={24} color={colors.primary} /></Pressable>
-        <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack }}>Change Password</Text>
+    <KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':undefined} style={{ flex:1, backgroundColor:colors.background }}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.brandPrimaryDark} />
+      <View style={{ backgroundColor:colors.brandPrimaryDark,
+        paddingTop:insets.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:18 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:'#fff', marginLeft:8 }}>Change Password</Text>
+        </View>
       </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal:18, paddingBottom:32 }} keyboardShouldPersistTaps="handled">
-        {([{ label:'Current Password', val:cur, set:setCur }, { label:'New Password', val:nw, set:setNw }, { label:'Confirm Password', val:cf, set:setCf }] as const).map(f => (
-          <View key={f.label} style={{ marginBottom:18 }}>
-            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayBlack, marginBottom:8 }}>{f.label}</Text>
-            <TextInput value={f.val} onChangeText={f.set} secureTextEntry placeholder={f.label} placeholderTextColor={colors.grayGray1} style={inputSt} />
-          </View>
-        ))}
-        {nw.length > 0 && cf.length > 0 && nw !== cf && <Text style={{ fontFamily:colors.fontBody, fontSize:13, color:'#fe0d0d', marginBottom:12 }}>Passwords do not match</Text>}
-        <Pressable onPress={() => ok && (Alert.alert('Success','Password updated successfully.'), onBack())}
-          style={({ pressed }) => [{ backgroundColor: ok ? colors.primary : colors.grayGray4, borderRadius:14, paddingVertical:14, alignItems:'center', marginTop:8, opacity:pressed?0.85:1 }]}>
-          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Update Password</Text>
-        </Pressable>
+      <ScrollView contentContainerStyle={{ padding:18, paddingTop:0, paddingBottom:32 }} keyboardShouldPersistTaps="handled">
+        <View style={{ backgroundColor:colors.card, borderRadius:24, padding:18, marginTop:8,
+          borderWidth:1, borderColor:colors.border }}>
+          {([{ label:'Current Password', val:cur, set:setCur }, { label:'New Password', val:nw, set:setNw }, { label:'Confirm Password', val:cf, set:setCf }] as const).map(f => (
+            <View key={f.label} style={{ marginBottom:18 }}>
+              <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:13, color:colors.grayBlack, marginBottom:8 }}>{f.label}</Text>
+              <TextInput value={f.val} onChangeText={f.set} secureTextEntry placeholder={f.label} placeholderTextColor={colors.grayGray1} style={inputSt} />
+            </View>
+          ))}
+          {nw.length > 0 && cf.length > 0 && nw !== cf && <Text style={{ fontFamily:colors.fontBody, fontSize:13, color:'#fe0d0d', marginBottom:12 }}>Passwords do not match</Text>}
+          <Pressable onPress={() => ok && (Alert.alert('Success','Password updated successfully.'), onBack())}
+            style={({ pressed }) => [{ backgroundColor: ok ? colors.primary : colors.grayGray4, borderRadius:14, paddingVertical:14, alignItems:'center', marginTop:8, opacity:pressed?0.85:1 }]}>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:16, color:colors.primaryForeground }}>Update Password</Text>
+          </Pressable>
+        </View>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -1494,35 +1619,46 @@ function ATwoFAScreen({ colors, insets, onBack }: { colors: AColors; insets: { t
   const [enabled, setEnabled] = useState(false);
   return (
     <View style={{ flex:1, backgroundColor:colors.background }}>
-      <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'center', paddingTop:insets.top+16, paddingHorizontal:18, paddingBottom:14 }}>
-        <Pressable onPress={onBack} style={{ position:'absolute', left:18 }}><Ionicons name="chevron-back" size={24} color={colors.primary} /></Pressable>
-        <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack }}>2FA Authentication</Text>
+      <StatusBar barStyle="light-content" backgroundColor={colors.brandPrimaryDark} />
+      <View style={{ backgroundColor:colors.brandPrimaryDark,
+        paddingTop:insets.top+(Platform.OS==='web'?67:44), paddingBottom:88, paddingHorizontal:18 }}>
+        <Image source={require('../assets/images/design-b/logo-hex.png')}
+          style={{ position:'absolute', right:12, bottom:0, width:160, height:160, opacity:0.12 }}
+          resizeMode="contain" />
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <Pressable onPress={onBack} hitSlop={12}><Ionicons name="chevron-back" size={24} color="#fff" /></Pressable>
+          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:'#fff', marginLeft:8 }}>2FA Authentication</Text>
+        </View>
       </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal:18, paddingBottom:32 }}>
-        <View style={{ alignItems:'center', paddingVertical:28 }}>
-          <View style={{ width:80, height:80, borderRadius:40, backgroundColor:colors.brandPrimaryLight, alignItems:'center', justifyContent:'center', marginBottom:16 }}>
-            <Ionicons name="shield-checkmark-outline" size={40} color={colors.primary} />
-          </View>
-          <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack, marginBottom:8 }}>Two-Factor Authentication</Text>
-          <Text style={{ fontFamily:colors.fontBody, fontSize:14, color:colors.grayGray1, textAlign:'center', lineHeight:20, paddingHorizontal:8 }}>
-            Add an extra layer of security. When enabled, you'll need a code in addition to your password.
-          </Text>
-        </View>
-        <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'space-between', backgroundColor:colors.card, borderRadius:16, padding:18, borderWidth:1, borderColor:colors.border, marginBottom:20 }}>
-          <View style={{ flex:1, marginRight:12 }}>
-            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.grayBlack, marginBottom:4 }}>Enable 2FA</Text>
-            <Text style={{ fontFamily:colors.fontBody, fontSize:13, color:colors.grayGray1 }}>Secure with authenticator app</Text>
-          </View>
-          <Switch value={enabled} onValueChange={v => { setEnabled(v); if (v) Alert.alert('2FA Enabled','Your account is now more secure.'); }} trackColor={{ true:colors.primary }} thumbColor="#fff" />
-        </View>
-        {enabled && (
-          <View style={{ backgroundColor:colors.brandPrimaryLight, borderRadius:16, padding:16 }}>
-            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:14, color:colors.primary, marginBottom:8 }}>Next Steps</Text>
-            <Text style={{ fontFamily:colors.fontBody, fontSize:13, color:colors.grayBlack, lineHeight:20 }}>
-              {'1. Download Google Authenticator\n2. Scan the QR code during setup\n3. Enter the 6-digit code to confirm'}
+      <ScrollView contentContainerStyle={{ padding:18, paddingTop:0, paddingBottom:32 }}>
+        <View style={{ backgroundColor:colors.card, borderRadius:24, padding:18, marginTop:8,
+          borderWidth:1, borderColor:colors.border }}>
+          <View style={{ alignItems:'center', paddingVertical:20 }}>
+            <View style={{ width:80, height:80, borderRadius:40, backgroundColor:colors.brandPrimaryLight, alignItems:'center', justifyContent:'center', marginBottom:16 }}>
+              <Ionicons name="shield-checkmark-outline" size={40} color={colors.primary} />
+            </View>
+            <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:18, color:colors.grayBlack, marginBottom:8 }}>Two-Factor Authentication</Text>
+            <Text style={{ fontFamily:colors.fontBody, fontSize:14, color:colors.grayGray1, textAlign:'center', lineHeight:20, paddingHorizontal:8 }}>
+              Add an extra layer of security. When enabled, you'll need a code in addition to your password.
             </Text>
           </View>
-        )}
+          <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'space-between',
+            backgroundColor:colors.background, borderRadius:16, padding:18, marginBottom:16 }}>
+            <View style={{ flex:1, marginRight:12 }}>
+              <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:15, color:colors.grayBlack, marginBottom:4 }}>Enable 2FA</Text>
+              <Text style={{ fontFamily:colors.fontBody, fontSize:13, color:colors.grayGray1 }}>Secure with authenticator app</Text>
+            </View>
+            <Switch value={enabled} onValueChange={v => { setEnabled(v); if (v) Alert.alert('2FA Enabled','Your account is now more secure.'); }} trackColor={{ true:colors.primary }} thumbColor="#fff" />
+          </View>
+          {enabled && (
+            <View style={{ backgroundColor:colors.brandPrimaryLight, borderRadius:16, padding:16 }}>
+              <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:14, color:colors.primary, marginBottom:8 }}>Next Steps</Text>
+              <Text style={{ fontFamily:colors.fontBody, fontSize:13, color:colors.grayBlack, lineHeight:20 }}>
+                {'1. Download Google Authenticator\n2. Scan the QR code during setup\n3. Enter the 6-digit code to confirm'}
+              </Text>
+            </View>
+          )}
+        </View>
       </ScrollView>
     </View>
   );
