@@ -29,7 +29,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
+import { cacheDirectory, writeAsStringAsync } from 'expo-file-system/legacy';
 import { WebView } from 'react-native-webview';
 import {
   AirtimeIcon,
@@ -2702,8 +2702,8 @@ function ReceiptScreen({
     const b64 = event.nativeEvent.data.replace(/^data:image\/jpeg;base64,/,'');
     setImgHTML(null); setImgBusy(false);
     try {
-      const uri = (FileSystem.cacheDirectory ?? '') + 'drcs_receipt.jpg';
-      await FileSystem.writeAsStringAsync(uri, b64, { encoding: FileSystem.EncodingType.Base64 });
+      const uri = (cacheDirectory ?? '') + 'drcs_receipt.jpg';
+      await writeAsStringAsync(uri, b64, { encoding: 'base64' });
       await Sharing.shareAsync(uri, { mimeType:'image/jpeg', dialogTitle:'Share Receipt Image' });
     } catch { Alert.alert('Error','Could not share image. Please try again.'); }
   };
