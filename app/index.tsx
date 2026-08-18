@@ -21,6 +21,8 @@ import {
 } from 'react-native';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
+import { WebView } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
@@ -1046,8 +1048,9 @@ function makeReceiptHTML(title:string, amount:string, status:string, rows:{label
 <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,Arial,sans-serif;background:#f0f4ff;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}.card{background:#fff;border-radius:20px;max-width:420px;width:100%;padding:32px;box-shadow:0 4px 24px rgba(0,0,0,.1)}.top{text-align:center;padding-bottom:24px;border-bottom:1px solid #eee}.badge{width:64px;height:64px;border-radius:50%;background:${sc};color:#fff;font-size:32px;line-height:64px;margin:0 auto 12px;text-align:center}.amount{font-size:30px;font-weight:700;color:#012d80;margin:8px 0 4px}.title{color:#666;font-size:15px}.rows{padding:8px 0}.row{display:flex;justify-content:space-between;align-items:flex-start;padding:12px 0;border-bottom:1px solid #f3f3f3}.row:last-child{border-bottom:none}.lbl{color:#888;font-size:13px}.val{color:#111;font-size:13px;font-weight:600;text-align:right;max-width:55%;margin-left:12px}.footer{text-align:center;margin-top:20px;font-size:11px;color:#bbb}</style>
 </head><body><div class="card"><div class="top"><div class="badge">${status==='success'?'✓':'✗'}</div><div class="amount">${amount}</div><div class="title">${title}</div></div><div class="rows">${rows.map(r=>`<div class="row"><span class="lbl">${r.label}</span><span class="val">${r.value}</span></div>`).join('')}</div><div class="footer">DRCS DATA — Official Transaction Receipt</div></div></body></html>`;
 }
-function makeReceiptText(title:string, amount:string, rows:{label:string;value:string}[]):string {
-  return ['🧾 DRCS DATA Receipt','═══════════════════',title,`Amount: ${amount}`,'───────────────────',...rows.map(r=>`${r.label}: ${r.value}`),'═══════════════════','Sent via DRCS DATA App'].join('\n');
+function buildReceiptCanvasHTML(title:string, amount:string, status:string, rows:{label:string;value:string}[]):string {
+  const payload = JSON.stringify({title,amount,status,rows}).replace(/<\/script>/gi,'<\\/script>');
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"/></head><body style="margin:0;padding:0;background:#fff"><canvas id="c"></canvas><script>(function(){var d=${payload};var rows=d.rows,title=d.title,amount=d.amount,ok=d.status==='success';var W=800,rowH=62,H=310+rows.length*rowH+64;var c=document.getElementById('c');c.width=W;c.height=H;var ctx=c.getContext('2d');ctx.fillStyle='#012d80';ctx.fillRect(0,0,W,248);ctx.fillStyle='#eef2ff';ctx.fillRect(0,248,W,H-248);ctx.beginPath();ctx.arc(W/2,76,38,0,Math.PI*2);ctx.fillStyle=ok?'#22c55e':'#ef4444';ctx.fill();ctx.font='bold 38px Arial';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(ok?'\u2713':'\u2717',W/2,76);ctx.textBaseline='alphabetic';ctx.font='bold 44px Arial';ctx.fillStyle='#fff';ctx.fillText(amount,W/2,160);ctx.font='21px Arial';ctx.fillStyle='rgba(255,255,255,0.82)';ctx.fillText(ok?'Transaction Successful':'Transaction Failed',W/2,202);ctx.save();ctx.shadowColor='rgba(0,0,0,0.09)';ctx.shadowBlur=28;ctx.shadowOffsetY=4;rr(ctx,40,222,W-80,H-262,24);ctx.fillStyle='#fff';ctx.fill();ctx.restore();ctx.font='bold 26px Arial';ctx.fillStyle='#1a1a2e';ctx.textAlign='center';ctx.fillText('Transaction Details',W/2,274);ctx.strokeStyle='#eee';ctx.lineWidth=1;ln(ctx,80,292,W-80,292);rows.forEach(function(row,i){var y=336+i*rowH;ctx.font='19px Arial';ctx.fillStyle='#8a8fa8';ctx.textAlign='left';ctx.fillText(row.label,80,y);ctx.font='bold 19px Arial';ctx.fillStyle='#1a1a2e';ctx.textAlign='right';var v=row.value.length>28?row.value.slice(0,28)+'\u2026':row.value;ctx.fillText(v,W-80,y);if(i<rows.length-1){ctx.strokeStyle='#f0f0f0';ctx.lineWidth=1;ln(ctx,80,y+22,W-80,y+22);}});ctx.font='16px Arial';ctx.fillStyle='#aab0c8';ctx.textAlign='center';ctx.fillText('DRCS DATA \u2014 Official Transaction Receipt',W/2,H-36);window.ReactNativeWebView.postMessage(c.toDataURL('image/jpeg',0.93));function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();}function ln(ctx,x1,y1,x2,y2){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();}})();<\/script></body></html>`;
 }
 
 function AReceiptScreen({ data, colors, onClose, onRetry }: {
@@ -1056,6 +1059,8 @@ function AReceiptScreen({ data, colors, onClose, onRetry }: {
   const ins = useSafeAreaInsets();
   const ok = data.status==='success';
   const [busy, setBusy] = useState(false);
+  const [imgHTML, setImgHTML] = useState<string|null>(null);
+  const [imgBusy, setImgBusy] = useState(false);
 
   const handleSharePDF = async () => {
     if (busy) return;
@@ -1069,11 +1074,20 @@ function AReceiptScreen({ data, colors, onClose, onRetry }: {
     } finally { setBusy(false); }
   };
 
-  const handleShareImage = async () => {
+  const handleShareImage = () => {
+    if (imgBusy) return;
+    setImgBusy(true);
+    setImgHTML(buildReceiptCanvasHTML(data.title, data.amount, data.status, data.rows));
+  };
+
+  const onWebViewMsg = async (event:{nativeEvent:{data:string}}) => {
+    const b64 = event.nativeEvent.data.replace(/^data:image\/jpeg;base64,/,'');
+    setImgHTML(null); setImgBusy(false);
     try {
-      const text = makeReceiptText(data.title, data.amount, data.rows);
-      await Share.share({ message: text, title:'DRCS Receipt' });
-    } catch { /* dismissed */ }
+      const uri = (FileSystem.cacheDirectory ?? '') + 'drcs_receipt.jpg';
+      await FileSystem.writeAsStringAsync(uri, b64, { encoding: FileSystem.EncodingType.Base64 });
+      await Sharing.shareAsync(uri, { mimeType:'image/jpeg', dialogTitle:'Share Receipt Image' });
+    } catch { Alert.alert('Error','Could not share image. Please try again.'); }
   };
 
   return (
@@ -1109,12 +1123,12 @@ function AReceiptScreen({ data, colors, onClose, onRetry }: {
           {ok ? (
             <>
               <View style={{ flexDirection:'row', gap:12 }}>
-                <Pressable onPress={handleShareImage}
+                <Pressable onPress={handleShareImage} disabled={imgBusy}
                   style={({ pressed }) => [{ flex:1, flexDirection:'row', gap:5,
                     borderWidth:1.5, borderColor:colors.primary, borderRadius:26, paddingVertical:13,
-                    alignItems:'center', justifyContent:'center', opacity:pressed?0.75:1 }]}>
+                    alignItems:'center', justifyContent:'center', opacity:(pressed||imgBusy)?0.55:1 }]}>
                   <Ionicons name="image-outline" size={15} color={colors.primary} />
-                  <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:12, color:colors.primary }}>Share as Image</Text>
+                  <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:12, color:colors.primary }}>{imgBusy?'Generating…':'Share as Image'}</Text>
                 </Pressable>
                 <Pressable onPress={handleSharePDF} disabled={busy}
                   style={({ pressed }) => [{ flex:1, flexDirection:'row', gap:5,
@@ -1137,6 +1151,11 @@ function AReceiptScreen({ data, colors, onClose, onRetry }: {
           )}
         </View>
       </View>
+      {imgHTML ? (
+        <View style={{ position:'absolute', top:-2000, left:-2000, width:400, height:600 }}>
+          <WebView source={{ html:imgHTML }} onMessage={onWebViewMsg} javaScriptEnabled />
+        </View>
+      ) : null}
     </View>
   );
 }

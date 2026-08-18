@@ -38,7 +38,7 @@ const defaultBlockPatterns = Array.isArray(defaultBlockList)
 
 config.resolver.blockList = new RegExp(
   [
-    /\/\.local\/skills\/\.tmp-.*/,
+    /\/\.local\/skills\/.*/,   // ignore all temporary skill workspace files
     ...defaultBlockPatterns,
   ]
     .map((pattern) => pattern.source)
