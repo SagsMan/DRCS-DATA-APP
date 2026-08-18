@@ -10,6 +10,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  Share,
   StatusBar,
   StyleSheet,
   Switch,
@@ -18,6 +19,8 @@ import {
   View,
   useColorScheme,
 } from 'react-native';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
@@ -1036,11 +1039,43 @@ function APinModal({ colors, onClose, onSubmit }: { colors:AColors; onClose:()=>
   );
 }
 
+// ─── Receipt share helpers ────────────────────────────────────────────────────
+function makeReceiptHTML(title:string, amount:string, status:string, rows:{label:string;value:string}[]):string {
+  const sc = status==='success'?'#22c55e':'#ef4444';
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,Arial,sans-serif;background:#f0f4ff;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}.card{background:#fff;border-radius:20px;max-width:420px;width:100%;padding:32px;box-shadow:0 4px 24px rgba(0,0,0,.1)}.top{text-align:center;padding-bottom:24px;border-bottom:1px solid #eee}.badge{width:64px;height:64px;border-radius:50%;background:${sc};color:#fff;font-size:32px;line-height:64px;margin:0 auto 12px;text-align:center}.amount{font-size:30px;font-weight:700;color:#012d80;margin:8px 0 4px}.title{color:#666;font-size:15px}.rows{padding:8px 0}.row{display:flex;justify-content:space-between;align-items:flex-start;padding:12px 0;border-bottom:1px solid #f3f3f3}.row:last-child{border-bottom:none}.lbl{color:#888;font-size:13px}.val{color:#111;font-size:13px;font-weight:600;text-align:right;max-width:55%;margin-left:12px}.footer{text-align:center;margin-top:20px;font-size:11px;color:#bbb}</style>
+</head><body><div class="card"><div class="top"><div class="badge">${status==='success'?'✓':'✗'}</div><div class="amount">${amount}</div><div class="title">${title}</div></div><div class="rows">${rows.map(r=>`<div class="row"><span class="lbl">${r.label}</span><span class="val">${r.value}</span></div>`).join('')}</div><div class="footer">DRCS DATA — Official Transaction Receipt</div></div></body></html>`;
+}
+function makeReceiptText(title:string, amount:string, rows:{label:string;value:string}[]):string {
+  return ['🧾 DRCS DATA Receipt','═══════════════════',title,`Amount: ${amount}`,'───────────────────',...rows.map(r=>`${r.label}: ${r.value}`),'═══════════════════','Sent via DRCS DATA App'].join('\n');
+}
+
 function AReceiptScreen({ data, colors, onClose, onRetry }: {
   data:AReceiptData; colors:AColors; onClose:()=>void; onRetry:()=>void;
 }) {
   const ins = useSafeAreaInsets();
   const ok = data.status==='success';
+  const [busy, setBusy] = useState(false);
+
+  const handleSharePDF = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const html = makeReceiptHTML(data.title, data.amount, data.status, data.rows);
+      const { uri } = await Print.printToFileAsync({ html, base64: false });
+      await Sharing.shareAsync(uri, { mimeType:'application/pdf', dialogTitle:'Share Receipt' });
+    } catch {
+      Alert.alert('Error', 'Could not generate PDF. Please try again.');
+    } finally { setBusy(false); }
+  };
+
+  const handleShareImage = async () => {
+    try {
+      const text = makeReceiptText(data.title, data.amount, data.rows);
+      await Share.share({ message: text, title:'DRCS Receipt' });
+    } catch { /* dismissed */ }
+  };
+
   return (
     <View style={{ flex:1, backgroundColor:colors.primary }}>
       <View style={{ alignItems:'center', paddingTop:ins.top+(Platform.OS==='web'?67:52), paddingBottom:32 }}>
@@ -1074,16 +1109,20 @@ function AReceiptScreen({ data, colors, onClose, onRetry }: {
           {ok ? (
             <>
               <View style={{ flexDirection:'row', gap:12 }}>
-                {[{icon:'image-outline',lbl:'Share as Image'},{icon:'document-outline',lbl:'Share as PDF'}].map(b=>(
-                  <Pressable key={b.lbl}
-                    onPress={() => Alert.alert(b.lbl, `Receipt will be shared as ${b.lbl.split(' ')[2]}.`)}
-                    style={({ pressed }) => [{ flex:1, flexDirection:'row', gap:5,
-                      borderWidth:1.5, borderColor:colors.primary, borderRadius:26, paddingVertical:13,
-                      alignItems:'center', justifyContent:'center', opacity:pressed?0.75:1 }]}>
-                    <Ionicons name={b.icon as any} size={15} color={colors.primary} />
-                    <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:12, color:colors.primary }}>{b.lbl}</Text>
-                  </Pressable>
-                ))}
+                <Pressable onPress={handleShareImage}
+                  style={({ pressed }) => [{ flex:1, flexDirection:'row', gap:5,
+                    borderWidth:1.5, borderColor:colors.primary, borderRadius:26, paddingVertical:13,
+                    alignItems:'center', justifyContent:'center', opacity:pressed?0.75:1 }]}>
+                  <Ionicons name="image-outline" size={15} color={colors.primary} />
+                  <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:12, color:colors.primary }}>Share as Image</Text>
+                </Pressable>
+                <Pressable onPress={handleSharePDF} disabled={busy}
+                  style={({ pressed }) => [{ flex:1, flexDirection:'row', gap:5,
+                    borderWidth:1.5, borderColor:colors.primary, borderRadius:26, paddingVertical:13,
+                    alignItems:'center', justifyContent:'center', opacity:(pressed||busy)?0.55:1 }]}>
+                  <Ionicons name="document-outline" size={15} color={colors.primary} />
+                  <Text style={{ fontFamily:colors.fontBodySemiBold, fontSize:12, color:colors.primary }}>{busy?'Generating…':'Share as PDF'}</Text>
+                </Pressable>
               </View>
               <Pressable onPress={onClose} style={({ pressed }) => [{ backgroundColor:colors.primary,
                 borderRadius:26, minHeight:52, alignItems:'center', justifyContent:'center', opacity:pressed?0.82:1 }]}>

@@ -60,6 +60,9 @@
     "@expo-google-fonts/poppins": "^0.4.1",
     "@expo-google-fonts/roboto": "^0.4.3",
     "expo-contacts": "~15.0.11",
+    "expo-file-system": "~19.0.24",
+    "expo-print": "~15.0.8",
+    "expo-sharing": "~14.0.8",
     "react-compiler-runtime": "^1.0.0"
   }
 }
